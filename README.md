@@ -10,6 +10,10 @@ Sistem ini menerapkan Role-Based Access Control (RBAC) dengan 3 aktor utama:
 * **Admin Keuangan:** Bertanggung jawab penuh atas validasi keuangan, pemeriksaan berkas bukti transfer, persetujuan/penolakan pembayaran (dilengkapi catatan error), dan pemantauan rekapitulasi dana pendaftaran keseluruhan.
 * **Panitia Lomba (Kadiv/Perwakilan):** Pengelola teknis operasional kompetisi. Memiliki hak akses terisolasi untuk memverifikasi berkas identitas peserta (KTM, Twibbon), mengelola lini masa (timeline) lomba, dan menerbitkan pengumuman di dashboard peserta.
 
+## 📊 Use Case Diagram
+<img width="1021" height="967" alt="UseCase_Admin" src="https://github.com/user-attachments/assets/9de70cba-7152-457c-b4dc-2c6b8d81f6d5" />
+
+
 ## 🛠️ Tech Stack
 
 * **Framework:** Laravel 12
