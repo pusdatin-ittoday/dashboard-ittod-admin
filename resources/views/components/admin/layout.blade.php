@@ -14,52 +14,15 @@
         </div>
     </x-slot>
 
-    <div class="bg-gray-50">
-        <div class="mx-auto flex max-w-7xl gap-6 px-4 py-8 sm:px-6 lg:px-8">
-            <aside class="hidden w-64 shrink-0 lg:block">
-                <div class="sticky top-8 space-y-2">
-                    <x-admin.sidebar-link :href="route('admin.dashboard')" :active="request()->routeIs('admin.dashboard')">
-                        Overview
-                    </x-admin.sidebar-link>
-                    <x-admin.sidebar-link :href="route('admin.staff.index')" :active="request()->routeIs('admin.staff.*')">
-                        Manajemen Staff
-                    </x-admin.sidebar-link>
-                    <x-admin.sidebar-link :href="route('admin.transactions.index')" :active="request()->routeIs('admin.transactions.*')">
-                        Verifikasi Transaksi
-                    </x-admin.sidebar-link>
-                    <x-admin.sidebar-link :href="route('admin.files-participants.index')" :active="request()->routeIs('admin.files-participants.*')">
-                        Berkas & Peserta
-                    </x-admin.sidebar-link>
-                    <x-admin.sidebar-link :href="route('admin.timelines.index')" :active="request()->routeIs('admin.timelines.*')">
-                        Timeline Kompetisi
-                    </x-admin.sidebar-link>
+    <div class="bg-white">
+        <div class="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
+            @if (session('status'))
+                <div class="mb-6 rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-medium text-emerald-800">
+                    {{ session('status') }}
                 </div>
-            </aside>
+            @endif
 
-            <div class="min-w-0 flex-1">
-                <div class="mb-6 grid gap-2 sm:hidden">
-                    <x-admin.sidebar-link :href="route('admin.dashboard')" :active="request()->routeIs('admin.dashboard')">
-                        Overview
-                    </x-admin.sidebar-link>
-                    <x-admin.sidebar-link :href="route('admin.transactions.index')" :active="request()->routeIs('admin.transactions.*')">
-                        Verifikasi Transaksi
-                    </x-admin.sidebar-link>
-                    <x-admin.sidebar-link :href="route('admin.files-participants.index')" :active="request()->routeIs('admin.files-participants.*')">
-                        Berkas & Peserta
-                    </x-admin.sidebar-link>
-                    <x-admin.sidebar-link :href="route('admin.timelines.index')" :active="request()->routeIs('admin.timelines.*')">
-                        Timeline
-                    </x-admin.sidebar-link>
-                </div>
-
-                @if (session('status'))
-                    <div class="mb-6 rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-medium text-emerald-800">
-                        {{ session('status') }}
-                    </div>
-                @endif
-
-                {{ $slot }}
-            </div>
+            {{ $slot }}
         </div>
     </div>
 </x-app-layout>

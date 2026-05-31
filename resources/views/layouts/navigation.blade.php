@@ -15,8 +15,17 @@
                     <x-nav-link :href="route('admin.dashboard')" :active="request()->routeIs('dashboard') || request()->routeIs('admin.dashboard')">
                         {{ __('Dashboard') }}
                     </x-nav-link>
+                    <x-nav-link :href="route('admin.staff.index')" :active="request()->routeIs('admin.staff.*')">
+                        {{ __('Manajemen Staff') }}
+                    </x-nav-link>
                     <x-nav-link :href="route('admin.transactions.index')" :active="request()->routeIs('admin.transactions.*')">
                         {{ __('Verifikasi Transaksi') }}
+                    </x-nav-link>
+                    <x-nav-link :href="route('admin.files-participants.index')" :active="request()->routeIs('admin.files-participants.*')">
+                        {{ __('Berkas & Peserta') }}
+                    </x-nav-link>
+                    <x-nav-link :href="route('admin.timelines.index')" :active="request()->routeIs('admin.timelines.*')">
+                        {{ __('Timeline Kompetisi') }}
                     </x-nav-link>
                 </div>
             </div>
@@ -73,8 +82,17 @@
             <x-responsive-nav-link :href="route('admin.dashboard')" :active="request()->routeIs('dashboard') || request()->routeIs('admin.dashboard')">
                 {{ __('Dashboard') }}
             </x-responsive-nav-link>
+            <x-responsive-nav-link :href="route('admin.staff.index')" :active="request()->routeIs('admin.staff.*')">
+                {{ __('Manajemen Staff') }}
+            </x-responsive-nav-link>
             <x-responsive-nav-link :href="route('admin.transactions.index')" :active="request()->routeIs('admin.transactions.*')">
                 {{ __('Verifikasi Transaksi') }}
+            </x-responsive-nav-link>
+            <x-responsive-nav-link :href="route('admin.files-participants.index')" :active="request()->routeIs('admin.files-participants.*')">
+                {{ __('Berkas & Peserta') }}
+            </x-responsive-nav-link>
+            <x-responsive-nav-link :href="route('admin.timelines.index')" :active="request()->routeIs('admin.timelines.*')">
+                {{ __('Timeline Kompetisi') }}
             </x-responsive-nav-link>
         </div>
 

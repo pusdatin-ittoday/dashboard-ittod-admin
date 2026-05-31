@@ -13,7 +13,7 @@
         <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
             <div>
                 <h2 class="text-lg font-semibold text-gray-950">Prioritas Hari Ini</h2>
-                <p class="text-sm text-gray-600">Gunakan modul di sidebar untuk masuk ke antrean kerja masing-masing.</p>
+                <p class="text-sm text-gray-600">Gunakan menu navigasi untuk masuk ke antrean kerja masing-masing.</p>
             </div>
             <a href="{{ route('admin.transactions.index') }}" class="inline-flex items-center justify-center rounded-md bg-gray-950 px-4 py-2 text-sm font-semibold text-white hover:bg-gray-800">
                 Buka Verifikasi
