@@ -3,6 +3,7 @@
 use App\Http\Controllers\Admin\AdminDashboardController;
 use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\TransactionController;
 
 Route::get('/', function () {
     return view('welcome');
@@ -26,6 +27,11 @@ Route::middleware('auth')->group(function () {
         Route::get('/files-participants', [AdminDashboardController::class, 'filesParticipants'])->name('files-participants.index');
         Route::get('/timelines', [AdminDashboardController::class, 'timelines'])->name('timelines.index');
     });
+});
+
+Route::middleware(['auth'])->group(function () {
+    Route::post('/transaction/{teamId}/verify', [TransactionController::class, 'verify']);
+    Route::get('/transaction/recap', [TransactionController::class, 'getRecap']);
 });
 
 require __DIR__.'/auth.php';

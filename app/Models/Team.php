@@ -30,7 +30,7 @@ class Team extends Model
     ];
 
     protected $casts = [
-        'is_verified' => 'boolean',
+        'is_verified' => 'integer',
         'max_member' => 'integer',
     ];
 

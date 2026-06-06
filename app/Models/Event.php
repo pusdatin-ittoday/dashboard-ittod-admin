@@ -27,6 +27,7 @@ class Event extends Model
         'contact_person1',
         'contact_person2',
         'max_noncompetition_participant',
+        'price',
     ];
 
     /**

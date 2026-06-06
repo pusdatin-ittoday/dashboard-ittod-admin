@@ -17,6 +17,7 @@ return new class extends Migration
             $table->text('description');
             $table->text('guide_book_url');
             $table->enum('type', ['competition', 'non_competition']);
+            $table->integer('price')->default(0);
             $table->string('contact_person1', 191);
             $table->string('contact_person2', 191)->nullable();
             $table->integer('max_noncompetition_participant')->nullable();
