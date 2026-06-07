@@ -1,97 +1,101 @@
-<x-app-layout>
-    <x-slot name="header">
-        <div class="flex justify-between items-center">
-            <h2 class="font-bold text-2xl text-gray-800 leading-tight">
-                {{ __('Lini Masa Kompetisi') }}
-            </h2>
-            <a href="{{ route('timeline.create') }}" class="inline-flex items-center gap-1.5 px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-sm rounded-xl shadow-sm hover:shadow-md transition duration-200">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
-                </svg>
-                <span>Tambah Lini Masa</span>
-            </a>
-        </div>
-    </x-slot>
-
-    <div class="py-10 bg-gray-50 min-h-screen">
-        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8 space-y-6">
-
-            @if(session('success'))
-                <div class="p-4 bg-emerald-50 border-l-4 border-emerald-500 rounded-r-lg shadow-sm text-emerald-800 flex items-center gap-3 transition duration-300">
-                    <svg class="w-5 h-5 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                    </svg>
-                    <span class="font-medium text-sm">{{ session('success') }}</span>
-                </div>
-            @endif
-
-            <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-                <div class="px-8 py-6 border-b border-gray-100">
-                    <h3 class="text-lg font-bold text-gray-800">Daftar Agenda Kegiatan</h3>
-                    <p class="text-xs text-gray-400 mt-0.5">Kelola lini masa resmi seluruh kompetisi IT Today.</p>
-                </div>
-
-                <div class="overflow-x-auto">
-                    <table class="w-full text-left border-collapse">
-                        <thead>
-                            <tr class="bg-gray-50 text-xs font-semibold uppercase tracking-wider text-gray-400 border-b border-gray-100">
-                                <th class="px-8 py-4">Nama Agenda / Kegiatan</th>
-                                <th class="px-6 py-4">Cabang Kegiatan / Event</th>
-                                <th class="px-6 py-4">Tanggal Pelaksanaan</th>
-                                <th class="px-8 py-4 text-right">Aksi</th>
-                            </tr>
-                        </thead>
-                        <tbody class="divide-y divide-gray-100 text-sm text-gray-600">
-                            @forelse($timelines as $timeline)
-                                <tr class="hover:bg-gray-50/70 transition duration-150">
-                                    <td class="px-8 py-5">
-                                        <div class="font-semibold text-gray-800 text-base">{{ $timeline->title }}</div>
-                                    </td>
-                                    <td class="px-6 py-5">
-                                        <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-indigo-50 text-indigo-700 border border-indigo-100 shadow-sm">
-                                            {{ $timeline->event->title ?? $timeline->event_id }}
-                                        </span>
-                                    </td>
-                                    <td class="px-6 py-5">
-                                        <div class="flex items-center gap-2 text-gray-700">
-                                            <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
-                                            </svg>
-                                            <span class="font-medium">
-                                                {{ $timeline->date ? $timeline->date->format('d M Y - H:i') : '-' }}
-                                            </span>
-                                        </div>
-                                    </td>
-                                    <td class="px-8 py-5 text-right flex items-center justify-end gap-3 h-full">
-                                        <a href="{{ route('timeline.edit', $timeline->id) }}" class="inline-flex items-center gap-1 px-3 py-1.5 bg-amber-50 hover:bg-amber-100 border border-amber-200 text-amber-800 font-semibold text-xs rounded-xl shadow-sm transition">
-                                            Edit
-                                        </a>
-                                        <form action="{{ route('timeline.destroy', $timeline->id) }}" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin menghapus agenda ini?');" class="inline">
-                                            @csrf
-                                            @method('DELETE')
-                                            <button type="submit" class="inline-flex items-center gap-1 px-3 py-1.5 bg-rose-50 hover:bg-rose-100 border border-rose-200 text-rose-800 font-semibold text-xs rounded-xl shadow-sm transition">
-                                                Hapus
-                                            </button>
-                                        </form>
-                                    </td>
-                                </tr>
-                            @empty
-                                <tr>
-                                    <td colspan="4" class="px-8 py-12 text-center text-gray-400">
-                                        <div class="flex flex-col items-center justify-center gap-2">
-                                            <svg class="w-12 h-12 text-gray-300 animate-bounce" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
-                                            </svg>
-                                            <p class="font-medium text-base">Lini masa kegiatan masih kosong</p>
-                                        </div>
-                                    </td>
-                                </tr>
-                            @endforelse
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-
-        </div>
+<x-admin.layout
+    title="Lini Masa Kegiatan"
+    subtitle="Kelola lini masa resmi kegiatan non-kompetisi IT Today."
+>
+    <div class="mb-6 flex flex-wrap justify-end gap-3">
+        <a href="{{ route('timeline.create') }}" class="inline-flex items-center justify-center rounded-md bg-emerald-700 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-800">
+            Tambah Lini Masa
+        </a>
     </div>
-</x-app-layout>
+
+    @if(session('success'))
+        <div class="mb-6 rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-medium text-emerald-800">
+            {{ session('success') }}
+        </div>
+    @endif
+
+    <section x-data="{ search: '' }" class="overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm">
+        <div class="flex flex-col gap-3 border-b border-gray-200 px-6 py-5 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+                <div class="flex flex-wrap items-center gap-3">
+                    <h2 class="text-xl font-semibold text-gray-950">Direktori Agenda Kegiatan</h2>
+                    <span class="rounded border border-indigo-200 bg-indigo-50 px-2 py-1 text-[10px] font-bold uppercase text-indigo-700">
+                        Timeline Records
+                    </span>
+                </div>
+                <p class="mt-1 text-xs font-semibold uppercase tracking-wide text-gray-700">Agenda non-kompetisi, kegiatan, dan tanggal pelaksanaan</p>
+            </div>
+            <p class="text-xs font-semibold uppercase tracking-wide text-gray-500">{{ $timelines->count() }} records detected</p>
+        </div>
+
+        <div class="border-b border-gray-200 px-6 py-4">
+            <label class="relative block">
+                <span class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3 text-gray-400">
+                    <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m21 21-4.35-4.35m1.35-5.65a7 7 0 1 1-14 0 7 7 0 0 1 14 0z"></path>
+                    </svg>
+                </span>
+                <input
+                    type="search"
+                    x-model="search"
+                    placeholder="Search agenda, kegiatan, atau tanggal..."
+                    class="w-full rounded-md border-gray-300 pl-10 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                >
+            </label>
+        </div>
+
+        <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th class="px-6 py-3 text-left text-xs font-bold uppercase text-gray-600">Agenda</th>
+                        <th class="px-6 py-3 text-left text-xs font-bold uppercase text-gray-600">Kegiatan</th>
+                        <th class="px-6 py-3 text-left text-xs font-bold uppercase text-gray-600">Tanggal Pelaksanaan</th>
+                        <th class="px-6 py-3 text-right text-xs font-bold uppercase text-gray-600">Aksi</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-200 bg-white">
+                    @forelse($timelines as $timeline)
+                        <tr
+                            x-show="$el.dataset.search.includes(search.toLowerCase())"
+                            data-search="{{ Str::lower($timeline->title . ' ' . ($timeline->event->title ?? $timeline->event_id) . ' ' . ($timeline->event?->type ?? '') . ' ' . ($timeline->date?->format('d M Y H:i') ?? '')) }}"
+                            class="hover:bg-gray-50"
+                        >
+                            <td class="px-6 py-4">
+                                <p class="font-semibold text-gray-950">{{ $timeline->title }}</p>
+                                <p class="mt-1 text-xs text-gray-500">ID: {{ $timeline->id }}</p>
+                            </td>
+                            <td class="px-6 py-4">
+                                <span class="inline-flex rounded border border-indigo-100 bg-indigo-50 px-2 py-1 text-[11px] font-bold uppercase text-indigo-700">
+                                    {{ $timeline->event->title ?? $timeline->event_id }}
+                                </span>
+                            </td>
+                            <td class="px-6 py-4 text-sm font-semibold text-gray-700">
+                                {{ $timeline->date ? $timeline->date->format('d M Y H:i') : '-' }}
+                            </td>
+                            <td class="px-6 py-4 text-right">
+                                <div class="flex items-center justify-end gap-2">
+                                    <a href="{{ route('timeline.edit', $timeline->id) }}" class="rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-sm font-semibold text-amber-800 hover:bg-amber-100">
+                                        Edit
+                                    </a>
+                                    <form action="{{ route('timeline.destroy', $timeline->id) }}" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin menghapus agenda ini?');">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="submit" class="rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm font-semibold text-red-700 hover:bg-red-100">
+                                            Hapus
+                                        </button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                    @empty
+                        <tr>
+                            <td colspan="4" class="px-6 py-10 text-center text-sm text-gray-600">Belum ada lini masa kegiatan.</td>
+                        </tr>
+                    @endforelse
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+</x-admin.layout>

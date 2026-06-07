@@ -1,80 +1,104 @@
-<x-app-layout>
-    <x-slot name="header">
-        <div class="flex items-center gap-4">
-            <a href="{{ route('timeline.index') }}" class="p-2 hover:bg-gray-100 rounded-xl transition duration-200 text-gray-500 hover:text-gray-700">
-                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
-                </svg>
-            </a>
+<x-admin.layout
+    title="Tambah Lini Masa Baru"
+    subtitle="Definisikan tanggal penting untuk kegiatan non-kompetisi."
+>
+    @if ($errors->any())
+        <div class="mb-6 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+            <p class="font-semibold">Lini masa belum bisa disimpan.</p>
+            <ul class="mt-2 list-disc space-y-1 pl-5">
+                @foreach ($errors->all() as $error)
+                    <li>{{ $error }}</li>
+                @endforeach
+            </ul>
+        </div>
+    @endif
+
+    <section class="mx-auto max-w-3xl overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm">
+        <div class="border-b border-gray-200 px-6 py-5">
+            <h2 class="text-xl font-semibold text-gray-950">Form Lini Masa</h2>
+            <p class="mt-1 text-sm text-gray-600">Isi rincian kegiatan dan tanggal pelaksanaan agenda.</p>
+        </div>
+
+        <form action="{{ route('timeline.store') }}" method="POST" class="space-y-5 px-6 py-5">
+            @csrf
+
             <div>
-                <h2 class="font-bold text-2xl text-gray-800 leading-tight">
-                    {{ __('Tambah Lini Masa Baru') }}
-                </h2>
-                <p class="text-xs text-gray-400 mt-0.5">Definisikan tanggal penting kompetisi baru.</p>
-            </div>
-        </div>
-    </x-slot>
-
-    <div class="py-10 bg-gray-50 min-h-screen">
-        <div class="max-w-3xl mx-auto sm:px-6 lg:px-8">
-
-            @if ($errors->any())
-                <div class="mb-6 p-4 bg-rose-50 border-l-4 border-rose-500 rounded-r-lg shadow-sm text-rose-800">
-                    <div class="font-bold text-sm mb-1">Terjadi kesalahan input:</div>
-                    <ul class="list-disc list-inside text-xs space-y-1">
-                        @foreach ($errors->all() as $error)
-                            <li>{{ $error }}</li>
-                        @endforeach
-                    </ul>
+                <div class="mb-2 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                    <label for="event_id" class="block text-sm font-semibold text-gray-700">Pilih Kegiatan</label>
+                    <button
+                        type="button"
+                        x-data
+                        x-on:click="$dispatch('open-modal', 'create-event')"
+                        class="inline-flex items-center justify-center rounded-md border border-gray-300 px-3 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50"
+                    >
+                        Tambah Kegiatan
+                    </button>
                 </div>
-            @endif
-
-            <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-                <div class="p-8 border-b border-gray-100">
-                    <h3 class="text-lg font-bold text-gray-800">Form Lini Masa</h3>
-                    <p class="text-xs text-gray-400 mt-0.5">Isi rincian event dan tanggal pelaksanaan agenda.</p>
-                </div>
-
-                <form action="{{ route('timeline.store') }}" method="POST" class="p-8 space-y-6">
-                    @csrf
-
-                    <!-- Event Dropdown -->
-                    <div>
-                        <label for="event_id" class="block text-sm font-bold text-gray-700 mb-2">Pilih Cabang Event / Lomba</label>
-                        <select name="event_id" id="event_id" required class="w-full text-sm px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition">
-                            <option value="" disabled selected>-- Pilih Cabang --</option>
-                            @foreach($events as $event)
-                                <option value="{{ $event->id }}" {{ old('event_id') === $event->id ? 'selected' : '' }}>
-                                    {{ $event->title }} ({{ $event->type }})
-                                </option>
-                            @endforeach
-                        </select>
-                    </div>
-
-                    <!-- Title -->
-                    <div>
-                        <label for="title" class="block text-sm font-bold text-gray-700 mb-2">Nama Agenda Kegiatan</label>
-                        <input type="text" name="title" id="title" value="{{ old('title') }}" required placeholder="Contoh: Pembukaan Pendaftaran Tahap 1..." class="w-full text-sm px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition">
-                    </div>
-
-                    <!-- Date -->
-                    <div>
-                        <label for="date" class="block text-sm font-bold text-gray-700 mb-2">Tanggal & Waktu Pelaksanaan</label>
-                        <input type="datetime-local" name="date" id="date" value="{{ old('date') }}" required class="w-full text-sm px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition">
-                    </div>
-
-                    <!-- Action Buttons -->
-                    <div class="pt-4 border-t border-gray-100 flex justify-end gap-3">
-                        <a href="{{ route('timeline.index') }}" class="px-5 py-3 border border-gray-200 text-gray-700 hover:bg-gray-50 font-bold rounded-xl text-sm transition">
-                            Batal
-                        </a>
-                        <button type="submit" class="px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl shadow-md hover:shadow-lg transition duration-200 text-sm">
-                            Simpan Agenda
-                        </button>
-                    </div>
-                </form>
+                <select name="event_id" id="event_id" required class="w-full rounded-md border-gray-300 text-sm shadow-sm focus:border-emerald-500 focus:ring-emerald-500">
+                    <option value="" disabled selected>-- Pilih Kegiatan --</option>
+                    @foreach($events as $event)
+                        <option value="{{ $event->id }}" {{ old('event_id') === $event->id ? 'selected' : '' }}>
+                            {{ $event->title }}
+                        </option>
+                    @endforeach
+                </select>
             </div>
 
-        </div>
-    </div>
-</x-app-layout>
+            <label class="block">
+                <span class="text-sm font-semibold text-gray-700">Nama Agenda Kegiatan</span>
+                <input
+                    type="text"
+                    name="title"
+                    value="{{ old('title') }}"
+                    required
+                    placeholder="Contoh: Pembukaan acara"
+                    class="mt-1 w-full rounded-md border-gray-300 text-sm shadow-sm focus:border-emerald-500 focus:ring-emerald-500"
+                >
+            </label>
+
+            <label class="block">
+                <span class="text-sm font-semibold text-gray-700">Tanggal & Waktu Pelaksanaan</span>
+                <input
+                    type="datetime-local"
+                    name="date"
+                    value="{{ old('date') }}"
+                    required
+                    class="mt-1 w-full rounded-md border-gray-300 text-sm shadow-sm focus:border-emerald-500 focus:ring-emerald-500"
+                >
+            </label>
+
+            <div class="flex justify-end gap-3 border-t border-gray-200 pt-5">
+                <a href="{{ route('timeline.index') }}" class="rounded-md border border-gray-300 px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50">
+                    Batal
+                </a>
+                <button type="submit" class="rounded-md bg-emerald-700 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-800">
+                    Simpan Agenda
+                </button>
+            </div>
+        </form>
+    </section>
+
+    <x-modal name="create-event" maxWidth="2xl" focusable>
+        <form method="POST" action="{{ route('operation.events.store') }}" class="p-6">
+            @csrf
+
+            <div class="border-b border-gray-200 pb-4">
+                <h3 class="text-lg font-semibold text-gray-950">Tambah Kegiatan</h3>
+                <p class="mt-1 text-sm text-gray-600">Setelah tersimpan, kegiatan baru akan muncul di pilihan kegiatan.</p>
+            </div>
+
+            <div class="mt-5">
+                @include('operation.timeline.partials.event-form')
+            </div>
+
+            <div class="mt-6 flex justify-end gap-3 border-t border-gray-200 pt-4">
+                <button type="button" x-on:click="$dispatch('close-modal', 'create-event')" class="rounded-md border border-gray-300 px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50">
+                    Batal
+                </button>
+                <button type="submit" class="rounded-md bg-emerald-700 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-800">
+                    Simpan Kegiatan
+                </button>
+            </div>
+        </form>
+    </x-modal>
+</x-admin.layout>

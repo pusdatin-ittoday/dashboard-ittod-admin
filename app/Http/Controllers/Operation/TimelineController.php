@@ -6,28 +6,65 @@ use App\Http\Controllers\Controller;
 use App\Models\EventTimeline;
 use App\Models\Event;
 use Illuminate\Http\Request;
+use Illuminate\Support\Str;
+use Illuminate\Validation\Rule;
 
 class TimelineController extends Controller
 {
-    // Menampilkan daftar lini masa kompetisi (REQ-10)
+    // Menampilkan daftar lini masa kegiatan non-kompetisi (REQ-10)
     public function index()
     {
-        $timelines = EventTimeline::with('event')->orderBy('date', 'asc')->get();
+        $timelines = EventTimeline::with('event')
+            ->whereHas('event', fn ($query) => $query->where('type', 'non_competition'))
+            ->orderBy('date', 'asc')
+            ->get();
+
         return view('operation.timeline.index', compact('timelines'));
     }
 
     // Menampilkan form tambah lini masa (REQ-10)
     public function create()
     {
-        $events = Event::all();
+        $events = Event::where('type', 'non_competition')->orderBy('title')->get();
+
         return view('operation.timeline.create', compact('events'));
+    }
+
+    public function storeEvent(Request $request)
+    {
+        $validated = $request->validate([
+            'title' => 'required|string|max:191',
+            'description' => 'required|string|max:2000',
+            'guide_book_url' => 'required|url|max:500',
+            'price' => 'nullable|integer|min:0',
+            'contact_person1' => 'required|string|max:191',
+            'contact_person2' => 'nullable|string|max:191',
+        ]);
+
+        Event::create([
+            'id' => (string) Str::uuid(),
+            'title' => $validated['title'],
+            'type' => 'non_competition',
+            'description' => $validated['description'],
+            'guide_book_url' => $validated['guide_book_url'],
+            'price' => $validated['price'] ?? 0,
+            'contact_person1' => $validated['contact_person1'],
+            'contact_person2' => $validated['contact_person2'] ?? null,
+            'max_noncompetition_participant' => null,
+            'is_active' => true,
+        ]);
+
+        return back()->with('success', 'Kegiatan baru berhasil ditambahkan. Silakan pilih kegiatan tersebut untuk membuat lini masa.');
     }
 
     // Menyimpan lini masa baru (REQ-10)
     public function store(Request $request)
     {
         $request->validate([
-            'event_id' => 'required|exists:event,id',
+            'event_id' => [
+                'required',
+                Rule::exists('event', 'id')->where(fn ($query) => $query->where('type', 'non_competition')),
+            ],
             'title' => 'required|string|max:255',
             'date' => 'required|date',
         ]);
@@ -44,18 +81,22 @@ class TimelineController extends Controller
     // Menampilkan form edit lini masa (REQ-10)
     public function edit(string $id)
     {
-        $timeline = EventTimeline::findOrFail($id);
-        $events = Event::all();
+        $timeline = EventTimeline::whereHas('event', fn ($query) => $query->where('type', 'non_competition'))->findOrFail($id);
+        $events = Event::where('type', 'non_competition')->orderBy('title')->get();
+
         return view('operation.timeline.edit', compact('timeline', 'events'));
     }
 
     // Memperbarui lini masa (REQ-10)
     public function update(Request $request, string $id)
     {
-        $timeline = EventTimeline::findOrFail($id);
+        $timeline = EventTimeline::whereHas('event', fn ($query) => $query->where('type', 'non_competition'))->findOrFail($id);
 
         $request->validate([
-            'event_id' => 'required|exists:event,id',
+            'event_id' => [
+                'required',
+                Rule::exists('event', 'id')->where(fn ($query) => $query->where('type', 'non_competition')),
+            ],
             'title' => 'required|string|max:255',
             'date' => 'required|date',
         ]);
@@ -72,7 +113,7 @@ class TimelineController extends Controller
     // Menghapus lini masa (REQ-10)
     public function destroy(string $id)
     {
-        $timeline = EventTimeline::findOrFail($id);
+        $timeline = EventTimeline::whereHas('event', fn ($query) => $query->where('type', 'non_competition'))->findOrFail($id);
         $timeline->delete();
 
         return redirect()->route('timeline.index')->with('success', 'Lini masa berhasil dihapus!');
