@@ -24,10 +24,17 @@ class Event extends Model
         'description',
         'guide_book_url',
         'type',
+        'is_active',
         'contact_person1',
         'contact_person2',
         'max_noncompetition_participant',
         'price',
+    ];
+
+    protected $casts = [
+        'is_active' => 'boolean',
+        'price' => 'integer',
+        'max_noncompetition_participant' => 'integer',
     ];
 
     /**
