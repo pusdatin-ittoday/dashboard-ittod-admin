@@ -51,12 +51,12 @@ class OperationTest extends TestCase
                 'verification_error' => null
             ]);
 
-        $response->assertRedirect();
+        $response->assertRedirect('/operation/teams');
         $this->assertEquals(1, $team->fresh()->is_verified);
     }
 
     /** @test */
-    public function admin_can_crud_competition_timelines()
+    public function admin_can_crud_non_competition_timelines()
     {
         $admin = UserIdentity::where('role', 'admin_keuangan')->first();
 
@@ -66,24 +66,24 @@ class OperationTest extends TestCase
 
         // 2. Create
         $response = $this->actingAs($admin)->post('/operation/timeline', [
-            'event_id' => 'HackToday',
-            'title' => 'Semi Final HackToday',
+            'event_id' => 'Seminar',
+            'title' => 'Sesi Panel Seminar',
             'date' => '2026-06-25 10:00:00',
         ]);
         $response->assertRedirect('/operation/timeline');
         $this->assertDatabaseHas('event_timeline', [
-            'title' => 'Semi Final HackToday'
+            'title' => 'Sesi Panel Seminar'
         ]);
 
         // 3. Edit & Update
-        $timeline = EventTimeline::where('title', 'Semi Final HackToday')->first();
+        $timeline = EventTimeline::where('title', 'Sesi Panel Seminar')->first();
         $response = $this->actingAs($admin)->put("/operation/timeline/{$timeline->id}", [
-            'event_id' => 'HackToday',
-            'title' => 'Semi Final HackToday Updated',
+            'event_id' => 'Seminar',
+            'title' => 'Sesi Panel Seminar Updated',
             'date' => '2026-06-26 12:00:00',
         ]);
         $response->assertRedirect('/operation/timeline');
-        $this->assertEquals('Semi Final HackToday Updated', $timeline->fresh()->title);
+        $this->assertEquals('Sesi Panel Seminar Updated', $timeline->fresh()->title);
 
         // 4. Delete
         $response = $this->actingAs($admin)->delete("/operation/timeline/{$timeline->id}");

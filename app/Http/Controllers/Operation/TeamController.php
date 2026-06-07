@@ -35,7 +35,9 @@ class TeamController extends Controller
             'verification_error' => $request->is_verified == 0 ? $request->verification_error : null
         ]);
 
-        return back()->with('success', 'Status verifikasi tim berhasil diperbarui!');
+        return redirect()
+            ->route('operation.teams.index')
+            ->with('success', 'Status verifikasi tim berhasil diperbarui!');
     }
 
     // Mengubah status verifikasi dokumen anggota secara individual
