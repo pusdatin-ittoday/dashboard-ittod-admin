@@ -35,8 +35,11 @@
                         </x-nav-link>
                     @endif
 
-                    <!-- Agenda Seminar: Superadmin Only -->
-                    @if(Auth::check() && in_array(Auth::user()->role, ['superadmin']))
+                    @php
+                        $user = Auth::user();
+                        $isSeminarPanitia = $user->role === 'panitia' && $user->events->where('type', 'non_competition')->isNotEmpty();
+                    @endphp
+                    @if(Auth::check() && ($user->role === 'superadmin' || $isSeminarPanitia))
                         <x-nav-link :href="route('timeline.index')" :active="request()->routeIs('timeline.*')">
                             {{ __('Agenda Seminar') }}
                         </x-nav-link>
@@ -117,7 +120,11 @@
                 </x-responsive-nav-link>
             @endif
 
-            @if(Auth::check() && in_array(Auth::user()->role, ['superadmin']))
+            @php
+                $user = Auth::user();
+                $isSeminarPanitia = $user?->role === 'panitia' && $user->events->where('type', 'non_competition')->isNotEmpty();
+            @endphp
+            @if(Auth::check() && ($user->role === 'superadmin' || $isSeminarPanitia))
                 <x-responsive-nav-link :href="route('timeline.index')" :active="request()->routeIs('timeline.*')">
                     {{ __('Agenda Seminar') }}
                 </x-responsive-nav-link>

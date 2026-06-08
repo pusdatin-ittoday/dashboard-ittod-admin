@@ -13,7 +13,7 @@ class TimelineController extends Controller
 {
     private function checkAccess()
     {
-        abort_unless(in_array(auth()->user()->role, ['superadmin']), 403);
+        abort_unless(in_array(auth()->user()->role, ['superadmin', 'panitia']), 403);
     }
 
     // Menampilkan daftar lini masa kegiatan non-kompetisi (REQ-10)

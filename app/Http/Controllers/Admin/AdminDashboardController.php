@@ -49,7 +49,7 @@ class AdminDashboardController extends Controller
                 ->orderBy('role')
                 ->orderBy('email')
                 ->get(),
-            'events' => Event::where('type', 'competition')->orderBy('title')->get(),
+            'events' => Event::orderBy('title')->get(),
             'canManageStaff' => auth()->user()?->role === 'superadmin',
         ]);
     }
@@ -66,7 +66,7 @@ class AdminDashboardController extends Controller
             'event_ids' => ['array'],
             'event_ids.*' => [
                 'string',
-                Rule::exists('event', 'id')->where(fn ($query) => $query->where('type', 'competition')),
+                Rule::exists('event', 'id'),
             ],
         ]);
 
@@ -131,7 +131,7 @@ class AdminDashboardController extends Controller
             'event_ids' => ['array'],
             'event_ids.*' => [
                 'string',
-                Rule::exists('event', 'id')->where(fn ($query) => $query->where('type', 'competition')),
+                Rule::exists('event', 'id'),
             ],
         ]);
 
