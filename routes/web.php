@@ -87,15 +87,4 @@ Route::middleware('auth')->prefix('export')->name('export.')->group(function () 
     Route::get('/participants/global', [ExportController::class, 'exportParticipantsGlobal'])->name('participants.global');
 });
 
-
-Route::middleware('auth')->prefix('export')->name('export.')->group(function () {
-    // Per-event/kompetisi
-    Route::get('/teams', [ExportController::class, 'exportTeams'])->name('teams');
-    Route::get('/participants', [ExportController::class, 'exportParticipants'])->name('participants');
-
-    // Global (semua event sekaligus, biasanya untuk Pimpinan)
-    Route::get('/teams/global', [ExportController::class, 'exportTeamsGlobal'])->name('teams.global');
-    Route::get('/participants/global', [ExportController::class, 'exportParticipantsGlobal'])->name('participants.global');
-});
-
 require __DIR__.'/auth.php';

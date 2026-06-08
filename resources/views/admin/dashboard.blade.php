@@ -9,6 +9,7 @@
         <x-admin.stat-card label="Ditolak" :value="$stats['rejectedTransactions']" tone="rose" />
     </div>
 
+
     <section x-data="{ search: '' }" class="mt-8 rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
         <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
             <div>
