@@ -3,6 +3,7 @@
 use App\Http\Controllers\Admin\AdminDashboardController;
 use App\Http\Controllers\Operation\TeamController;
 use App\Http\Controllers\Operation\TimelineController;
+use App\Http\Controllers\ExportController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\TransactionController;
 use Illuminate\Support\Facades\Route;
@@ -44,7 +45,6 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
-
     Route::prefix('admin')->name('admin.')->middleware('verified')->group(function () {
         Route::get('/', [AdminDashboardController::class, 'dashboard'])->name('dashboard');
         Route::get('/staff', [AdminDashboardController::class, 'staff'])->name('staff.index');
@@ -73,6 +73,28 @@ Route::middleware(['auth'])->group(function () {
 
     Route::post('/transaction/{teamId}/verify', [TransactionController::class, 'verify']);
     Route::get('/transaction/recap', [TransactionController::class, 'getRecap']);
+});
+
+
+Route::middleware('auth')->prefix('export')->name('export.')->group(function () {
+    // Per-event/kompetisi
+    Route::get('/teams', [ExportController::class, 'exportTeams'])->name('teams');
+    Route::get('/participants', [ExportController::class, 'exportParticipants'])->name('participants');
+
+    // Global (semua event sekaligus, biasanya untuk Pimpinan)
+    Route::get('/teams/global', [ExportController::class, 'exportTeamsGlobal'])->name('teams.global');
+    Route::get('/participants/global', [ExportController::class, 'exportParticipantsGlobal'])->name('participants.global');
+});
+
+
+Route::middleware('auth')->prefix('export')->name('export.')->group(function () {
+    // Per-event/kompetisi
+    Route::get('/teams', [ExportController::class, 'exportTeams'])->name('teams');
+    Route::get('/participants', [ExportController::class, 'exportParticipants'])->name('participants');
+
+    // Global (semua event sekaligus, biasanya untuk Pimpinan)
+    Route::get('/teams/global', [ExportController::class, 'exportTeamsGlobal'])->name('teams.global');
+    Route::get('/participants/global', [ExportController::class, 'exportParticipantsGlobal'])->name('participants.global');
 });
 
 require __DIR__.'/auth.php';
