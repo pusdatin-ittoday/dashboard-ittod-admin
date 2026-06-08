@@ -21,6 +21,7 @@
     title="Manajemen Akun Staff"
     subtitle="Superadmin dapat mengelola akun staff, role admin lain hanya dapat melihat."
 >
+<div x-data="{ search: '', createRole: @js(old('role', 'superadmin')), ...staffEditor() }">
     <div class="mb-6 flex flex-col gap-4 border-b border-gray-200 pb-6 sm:flex-row sm:items-end sm:justify-between">
         <div>
             <div class="flex flex-wrap items-center gap-3">
@@ -55,7 +56,7 @@
         </div>
     @endif
 
-    <section x-data="{ search: '' }" class="overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm">
+    <section class="overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm">
         <div class="flex flex-col gap-2 border-b border-gray-200 px-4 py-4 sm:flex-row sm:items-center sm:justify-between">
             <div class="flex items-center gap-3">
                 <span class="flex h-8 w-8 items-center justify-center rounded-md border border-gray-200 text-xs font-bold text-gray-700">ID</span>
@@ -128,11 +129,11 @@
                                     <div class="flex items-center justify-end gap-2">
                                         <button
                                             type="button"
-                                            x-data
-                                            x-on:click="$dispatch('open-modal', 'edit-staff-{{ $staff->id }}')"
+                                            x-on:click="fetchStaff(@js(route('admin.staff.show', $staff)))"
+                                            x-bind:disabled="isFetchingStaff"
                                             class="rounded-md border border-gray-300 px-3 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50"
                                         >
-                                            Edit
+                                            <span x-text="isFetchingStaff ? 'Loading' : 'Edit'">Edit</span>
                                         </button>
 
                                         <form method="POST" action="{{ route('admin.staff.destroy', $staff) }}" onsubmit="return confirm('Hapus akun staff ini?')">
@@ -196,7 +197,7 @@
 
                 <label class="block">
                     <span class="text-sm font-semibold text-gray-700">Role</span>
-                    <select name="role" required class="mt-1 w-full rounded-md border-gray-300 text-sm shadow-sm focus:border-emerald-500 focus:ring-emerald-500">
+                    <select name="role" x-model="createRole" required class="mt-1 w-full rounded-md border-gray-300 text-sm shadow-sm focus:border-emerald-500 focus:ring-emerald-500">
                         @foreach ($roleLabels as $value => $label)
                             <option value="{{ $value }}" @selected(old('role') === $value)>{{ $label }}</option>
                         @endforeach
@@ -210,19 +211,21 @@
                 </label>
             </div>
 
-            <div class="mt-5">
-                <p class="text-sm font-semibold text-gray-700">Kompetisi yang dikelola</p>
-                <div class="mt-2 grid gap-2 sm:grid-cols-2">
-                    @forelse ($events as $event)
-                        <label class="flex items-center gap-3 rounded-md border border-gray-200 px-3 py-2 text-sm text-gray-700">
-                            <input type="checkbox" name="event_ids[]" value="{{ $event->id }}" class="rounded border-gray-300 text-emerald-600 focus:ring-emerald-500">
-                            <span>{{ $event->title }}</span>
-                        </label>
-                    @empty
-                        <p class="text-sm text-gray-500">Belum ada kompetisi.</p>
-                    @endforelse
+            <template x-if="createRole === 'panitia'">
+                <div class="mt-5">
+                    <p class="text-sm font-semibold text-gray-700">Kompetisi yang dikelola</p>
+                    <div class="mt-2 grid gap-2 sm:grid-cols-2">
+                        @forelse ($events as $event)
+                            <label class="flex items-center gap-3 rounded-md border border-gray-200 px-3 py-2 text-sm text-gray-700">
+                                <input type="checkbox" name="event_ids[]" value="{{ $event->id }}" class="rounded border-gray-300 text-emerald-600 focus:ring-emerald-500">
+                                <span>{{ $event->title }}</span>
+                            </label>
+                        @empty
+                            <p class="text-sm text-gray-500">Belum ada kompetisi.</p>
+                        @endforelse
+                    </div>
                 </div>
-            </div>
+            </template>
 
             <div class="mt-6 flex justify-end gap-3">
                 <button type="button" x-on:click="$dispatch('close-modal', 'create-staff')" class="rounded-md border border-gray-300 px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50">Batal</button>
@@ -231,57 +234,57 @@
         </form>
     </x-modal>
 
-    @foreach ($staffAccounts as $staff)
-        <x-modal name="edit-staff-{{ $staff->id }}" maxWidth="2xl" focusable>
-            <form method="POST" action="{{ route('admin.staff.update', $staff) }}" class="p-6">
-                @csrf
-                @method('PATCH')
+    <x-modal name="edit-staff" maxWidth="2xl" focusable>
+        <form method="POST" x-bind:action="form.action" class="p-6">
+            @csrf
+            @method('PATCH')
 
-                <div class="flex items-start justify-between gap-4 border-b border-gray-200 pb-4">
-                    <div>
-                        <h3 class="text-lg font-semibold text-gray-950">Edit Admin</h3>
-                        <p class="mt-1 text-sm text-gray-600">{{ $staff->email }}</p>
-                    </div>
-                    <button type="button" x-on:click="$dispatch('close-modal', 'edit-staff-{{ $staff->id }}')" class="rounded-md px-2 py-1 text-sm font-semibold text-gray-500 hover:bg-gray-100">Tutup</button>
+            <div class="flex items-start justify-between gap-4 border-b border-gray-200 pb-4">
+                <div>
+                    <h3 class="text-lg font-semibold text-gray-950">Edit Admin</h3>
+                    <p class="mt-1 text-sm text-gray-600" x-text="form.email"></p>
                 </div>
+                <button type="button" x-on:click="$dispatch('close-modal', 'edit-staff')" class="rounded-md px-2 py-1 text-sm font-semibold text-gray-500 hover:bg-gray-100">Tutup</button>
+            </div>
 
-                <div class="mt-5 grid gap-4 sm:grid-cols-2">
-                    <label class="block">
-                        <span class="text-sm font-semibold text-gray-700">Nama</span>
-                        <input name="full_name" value="{{ old('full_name', $staff->user?->full_name ?? $staff->email) }}" required class="mt-1 w-full rounded-md border-gray-300 text-sm shadow-sm focus:border-emerald-500 focus:ring-emerald-500">
-                    </label>
+            <div class="mt-5 grid gap-4 sm:grid-cols-2">
+                <label class="block">
+                    <span class="text-sm font-semibold text-gray-700">Nama</span>
+                    <input name="full_name" x-model="form.full_name" required class="mt-1 w-full rounded-md border-gray-300 text-sm shadow-sm focus:border-emerald-500 focus:ring-emerald-500">
+                </label>
 
-                    <label class="block">
-                        <span class="text-sm font-semibold text-gray-700">Email</span>
-                        <input type="email" name="email" value="{{ old('email', $staff->email) }}" required class="mt-1 w-full rounded-md border-gray-300 text-sm shadow-sm focus:border-emerald-500 focus:ring-emerald-500">
-                    </label>
+                <label class="block">
+                    <span class="text-sm font-semibold text-gray-700">Email</span>
+                    <input type="email" name="email" x-model="form.email" required class="mt-1 w-full rounded-md border-gray-300 text-sm shadow-sm focus:border-emerald-500 focus:ring-emerald-500">
+                </label>
 
-                    <label class="block">
-                        <span class="text-sm font-semibold text-gray-700">Password Baru</span>
-                        <input type="password" name="password" class="mt-1 w-full rounded-md border-gray-300 text-sm shadow-sm focus:border-emerald-500 focus:ring-emerald-500">
-                    </label>
+                <label class="block">
+                    <span class="text-sm font-semibold text-gray-700">Password Baru</span>
+                    <input type="password" name="password" x-model="form.password" class="mt-1 w-full rounded-md border-gray-300 text-sm shadow-sm focus:border-emerald-500 focus:ring-emerald-500">
+                </label>
 
-                    <label class="block">
-                        <span class="text-sm font-semibold text-gray-700">Konfirmasi Password Baru</span>
-                        <input type="password" name="password_confirmation" class="mt-1 w-full rounded-md border-gray-300 text-sm shadow-sm focus:border-emerald-500 focus:ring-emerald-500">
-                    </label>
+                <label class="block">
+                    <span class="text-sm font-semibold text-gray-700">Konfirmasi Password Baru</span>
+                    <input type="password" name="password_confirmation" x-model="form.password_confirmation" class="mt-1 w-full rounded-md border-gray-300 text-sm shadow-sm focus:border-emerald-500 focus:ring-emerald-500">
+                </label>
 
-                    <label class="block">
-                        <span class="text-sm font-semibold text-gray-700">Role</span>
-                        <select name="role" required class="mt-1 w-full rounded-md border-gray-300 text-sm shadow-sm focus:border-emerald-500 focus:ring-emerald-500">
-                            @foreach ($roleLabels as $value => $label)
-                                <option value="{{ $value }}" @selected(old('role', $staff->role) === $value)>{{ $label }}</option>
-                            @endforeach
-                        </select>
-                    </label>
+                <label class="block">
+                    <span class="text-sm font-semibold text-gray-700">Role</span>
+                    <select name="role" x-model="form.role" required class="mt-1 w-full rounded-md border-gray-300 text-sm shadow-sm focus:border-emerald-500 focus:ring-emerald-500">
+                        @foreach ($roleLabels as $value => $label)
+                            <option value="{{ $value }}">{{ $label }}</option>
+                        @endforeach
+                    </select>
+                </label>
 
-                    <label class="flex items-center gap-3 rounded-md border border-gray-200 px-3 py-3">
-                        <input type="hidden" name="is_verified" value="0">
-                        <input type="checkbox" name="is_verified" value="1" @checked($staff->is_verified) class="rounded border-gray-300 text-emerald-600 focus:ring-emerald-500">
-                        <span class="text-sm font-semibold text-gray-700">Aktif dan bisa login</span>
-                    </label>
-                </div>
+                <label class="flex items-center gap-3 rounded-md border border-gray-200 px-3 py-3">
+                    <input type="hidden" name="is_verified" value="0">
+                    <input type="checkbox" name="is_verified" value="1" x-model="form.is_verified" class="rounded border-gray-300 text-emerald-600 focus:ring-emerald-500">
+                    <span class="text-sm font-semibold text-gray-700">Aktif dan bisa login</span>
+                </label>
+            </div>
 
+            <template x-if="form.role === 'panitia'">
                 <div class="mt-5">
                     <p class="text-sm font-semibold text-gray-700">Kompetisi yang dikelola</p>
                     <div class="mt-2 grid gap-2 sm:grid-cols-2">
@@ -291,7 +294,7 @@
                                     type="checkbox"
                                     name="event_ids[]"
                                     value="{{ $event->id }}"
-                                    @checked($staff->events->contains('id', $event->id))
+                                    x-model="form.event_ids"
                                     class="rounded border-gray-300 text-emerald-600 focus:ring-emerald-500"
                                 >
                                 <span>{{ $event->title }}</span>
@@ -301,13 +304,66 @@
                         @endforelse
                     </div>
                 </div>
+            </template>
 
-                <div class="mt-6 flex justify-end gap-3">
-                    <button type="button" x-on:click="$dispatch('close-modal', 'edit-staff-{{ $staff->id }}')" class="rounded-md border border-gray-300 px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50">Batal</button>
-                    <button type="submit" class="rounded-md bg-emerald-700 px-4 py-2 text-sm font-bold text-white hover:bg-emerald-800">Simpan Perubahan</button>
-                </div>
-            </form>
-        </x-modal>
-    @endforeach
+            <div class="mt-6 flex justify-end gap-3">
+                <button type="button" x-on:click="$dispatch('close-modal', 'edit-staff')" class="rounded-md border border-gray-300 px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50">Batal</button>
+                <button type="submit" class="rounded-md bg-emerald-700 px-4 py-2 text-sm font-bold text-white hover:bg-emerald-800">Simpan Perubahan</button>
+            </div>
+        </form>
+    </x-modal>
     @endif
+</div>
+
+<script>
+    window.staffEditor = function () {
+        return {
+            isFetchingStaff: false,
+            form: {
+                action: '',
+                full_name: '',
+                email: '',
+                password: '',
+                password_confirmation: '',
+                role: 'panitia',
+                is_verified: true,
+                event_ids: [],
+            },
+            async fetchStaff(url) {
+                this.isFetchingStaff = true;
+
+                try {
+                    const response = await fetch(url, {
+                        headers: {
+                            Accept: 'application/json',
+                        },
+                    });
+
+                    if (! response.ok) {
+                        throw new Error('Gagal mengambil data staff.');
+                    }
+
+                    const staff = await response.json();
+
+                    this.form = {
+                        action: staff.update_url,
+                        full_name: staff.full_name,
+                        email: staff.email,
+                        password: '',
+                        password_confirmation: '',
+                        role: staff.role,
+                        is_verified: staff.is_verified,
+                        event_ids: staff.event_ids.map(String),
+                    };
+
+                    this.$dispatch('open-modal', 'edit-staff');
+                } catch (error) {
+                    alert(error.message);
+                } finally {
+                    this.isFetchingStaff = false;
+                }
+            },
+        };
+    };
+</script>
 </x-admin.layout>

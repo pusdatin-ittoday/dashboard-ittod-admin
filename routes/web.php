@@ -49,6 +49,7 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/', [AdminDashboardController::class, 'dashboard'])->name('dashboard');
         Route::get('/staff', [AdminDashboardController::class, 'staff'])->name('staff.index');
         Route::post('/staff', [AdminDashboardController::class, 'storeStaff'])->name('staff.store');
+        Route::get('/staff/{staff}', [AdminDashboardController::class, 'showStaff'])->name('staff.show');
         Route::patch('/staff/{staff}', [AdminDashboardController::class, 'updateStaff'])->name('staff.update');
         Route::delete('/staff/{staff}', [AdminDashboardController::class, 'destroyStaff'])->name('staff.destroy');
         Route::redirect('/transactions', '/operation/teams')->name('transactions.index');

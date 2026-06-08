@@ -10,6 +10,7 @@ use App\Models\Media;
 use App\Models\Team;
 use App\Models\User;
 use App\Models\UserIdentity;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -87,10 +88,28 @@ class AdminDashboardController extends Controller
                 'role' => $validated['role'],
             ]);
 
-            $staff->events()->sync($validated['event_ids'] ?? []);
+            $staff->events()->sync($validated['role'] === 'panitia' ? ($validated['event_ids'] ?? []) : []);
         });
 
         return back()->with('status', 'Akun staff berhasil ditambahkan.');
+    }
+
+    public function showStaff(UserIdentity $staff): JsonResponse
+    {
+        $this->ensureSuperadmin();
+        abort_unless(in_array($staff->role, ['superadmin', 'admin_keuangan', 'panitia'], true), 404);
+
+        $staff->load(['user', 'events:id']);
+
+        return response()->json([
+            'id' => $staff->id,
+            'full_name' => $staff->user?->full_name ?? '',
+            'email' => $staff->email,
+            'role' => $staff->role,
+            'is_verified' => (bool) $staff->is_verified,
+            'event_ids' => $staff->events->pluck('id')->values(),
+            'update_url' => route('admin.staff.update', $staff),
+        ]);
     }
 
     public function updateStaff(Request $request, UserIdentity $staff): RedirectResponse
@@ -136,7 +155,7 @@ class AdminDashboardController extends Controller
             }
 
             $staff->update($identityPayload);
-            $staff->events()->sync($validated['event_ids'] ?? []);
+            $staff->events()->sync($validated['role'] === 'panitia' ? ($validated['event_ids'] ?? []) : []);
         });
 
         return back()->with('status', 'Akun staff berhasil diperbarui.');
