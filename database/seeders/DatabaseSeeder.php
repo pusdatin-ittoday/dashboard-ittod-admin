@@ -186,7 +186,7 @@ class DatabaseSeeder extends Seeder
             'name' => 'sample-payment-hacktoday-team-1',
             'grouping' => 'payments',
             'type' => 'image',
-            'url' => 'https://imgs.search.brave.com/ovc30iIHVFrFOT6vGzgKdfZIPgedEH89PFSjvvoAbpU/rs:fit:860:0:0:0/g:ce/aHR0cHM6Ly9tZWRp/YS5nZXR0eWltYWdl/cy5jb20vaWQvMTE1/OTYxMTcxMC9waG90/by9oYW5kLWZlZWxp/bmctZ3Jhc3MuanBn/P3M9NjEyeDYxMiZ3/PTAmaz0yMCZjPU8y/S3hGbzFkcFVFTHZI/V2VvWUtleTlycE5y/OFBCNHlpcHhSSEVl/VExWU2s9',
+            'url' => 'https://cdn-web.ruangguru.com/landing-pages/assets/hs/kampus-ipb.png',
         ]);
 
         Media::create([
@@ -195,7 +195,7 @@ class DatabaseSeeder extends Seeder
             'name' => 'sample-payment-hacktoday-team-2',
             'grouping' => 'payments',
             'type' => 'image',
-            'url' => 'https://imgs.search.brave.com/ovc30iIHVFrFOT6vGzgKdfZIPgedEH89PFSjvvoAbpU/rs:fit:860:0:0:0/g:ce/aHR0cHM6Ly9tZWRp/YS5nZXR0eWltYWdl/cy5jb20vaWQvMTE1/OTYxMTcxMC9waG90/by9oYW5kLWZlZWxp/bmctZ3Jhc3MuanBn/P3M9NjEyeDYxMiZ3/PTAmaz0yMCZjPU8y/S3hGbzFkcFVFTHZI/V2VvWUtleTlycE5y/OFBCNHlpcHhSSEVl/VExWU2s9',
+            'url' => 'https://cdn-web.ruangguru.com/landing-pages/assets/hs/kampus-ipb.png',
         ]);
 
         Media::create([
@@ -213,7 +213,7 @@ class DatabaseSeeder extends Seeder
             'name' => 'sample-ktm-lawan',
             'grouping' => 'dokum_tahun_lalu',
             'type' => 'image',
-            'url' => 'https://placehold.co/700x450/png?text=Contoh+KTM+Peserta+2',
+            'url' => 'https://cdn-web.ruangguru.com/landing-pages/assets/hs/kampus-ipb.png',
         ]);
 
         Team::create([
