@@ -83,6 +83,18 @@ class DatabaseSeeder extends Seeder
             'max_noncompetition_participant' => 500,
         ]);
 
+        Event::create([
+            'id' => 'Exhibition',
+            'title' => 'IT Exhibition',
+            'description' => 'Pameran teknologi karya mahasiswa dan startup.',
+            'guide_book_url' => 'https://ittoday.web.id/guidebook-exhibition.pdf',
+            'type' => 'non_competition',
+            'price' => 0,
+            'contact_person1' => 'wa.me/628123456789',
+            'contact_person2' => null,
+            'max_noncompetition_participant' => 1000,
+        ]);
+
 
 
 
@@ -167,18 +179,18 @@ class DatabaseSeeder extends Seeder
         ]);
         $panitiaItbrainsIdentity->events()->attach(['ITBrains']);
 
-        // Akun Panitia 4 (BCP)
-        $panitiaBcpUser = User::create([
+        // Akun Panitia 4 (GameToday)
+        $panitiaGameTodayUser = User::create([
             'id' => '66666666-6666-6666-6666-666666666666',
-            'email' => 'panitia.bcp@ittoday.id',
-            'full_name' => 'Panitia BCP',
+            'email' => 'panitia.gametoday@ittoday.id',
+            'full_name' => 'Panitia GameToday',
             'is_registration_complete' => 1,
         ]);
-        $panitiaBcpIdentity = UserIdentity::create([
-            'id' => '66666666-6666-6666-6666-666666666666', 'email' => 'panitia.bcp@ittoday.id', 'provider' => 'basic', 'hash' => Hash::make('panitia'),
+        $panitiaGameTodayIdentity = UserIdentity::create([
+            'id' => '66666666-6666-6666-6666-666666666666', 'email' => 'panitia.gametoday@ittoday.id', 'provider' => 'basic', 'hash' => Hash::make('panitia'),
             'role' => 'panitia', 'is_verified' => 1, 'verification_token' => Str::random(40), 'verification_token_expiration' => now()->addYear(),
         ]);
-        $panitiaBcpIdentity->events()->attach(['BusinessITCase']);
+        $panitiaGameTodayIdentity->events()->attach(['GameToday']);
 
         // Akun Panitia 5 (Seminar - Non-Competition)
         $panitiaSeminarUser = User::create([
@@ -205,19 +217,6 @@ class DatabaseSeeder extends Seeder
             'role' => 'panitia', 'is_verified' => 1, 'verification_token' => Str::random(40), 'verification_token_expiration' => now()->addYear(),
         ]);
         $panitiaExhibitionIdentity->events()->attach(['Exhibition']);
-
-        // Akun Panitia 7 (Campuran Lomba & Non-Competition)
-        $panitiaCampuranUser = User::create([
-            'id' => '99999999-9999-9999-9999-999999999999',
-            'email' => 'panitia.campuran@ittoday.id',
-            'full_name' => 'Panitia Campuran',
-            'is_registration_complete' => 1,
-        ]);
-        $panitiaCampuranIdentity = UserIdentity::create([
-            'id' => '99999999-9999-9999-9999-999999999999', 'email' => 'panitia.campuran@ittoday.id', 'provider' => 'basic', 'hash' => Hash::make('panitia'),
-            'role' => 'panitia', 'is_verified' => 1, 'verification_token' => Str::random(40), 'verification_token_expiration' => now()->addYear(),
-        ]);
-        $panitiaCampuranIdentity->events()->attach(['HackToday', 'Seminar']);
 
         // Generate 10 Peserta Users
         $peserta = [];
