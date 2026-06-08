@@ -192,9 +192,23 @@
                 </dl>
             </section>
 
-            <section class="rounded-lg border border-gray-200 bg-white p-6 shadow-sm" x-data="{ verified: '{{ $team->is_verified ? '1' : '0' }}' }">
+            <section
+                class="rounded-lg border border-gray-200 bg-white p-6 shadow-sm"
+                x-data="{
+                    verified: '{{ $team->is_verified ? '1' : '0' }}',
+                    rejectionReason: @js($team->verification_error ?? ''),
+                    rejectionError: '',
+                    submitDecision(event) {
+                        if (this.verified === '0' && ! this.rejectionReason.trim()) {
+                            event.preventDefault();
+                            this.rejectionError = 'Alasan penolakan wajib diisi saat menolak verifikasi.';
+                            this.$nextTick(() => this.$refs.rejectionReason?.focus());
+                        }
+                    },
+                }"
+            >
                 <h2 class="text-lg font-semibold text-gray-950">Keputusan Verifikasi</h2>
-                <form action="{{ route('operation.teams.verify', $team->id) }}" method="POST" class="mt-5 space-y-5">
+                <form action="{{ route('operation.teams.verify', $team->id) }}" method="POST" class="mt-5 space-y-5" x-on:submit="submitDecision($event)">
                     @csrf
 
                     <div>
@@ -216,9 +230,14 @@
                         <textarea
                             id="verification_error"
                             name="verification_error"
+                            x-ref="rejectionReason"
+                            x-model="rejectionReason"
+                            x-on:input="rejectionError = ''"
                             placeholder="Sebutkan kesalahan pada data atau berkas tim..."
-                            class="mt-2 h-28 w-full resize-none rounded-md border-gray-300 text-sm shadow-sm focus:border-emerald-500 focus:ring-emerald-500"
-                        >{{ $team->verification_error }}</textarea>
+                            x-bind:class="rejectionError ? 'border-rose-300 focus:border-rose-500 focus:ring-rose-500' : 'border-gray-300 focus:border-emerald-500 focus:ring-emerald-500'"
+                            class="mt-2 h-28 w-full resize-none rounded-md text-sm shadow-sm"
+                        ></textarea>
+                        <p x-show="rejectionError" x-text="rejectionError" class="mt-2 text-sm font-semibold text-rose-700"></p>
                     </div>
 
                     <button type="submit" class="w-full rounded-md bg-emerald-700 px-4 py-2.5 text-sm font-semibold text-white hover:bg-emerald-800">
