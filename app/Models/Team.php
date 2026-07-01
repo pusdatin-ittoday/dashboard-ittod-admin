@@ -31,7 +31,7 @@ class Team extends Model
     ];
 
     protected $casts = [
-        'is_verified' => 'integer',
+        // removed is_verified integer cast
         'max_member' => 'integer',
     ];
 

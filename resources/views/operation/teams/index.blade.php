@@ -105,7 +105,7 @@
                 <tbody class="divide-y divide-gray-200 bg-white">
                     @forelse($teams as $team)
                         @php
-                            $isTeamVerified = (bool) $team->is_document_verified;
+                            $isTeamVerified = $team->is_document_verified === 'approved';
                             $hasTeamErr = !empty($team->verification_error);
                             $hasMemErr = $team->members->contains(fn($m) => !empty($m->verification_error));
 

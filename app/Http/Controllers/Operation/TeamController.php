@@ -44,31 +44,31 @@ class TeamController extends Controller
             abort_unless(auth()->user()->events->contains('id', $team->competition_id), 403);
         }
 
-        if ($team->is_document_verified) {
+        if ($team->is_document_verified === 'approved') {
             return back()->with('error', 'Berkas tim yang sudah disetujui tidak dapat diubah statusnya.');
         }
         
         $request->validate([
-            'is_document_verified' => 'required|in:0,1',
-            'verification_error' => 'required_if:is_document_verified,0|nullable|string',
+            'is_document_verified' => 'required|in:pending,approved,rejected',
+            'verification_error' => 'required_if:is_document_verified,rejected|nullable|string',
         ]);
 
-        if ((int) $request->is_document_verified === 1) {
-            $membersWithErrors = $team->members
-                ->filter(fn (TeamMember $member) => filled($member->verification_error));
+        if ($request->is_document_verified === 'approved') {
+            $unverifiedMembers = $team->members
+                ->filter(fn (TeamMember $member) => !$member->is_verified);
 
-            if ($membersWithErrors->isNotEmpty()) {
+            if ($unverifiedMembers->isNotEmpty()) {
                 return back()
                     ->withErrors([
-                        'is_document_verified' => 'Berkas tim belum bisa disetujui karena masih ada catatan kesalahan anggota. Kosongkan catatan anggota yang sudah diperbaiki, lalu setujui kembali.',
+                        'is_document_verified' => 'Berkas tim belum bisa disetujui karena masih ada anggota tim yang belum diverifikasi secara individual (Setuju/Tolak).',
                     ])
                     ->withInput();
             }
         }
 
         $team->update([
-            'is_document_verified' => (int) $request->is_document_verified,
-            'verification_error' => $request->is_document_verified == 0 ? $request->verification_error : null
+            'is_document_verified' => $request->is_document_verified,
+            'verification_error' => $request->is_document_verified === 'rejected' ? $request->verification_error : null
         ]);
 
         return redirect()
@@ -89,7 +89,7 @@ class TeamController extends Controller
             abort_unless(auth()->user()->events->contains('id', $team->competition_id), 403);
         }
 
-        if ($team->is_document_verified) {
+        if ($team->is_document_verified === 'approved') {
             return back()->with('error', 'Berkas tim yang sudah disetujui tidak dapat diubah status anggotanya.');
         }
 
@@ -103,12 +103,14 @@ class TeamController extends Controller
             : null;
 
         $member->update([
+            'is_verified' => $request->action === 'approve',
             'verification_error' => $verificationError
         ]);
 
-        if (filled($verificationError) && $team->is_document_verified) {
+        if (filled($verificationError) && $team->is_document_verified === 'approved') {
             $team->update([
-                'is_document_verified' => 0,
+                'is_document_verified' => 'pending',
+                'verification_error' => 'Persetujuan dibatalkan otomatis karena ada catatan revisi pada anggota tim.'
             ]);
         }
 

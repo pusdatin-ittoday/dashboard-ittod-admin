@@ -21,8 +21,8 @@
         $membersWithErrors = $documentMembers->filter(fn ($member) => filled($member->verification_error));
         $canApproveDocuments = $membersWithErrors->isEmpty();
         $initialDocumentDecision = $canApproveDocuments
-            ? old('is_document_verified', $team->is_document_verified ? '1' : '0')
-            : '0';
+            ? old('is_document_verified', $team->is_document_verified)
+            : 'rejected';
         $educationLabels = [
             'sma' => 'SMA/SMK',
             's1' => 'S1',
@@ -212,7 +212,7 @@
                                             <div class="mt-3 rounded-md border border-rose-100 bg-rose-50 px-3 py-2 text-sm text-rose-700">
                                                 {{ $member->verification_error }}
                                             </div>
-                                        @elseif($team->is_document_verified)
+                                        @elseif($member->is_verified)
                                             <span class="mt-2 inline-flex items-center rounded-md bg-emerald-50 px-2.5 py-1 text-xs font-semibold text-emerald-700">
                                                 Berkas Valid
                                             </span>
@@ -307,7 +307,7 @@
                         <dt class="text-gray-500">Status Penguncian</dt>
                         <dd>
                             @php
-                                $isTeamVerified = (bool) $team->is_document_verified;
+                                $isTeamVerified = $team->is_document_verified === 'approved';
                                 $hasTeamErr = !empty($team->verification_error);
                                 $hasMemErr = $membersWithErrors->isNotEmpty();
                                 $isUnderReview = !$isTeamVerified && !$hasTeamErr && !$hasMemErr;
@@ -331,13 +331,13 @@
                     rejectionError: '',
                     approvalError: '',
                     submitDecision(event) {
-                        if (this.verified === '1' && this.hasMemberErrors) {
+                        if (this.verified === 'approved' && this.hasMemberErrors) {
                             event.preventDefault();
                             this.approvalError = 'Masih ada catatan kesalahan anggota. Kosongkan catatan anggota yang sudah diperbaiki sebelum menyetujui.';
                             return;
                         }
 
-                        if (this.verified === '0' && ! this.rejectionReason.trim()) {
+                        if (this.verified === 'rejected' && ! this.rejectionReason.trim()) {
                             event.preventDefault();
                             this.rejectionError = 'Alasan penolakan wajib diisi saat menolak verifikasi.';
                             this.$nextTick(() => this.$refs.rejectionReason?.focus());
@@ -367,17 +367,17 @@
                                 class="rounded-lg border border-gray-200 px-3 py-3 text-center hover:bg-gray-50"
                                 x-bind:class="hasMemberErrors ? 'cursor-not-allowed bg-gray-50 opacity-60' : ''"
                             >
-                                <input type="radio" name="is_document_verified" value="1" x-model="verified" x-bind:disabled="hasMemberErrors" x-on:change="approvalError = ''" class="text-emerald-600 focus:ring-emerald-500">
+                                <input type="radio" name="is_document_verified" value="approved" x-model="verified" x-bind:disabled="hasMemberErrors" x-on:change="approvalError = ''" class="text-emerald-600 focus:ring-emerald-500">
                                 <span class="mt-2 block text-sm font-semibold text-emerald-700">Setujui</span>
                             </label>
                             <label class="rounded-lg border border-gray-200 px-3 py-3 text-center hover:bg-gray-50">
-                                <input type="radio" name="is_document_verified" value="0" x-model="verified" x-on:change="approvalError = ''" class="text-rose-600 focus:ring-rose-500">
+                                <input type="radio" name="is_document_verified" value="rejected" x-model="verified" x-on:change="approvalError = ''" class="text-rose-600 focus:ring-rose-500">
                                 <span class="mt-2 block text-sm font-semibold text-rose-700">Tolak</span>
                             </label>
                         </div>
                     </div>
 
-                    <div x-show="verified === '0'">
+                    <div x-show="verified === 'rejected'">
                         <label for="verification_error" class="block text-xs font-semibold uppercase tracking-wide text-gray-500">Alasan Penolakan / Catatan Kesalahan</label>
                         <textarea
                             id="verification_error"

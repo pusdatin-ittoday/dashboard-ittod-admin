@@ -70,10 +70,10 @@ class TransactionController extends Controller
         }
 
         try {
-            // Menghitung total dana dari tim yang sudah diverifikasi (is_verified = 1)
+            // Menghitung total dana dari tim yang sudah diverifikasi (is_verified = 'approved')
             // Di sini kita join ke tabel 'event' melalui 'competition_id' untuk mengambil data harganya
             // (Asumsi: Di tabel 'event' milik Orang 1 ada kolom bernama 'price' atau 'fee')
-            $totalDana = \App\Models\Team::where('is_verified', 1)
+            $totalDana = \App\Models\Team::where('is_verified', 'approved')
                 ->join('event', 'team.competition_id', '=', 'event.id')
                 ->sum('event.price'); // <-- Ganti 'price' kalau Orang 1 pakai nama lain (misal: 'registration_fee')
 
