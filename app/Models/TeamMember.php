@@ -22,6 +22,7 @@ class TeamMember extends Model
         'user_id',
         'team_id',
         'role',
+        'is_verified',
         'verification_error',
         'kartu_id',
     ];

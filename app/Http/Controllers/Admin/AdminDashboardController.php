@@ -34,12 +34,8 @@ class AdminDashboardController extends Controller
             $globalStats = [
                 'events' => Event::count(),
                 'teams' => Team::count(),
-                'pendingTransactions' => Team::where('is_verified', false)
-                    ->whereNull('verification_error')
-                    ->count(),
-                'rejectedTransactions' => Team::where('is_verified', false)
-                    ->whereNotNull('verification_error')
-                    ->count(),
+                'pendingTransactions' => Team::where('is_verified', 'pending')->count(),
+                'rejectedTransactions' => Team::where('is_verified', 'rejected')->count(),
             ];
         }
 
@@ -53,13 +49,13 @@ class AdminDashboardController extends Controller
             $competitions = $query->withCount([
                 'teams as total_teams',
                 'teams as verified_teams' => function ($q) {
-                    $q->where('is_verified', true);
+                    $q->where('is_verified', 'approved');
                 },
                 'teams as pending_teams' => function ($q) {
-                    $q->where('is_verified', false)->whereNull('verification_error');
+                    $q->where('is_verified', 'pending');
                 },
                 'teams as rejected_teams' => function ($q) {
-                    $q->where('is_verified', false)->whereNotNull('verification_error');
+                    $q->where('is_verified', 'rejected');
                 },
                 'submissions as submitted_teams'
             ])->get();
@@ -118,7 +114,7 @@ class AdminDashboardController extends Controller
                 'email' => $validated['email'],
                 'provider' => 'basic',
                 'hash' => Hash::make($validated['password']),
-                'is_verified' => $request->boolean('is_verified'),
+                'is_verified' => $request->input('is_verified'),
                 'role' => $validated['role'],
             ]);
 
@@ -140,7 +136,7 @@ class AdminDashboardController extends Controller
             'full_name' => $staff->user?->full_name ?? '',
             'email' => $staff->email,
             'role' => $staff->role,
-            'is_verified' => (bool) $staff->is_verified,
+            'is_verified' => $staff->is_verified,
             'event_ids' => $staff->events->pluck('id')->values(),
             'update_url' => route('admin.staff.update', $staff),
         ]);
@@ -180,7 +176,7 @@ class AdminDashboardController extends Controller
 
             $identityPayload = [
                 'email' => $validated['email'],
-                'is_verified' => $request->boolean('is_verified'),
+                'is_verified' => $request->input('is_verified'),
                 'role' => $validated['role'],
             ];
 
@@ -263,22 +259,17 @@ class AdminDashboardController extends Controller
     {
         abort_unless(in_array(auth()->user()?->role, ['superadmin', 'admin_keuangan']), 403);
         $query = Team::with(['event', 'paymentProof', 'members'])
-            ->where('is_document_verified', 1);
+            ->where('is_document_verified', 'approved');
 
-        $filterStatus = $request->input('status', 'default');
+        $filterStatus = $request->input('status', 'pending');
         
-        if ($filterStatus === 'default') {
-            $query->where(function ($q) {
-                $q->where('is_verified', false)->orWhereNotNull('verification_error');
-            });
-        } elseif ($filterStatus === 'pending') {
-            $query->where('is_verified', false)->whereNull('verification_error');
-        } elseif ($filterStatus === 'accepted') {
-            $query->where('is_verified', true);
+        if ($filterStatus === 'pending') {
+            $query->where('is_verified', 'pending');
+        } elseif ($filterStatus === 'approved') {
+            $query->where('is_verified', 'approved');
         } elseif ($filterStatus === 'rejected') {
-            $query->where('is_verified', false)->whereNotNull('verification_error');
+            $query->where('is_verified', 'rejected');
         }
-        // if 'all', do not filter by status
 
         $teams = $query->latest('created_at')->paginate(50)->withQueryString();
 
@@ -287,10 +278,10 @@ class AdminDashboardController extends Controller
             return $team;
         });
 
-        $statsQuery = Team::where('is_document_verified', 1);
-        $pendingCount = (clone $statsQuery)->where('is_verified', false)->whereNull('verification_error')->count();
-        $acceptedCount = (clone $statsQuery)->where('is_verified', true)->count();
-        $rejectedCount = (clone $statsQuery)->where('is_verified', false)->whereNotNull('verification_error')->count();
+        $statsQuery = Team::where('is_document_verified', 'approved');
+        $pendingCount = (clone $statsQuery)->where('is_verified', 'pending')->count();
+        $acceptedCount = (clone $statsQuery)->where('is_verified', 'approved')->count();
+        $rejectedCount = (clone $statsQuery)->where('is_verified', 'rejected')->count();
 
         return view('admin.transactions.index', compact('teams', 'pendingCount', 'acceptedCount', 'rejectedCount', 'filterStatus'));
     }
@@ -299,12 +290,12 @@ class AdminDashboardController extends Controller
     {
         abort_unless(in_array(auth()->user()?->role, ['superadmin', 'admin_keuangan']), 403);
 
-        if ($team->is_verified) {
+        if ($team->is_verified === 'approved') {
             return back()->with('error', 'Transaksi yang sudah diterima tidak dapat diubah.');
         }
 
         $team->update([
-            'is_verified' => true,
+            'is_verified' => 'approved',
             'verification_error' => null,
         ]);
 
@@ -315,7 +306,7 @@ class AdminDashboardController extends Controller
     {
         abort_unless(in_array(auth()->user()?->role, ['superadmin', 'admin_keuangan']), 403);
 
-        if ($team->is_verified) {
+        if ($team->is_verified === 'approved') {
             return back()->with('error', 'Transaksi yang sudah diterima tidak dapat diubah.');
         }
 
@@ -324,7 +315,7 @@ class AdminDashboardController extends Controller
         ]);
 
         $team->update([
-            'is_verified' => false,
+            'is_verified' => 'rejected',
             'verification_error' => $validated['verification_error'],
         ]);
 

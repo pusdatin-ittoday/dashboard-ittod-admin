@@ -46,7 +46,7 @@ class TeamRecapExport
                         $leader?->user?->identity?->email ?? '-',
                         $leader?->user?->phone_number ?? '-',
                         $team->members->count(),
-                        $team->is_verified ? 'Ya' : 'Tidak',
+                        $team->is_verified === 'approved' ? 'Ya' : 'Tidak',
                         $team->verification_error ?? '-',
                         $team->payment_proof_id ? 'Ada' : 'Belum',
                         $team->created_at?->format('d/m/Y H:i') ?? '-',

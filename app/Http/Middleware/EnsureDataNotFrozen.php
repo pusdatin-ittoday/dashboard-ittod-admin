@@ -19,7 +19,7 @@ class EnsureDataNotFrozen
             if ($profile) {
                 $team = $profile->teams()->first();
                 if ($team) {
-                    $isVerified = (bool) $team->is_verified;
+                    $isVerified = $team->is_verified === 'approved';
                     $hasTeamError = !empty($team->verification_error);
                     $hasMemberError = $team->members()->whereNotNull('verification_error')->where('verification_error', '!=', '')->exists();
 

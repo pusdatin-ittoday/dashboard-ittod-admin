@@ -17,10 +17,10 @@ class VerificationService
             $team = \App\Models\Team::findOrFail($teamId);
 
             if ($action === 'verify') {
-                $team->is_verified = 1; 
+                $team->is_verified = 'approved'; 
                 $team->verification_error = null;
             } elseif ($action === 'reject') {
-                $team->is_verified = 2; 
+                $team->is_verified = 'rejected'; 
                 $team->verification_error = $reason; 
             }
 

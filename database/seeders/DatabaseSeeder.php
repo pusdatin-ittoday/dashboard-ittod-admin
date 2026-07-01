@@ -270,7 +270,7 @@ class DatabaseSeeder extends Seeder
         $t1 = (string) Str::uuid();
         Team::create([
             'id' => $t1, 'competition_id' => 'HackToday', 'team_name' => 'Tim Pending Berkas', 'team_code' => 'T1-PEND', 'max_member' => 3,
-            'is_document_verified' => 0, 'is_verified' => 0, 'payment_proof_id' => $mediaPay[1],
+            'is_document_verified' => 'pending', 'is_verified' => 0, 'payment_proof_id' => $mediaPay[1],
         ]);
         TeamMember::create(['user_id' => $peserta[1]->id, 'team_id' => $t1, 'role' => 'leader', 'kartu_id' => $mediaKtm[1]]);
         TeamMember::create(['user_id' => $peserta[2]->id, 'team_id' => $t1, 'role' => 'member', 'kartu_id' => $mediaKtm[2]]);
@@ -279,7 +279,7 @@ class DatabaseSeeder extends Seeder
         $t2 = (string) Str::uuid();
         Team::create([
             'id' => $t2, 'competition_id' => 'UXToday', 'team_name' => 'Tim Ditolak KTM', 'team_code' => 'T2-REJK', 'max_member' => 3,
-            'is_document_verified' => 0, 'is_verified' => 0, 'payment_proof_id' => $mediaPay[2],
+            'is_document_verified' => 'rejected', 'is_verified' => 0, 'payment_proof_id' => $mediaPay[2],
         ]);
         TeamMember::create([
             'user_id' => $peserta[3]->id, 'team_id' => $t2, 'role' => 'leader', 'kartu_id' => $mediaKtm[3],
@@ -290,7 +290,7 @@ class DatabaseSeeder extends Seeder
         $t3 = (string) Str::uuid();
         Team::create([
             'id' => $t3, 'competition_id' => 'HackToday', 'team_name' => 'Tim Menunggu Bayar', 'team_code' => 'T3-WAIT', 'max_member' => 3,
-            'is_document_verified' => 1, 'is_verified' => 0, 'payment_proof_id' => $mediaPay[3],
+            'is_document_verified' => 'approved', 'is_verified' => 0, 'payment_proof_id' => $mediaPay[3],
         ]);
         TeamMember::create(['user_id' => $peserta[4]->id, 'team_id' => $t3, 'role' => 'leader', 'kartu_id' => $mediaKtm[4]]);
         TeamMember::create(['user_id' => $peserta[5]->id, 'team_id' => $t3, 'role' => 'member', 'kartu_id' => $mediaKtm[5]]);
@@ -300,7 +300,7 @@ class DatabaseSeeder extends Seeder
         $t4 = (string) Str::uuid();
         Team::create([
             'id' => $t4, 'competition_id' => 'ITBrains', 'team_name' => 'Tim Ditolak Uang', 'team_code' => 'T4-NMON', 'max_member' => 3,
-            'is_document_verified' => 1, 'is_verified' => 0, 'payment_proof_id' => $mediaPay[4],
+            'is_document_verified' => 'approved', 'is_verified' => 0, 'payment_proof_id' => $mediaPay[4],
             'verification_error' => 'Nominal transfer kurang Rp 50.000',
         ]);
         TeamMember::create(['user_id' => $peserta[7]->id, 'team_id' => $t4, 'role' => 'leader', 'kartu_id' => $mediaKtm[7]]);
@@ -310,7 +310,7 @@ class DatabaseSeeder extends Seeder
         $t5 = (string) Str::uuid();
         Team::create([
             'id' => $t5, 'competition_id' => 'HackToday', 'team_name' => 'Tim Valid 100%', 'team_code' => 'T5-FULL', 'max_member' => 3,
-            'is_document_verified' => 1, 'is_verified' => 1, 'payment_proof_id' => $mediaPay[5],
+            'is_document_verified' => 'approved', 'is_verified' => 1, 'payment_proof_id' => $mediaPay[5],
         ]);
         TeamMember::create(['user_id' => $peserta[9]->id, 'team_id' => $t5, 'role' => 'leader', 'kartu_id' => $mediaKtm[9]]);
 
