@@ -461,8 +461,8 @@ class AdminDashboardController extends Controller
             'description' => ['sometimes', 'required', 'string', 'max:2000'],
             'guide_book_url' => ['sometimes', 'required', 'url', 'max:500'],
             'whatsapp_group_link' => ['sometimes', 'nullable', 'url', 'max:500'],
-            'contact_person1' => ['sometimes', 'required', 'numeric'],
-            'contact_person2' => ['sometimes', 'nullable', 'numeric'],
+            'contact_person1' => ['nullable', 'string', 'max:191'],
+            'contact_person2' => ['nullable', 'string', 'max:191'],
         ]);
 
         $event->update($validated);
@@ -706,8 +706,8 @@ class AdminDashboardController extends Controller
             'participation_type' => ['required', Rule::in(['individual', 'team'])],
             'is_active' => ['sometimes', 'boolean'],
             'requires_submission' => ['sometimes', 'boolean'],
-            'contact_person1' => ['nullable', 'numeric'],
-            'contact_person2' => ['nullable', 'numeric'],
+            'contact_person1' => ['nullable', 'string', 'max:191'],
+            'contact_person2' => ['nullable', 'string', 'max:191'],
             'logo' => [$request->isMethod('post') ? 'required_if:type,competition' : 'nullable', 'image', 'max:2048'],
         ]);
     }

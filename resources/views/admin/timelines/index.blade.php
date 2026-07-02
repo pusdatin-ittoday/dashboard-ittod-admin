@@ -239,7 +239,7 @@
 
         @if (($canManageCompetitions || $canManageTimelines) && $errors->any())
             <div class="mb-6 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
-                <p class="font-semibold">Timeline belum bisa disimpan.</p>
+                <p class="font-semibold">Event belum bisa disimpan.</p>
                 <ul class="mt-2 list-disc space-y-1 pl-5">
                     @foreach ($errors->all() as $error)
                         <li>{{ $error }}</li>
@@ -252,7 +252,7 @@
             <div class="flex flex-col gap-3 border-b border-gray-200 px-6 py-5 sm:flex-row sm:items-center sm:justify-between">
                 <div>
                     <div class="flex flex-wrap items-center gap-3">
-                        <h2 class="text-xl font-semibold text-gray-950">Direktori Timeline Event</h2>
+                        <h2 class="text-xl font-semibold text-gray-950">Direktori Kompetisi & Event</h2>
                         <span class="rounded border border-emerald-200 bg-emerald-50 px-2 py-1 text-[10px] font-bold uppercase text-emerald-700">
                             Event Records
                         </span>

@@ -57,7 +57,7 @@ class TimelineController extends Controller
             'guide_book_url' => 'required|url|max:500',
             'price' => 'nullable|integer|min:0',
             'participation_type' => ['required', Rule::in(['individual', 'team'])],
-            'contact_person1' => 'required|string|max:191',
+            'contact_person1' => 'nullable|string|max:191',
             'contact_person2' => 'nullable|string|max:191',
         ]);
 
