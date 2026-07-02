@@ -32,6 +32,7 @@ class DatabaseSeeder extends Seeder
             'price' => 150000,
             'contact_person1' => 'wa.me/628123456780',
             'contact_person2' => 'wa.me/628123456781',
+            'participation_type' => 'team',
             'max_noncompetition_participant' => null,
         ]);
 
@@ -44,6 +45,7 @@ class DatabaseSeeder extends Seeder
             'price' => 100000,
             'contact_person1' => 'wa.me/628123456782',
             'contact_person2' => 'wa.me/628123456783',
+            'participation_type' => 'team',
             'max_noncompetition_participant' => null,
         ]);
 
@@ -56,6 +58,7 @@ class DatabaseSeeder extends Seeder
             'price' => 120000,
             'contact_person1' => 'wa.me/628123456784',
             'contact_person2' => 'wa.me/628123456785',
+            'participation_type' => 'team',
             'max_noncompetition_participant' => null,
         ]);
 
@@ -68,6 +71,7 @@ class DatabaseSeeder extends Seeder
             'price' => 130000,
             'contact_person1' => 'wa.me/628123456786',
             'contact_person2' => 'wa.me/628123456787',
+            'participation_type' => 'team',
             'max_noncompetition_participant' => null,
         ]);
 
@@ -80,6 +84,7 @@ class DatabaseSeeder extends Seeder
             'price' => 50000,
             'contact_person1' => 'wa.me/628123456788',
             'contact_person2' => null,
+            'participation_type' => 'individual',
             'max_noncompetition_participant' => 500,
         ]);
 
@@ -92,6 +97,7 @@ class DatabaseSeeder extends Seeder
             'price' => 0,
             'contact_person1' => 'wa.me/628123456789',
             'contact_person2' => null,
+            'participation_type' => 'individual',
             'max_noncompetition_participant' => 1000,
         ]);
 
@@ -270,49 +276,49 @@ class DatabaseSeeder extends Seeder
         $t1 = (string) Str::uuid();
         Team::create([
             'id' => $t1, 'competition_id' => 'HackToday', 'team_name' => 'Tim Pending Berkas', 'team_code' => 'T1-PEND', 'max_member' => 3,
-            'is_document_verified' => 'pending', 'is_verified' => 0, 'payment_proof_id' => $mediaPay[1],
+            'is_document_verified' => 'pending', 'is_verified' => 'pending', 'payment_proof_id' => $mediaPay[1],
         ]);
-        TeamMember::create(['user_id' => $peserta[1]->id, 'team_id' => $t1, 'role' => 'leader', 'kartu_id' => $mediaKtm[1]]);
-        TeamMember::create(['user_id' => $peserta[2]->id, 'team_id' => $t1, 'role' => 'member', 'kartu_id' => $mediaKtm[2]]);
+        TeamMember::create(['user_id' => $peserta[1]->id, 'team_id' => $t1, 'role' => 'leader', 'kartu_id' => $mediaKtm[1], 'is_verified' => 0]);
+        TeamMember::create(['user_id' => $peserta[2]->id, 'team_id' => $t1, 'role' => 'member', 'kartu_id' => $mediaKtm[2], 'is_verified' => 0]);
 
         // Tim 2: Berkas Ditolak (UX Today, 1 Member)
         $t2 = (string) Str::uuid();
         Team::create([
             'id' => $t2, 'competition_id' => 'UXToday', 'team_name' => 'Tim Ditolak KTM', 'team_code' => 'T2-REJK', 'max_member' => 3,
-            'is_document_verified' => 'rejected', 'is_verified' => 0, 'payment_proof_id' => $mediaPay[2],
+            'is_document_verified' => 'rejected', 'is_verified' => 'pending', 'payment_proof_id' => $mediaPay[2],
         ]);
         TeamMember::create([
             'user_id' => $peserta[3]->id, 'team_id' => $t2, 'role' => 'leader', 'kartu_id' => $mediaKtm[3],
-            'verification_error' => 'KTM buram, tolong unggah ulang.'
+            'verification_error' => 'KTM buram, tolong unggah ulang.', 'is_verified' => 0
         ]);
 
         // Tim 3: Menunggu Pembayaran (HackToday, 3 Members)
         $t3 = (string) Str::uuid();
         Team::create([
             'id' => $t3, 'competition_id' => 'HackToday', 'team_name' => 'Tim Menunggu Bayar', 'team_code' => 'T3-WAIT', 'max_member' => 3,
-            'is_document_verified' => 'approved', 'is_verified' => 0, 'payment_proof_id' => $mediaPay[3],
+            'is_document_verified' => 'approved', 'is_verified' => 'pending', 'payment_proof_id' => $mediaPay[3],
         ]);
-        TeamMember::create(['user_id' => $peserta[4]->id, 'team_id' => $t3, 'role' => 'leader', 'kartu_id' => $mediaKtm[4]]);
-        TeamMember::create(['user_id' => $peserta[5]->id, 'team_id' => $t3, 'role' => 'member', 'kartu_id' => $mediaKtm[5]]);
-        TeamMember::create(['user_id' => $peserta[6]->id, 'team_id' => $t3, 'role' => 'member', 'kartu_id' => $mediaKtm[6]]);
+        TeamMember::create(['user_id' => $peserta[4]->id, 'team_id' => $t3, 'role' => 'leader', 'kartu_id' => $mediaKtm[4], 'is_verified' => 1]);
+        TeamMember::create(['user_id' => $peserta[5]->id, 'team_id' => $t3, 'role' => 'member', 'kartu_id' => $mediaKtm[5], 'is_verified' => 1]);
+        TeamMember::create(['user_id' => $peserta[6]->id, 'team_id' => $t3, 'role' => 'member', 'kartu_id' => $mediaKtm[6], 'is_verified' => 1]);
 
         // Tim 4: Pembayaran Ditolak (ITBrains, 2 Members)
         $t4 = (string) Str::uuid();
         Team::create([
             'id' => $t4, 'competition_id' => 'ITBrains', 'team_name' => 'Tim Ditolak Uang', 'team_code' => 'T4-NMON', 'max_member' => 3,
-            'is_document_verified' => 'approved', 'is_verified' => 0, 'payment_proof_id' => $mediaPay[4],
+            'is_document_verified' => 'approved', 'is_verified' => 'rejected', 'payment_proof_id' => $mediaPay[4],
             'verification_error' => 'Nominal transfer kurang Rp 50.000',
         ]);
-        TeamMember::create(['user_id' => $peserta[7]->id, 'team_id' => $t4, 'role' => 'leader', 'kartu_id' => $mediaKtm[7]]);
-        TeamMember::create(['user_id' => $peserta[8]->id, 'team_id' => $t4, 'role' => 'member', 'kartu_id' => $mediaKtm[8]]);
+        TeamMember::create(['user_id' => $peserta[7]->id, 'team_id' => $t4, 'role' => 'leader', 'kartu_id' => $mediaKtm[7], 'is_verified' => 1]);
+        TeamMember::create(['user_id' => $peserta[8]->id, 'team_id' => $t4, 'role' => 'member', 'kartu_id' => $mediaKtm[8], 'is_verified' => 1]);
 
         // Tim 5: Lolos Sepenuhnya (HackToday, 1 Member)
         $t5 = (string) Str::uuid();
         Team::create([
             'id' => $t5, 'competition_id' => 'HackToday', 'team_name' => 'Tim Valid 100%', 'team_code' => 'T5-FULL', 'max_member' => 3,
-            'is_document_verified' => 'approved', 'is_verified' => 1, 'payment_proof_id' => $mediaPay[5],
+            'is_document_verified' => 'approved', 'is_verified' => 'approved', 'payment_proof_id' => $mediaPay[5],
         ]);
-        TeamMember::create(['user_id' => $peserta[9]->id, 'team_id' => $t5, 'role' => 'leader', 'kartu_id' => $mediaKtm[9]]);
+        TeamMember::create(['user_id' => $peserta[9]->id, 'team_id' => $t5, 'role' => 'leader', 'kartu_id' => $mediaKtm[9], 'is_verified' => 1]);
 
         // ==========================================
         // OTHERS

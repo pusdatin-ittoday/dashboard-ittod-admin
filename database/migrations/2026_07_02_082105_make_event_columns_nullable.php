@@ -12,7 +12,9 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('event', function (Blueprint $table) {
-            $table->string('participation_type')->default('team')->after('type');
+            $table->text('description')->nullable()->change();
+            $table->text('guide_book_url')->nullable()->change();
+            $table->string('contact_person1', 191)->nullable()->change();
         });
     }
 
@@ -22,7 +24,9 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('event', function (Blueprint $table) {
-            $table->dropColumn('participation_type');
+            $table->text('description')->nullable(false)->change();
+            $table->text('guide_book_url')->nullable(false)->change();
+            $table->string('contact_person1', 191)->nullable(false)->change();
         });
     }
 };
