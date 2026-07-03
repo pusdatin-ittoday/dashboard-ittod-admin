@@ -190,6 +190,12 @@ Field penting:
 - `participation_type`: Tipe pendaftaran event dengan nilai `individual` atau
   `team`. Nilai dipilih saat event dibuat atau diedit dan digunakan web API
   untuk menentukan alur pendaftaran peserta.
+- `method`: Metode pelaksanaan event (`online` atau `offline`). Otomatis `offline` untuk kompetisi, dapat diset manual untuk non-kompetisi.
+- `max_noncompetition_participant`: Batas maksimal peserta (opsional) untuk event non-kompetisi.
+- `price`: Biaya pendaftaran (otomatis 0 untuk event non-kompetisi).
+
+> **Catatan Validasi & UI:**
+> Input `Deskripsi`, `URL Guide Book`, dan `Contact Person 1` tidak diwajibkan (optional) saat superadmin membuat atau mengedit event. Namun, form tersebut bersifat wajib (mandatory) ketika Panitia memperbarui detail event melalui modul Edit Panitia.
 
 ### `Team`
 
@@ -347,7 +353,7 @@ Seeder utama: `database/seeders/DatabaseSeeder.php`.
 
 Data yang dibuat:
 
-- Event kompetisi: HackToday, UX Today, IT-Brains, GameToday.
+- Event kompetisi: Hack Today, UX Today, Code Today, Mine Today.
 - Event non-kompetisi: Seminar Nasional IT Today.
 - Akun superadmin, admin keuangan, panitia, dan peserta.
 - Tim dan team member.

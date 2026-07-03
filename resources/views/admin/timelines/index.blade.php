@@ -159,7 +159,7 @@
                 </div>
                 <div class="mt-5 grid gap-4">
                     <label class="block">
-                        <span class="text-sm font-semibold text-gray-700">Deskripsi</span>
+                        <span class="text-sm font-semibold text-gray-700">Deskripsi <span class="text-red-500">*</span></span>
                         <textarea name="description" required rows="4" class="mt-1 w-full rounded-md border-gray-300 text-sm shadow-sm focus:border-blue-500 focus:ring-blue-500">{{ old('description', $singleEvent->description) }}</textarea>
                     </label>
                     <input type="hidden" name="guide_book_url" value="{{ $singleEvent->guide_book_url }}">
@@ -182,7 +182,7 @@
                 </div>
                 <div class="mt-5 grid gap-4">
                     <label class="block">
-                        <span class="text-sm font-semibold text-gray-700">URL Guide Book</span>
+                        <span class="text-sm font-semibold text-gray-700">URL Guide Book <span class="text-red-500">*</span></span>
                         <input type="url" name="guide_book_url" value="{{ old('guide_book_url', $singleEvent->guide_book_url) }}" required class="mt-1 w-full rounded-md border-gray-300 text-sm shadow-sm focus:border-blue-500 focus:ring-blue-500">
                     </label>
                     <label class="block">
@@ -208,7 +208,7 @@
                 </div>
                 <div class="mt-5 grid gap-4">
                     <label class="block">
-                        <span class="text-sm font-semibold text-gray-700">Contact Person 1 (Hanya Angka)</span>
+                        <span class="text-sm font-semibold text-gray-700">Contact Person 1 (Hanya Angka) <span class="text-red-500">*</span></span>
                         <input type="text" inputmode="numeric" name="contact_person1" placeholder="Contoh: 08xxx" value="{{ old('contact_person1', $singleEvent->contact_person1) }}" required class="mt-1 w-full rounded-md border-gray-300 text-sm shadow-sm focus:border-blue-500 focus:ring-blue-500">
                     </label>
                     <label class="block">
@@ -414,7 +414,7 @@
             </div>
             <div class="mt-5 grid gap-4 sm:grid-cols-2">
                 <label class="block sm:col-span-2">
-                    <span class="text-sm font-semibold text-gray-700">Tipe Event</span>
+                    <span class="text-sm font-semibold text-gray-700">Tipe Event <span class="text-red-500">*</span></span>
                     <select name="type" x-model="type" required class="mt-1 w-full rounded-md border-gray-300 text-sm shadow-sm focus:border-emerald-500 focus:ring-emerald-500">
                         @if(Auth::user()->role !== 'admin_keuangan')
                         <option value="competition">Kompetisi</option>
@@ -423,21 +423,25 @@
                     </select>
                 </label>
                 <label class="block">
-                    <span class="text-sm font-semibold text-gray-700">Nama Event</span>
+                    <span class="text-sm font-semibold text-gray-700">Nama Event <span class="text-red-500">*</span></span>
                     <input name="title" value="{{ old('title') }}" required class="mt-1 w-full rounded-md border-gray-300 text-sm shadow-sm focus:border-emerald-500 focus:ring-emerald-500">
                 </label>
-                <label class="block">
-                    <span class="text-sm font-semibold text-gray-700">Biaya Pendaftaran</span>
-                    <x-admin.currency-input name="price" :value="old('price', 0)" />
-                </label>
-                <label class="block">
-                    <span class="text-sm font-semibold text-gray-700">Tipe Partisipasi</span>
-                    <select name="participation_type" required class="mt-1 w-full rounded-md border-gray-300 text-sm shadow-sm focus:border-emerald-500 focus:ring-emerald-500">
-                        <option value="">-- Pilih Tipe --</option>
-                        <option value="individual" {{ old('participation_type') === 'individual' ? 'selected' : '' }}>Individu</option>
-                        <option value="team" {{ old('participation_type') === 'team' ? 'selected' : '' }}>Tim</option>
-                    </select>
-                </label>
+                <template x-if="type === 'competition'">
+                    <div class="sm:col-span-2 grid gap-4 sm:grid-cols-2">
+                        <label class="block">
+                            <span class="text-sm font-semibold text-gray-700">Biaya Pendaftaran <span class="text-red-500">*</span></span>
+                            <x-admin.currency-input name="price" :value="old('price', 0)" />
+                        </label>
+                        <label class="block">
+                            <span class="text-sm font-semibold text-gray-700">Tipe Partisipasi <span class="text-red-500">*</span></span>
+                            <select name="participation_type" required class="mt-1 w-full rounded-md border-gray-300 text-sm shadow-sm focus:border-emerald-500 focus:ring-emerald-500">
+                                <option value="">-- Pilih Tipe --</option>
+                                <option value="individual" {{ old('participation_type') === 'individual' ? 'selected' : '' }}>Individu</option>
+                                <option value="team" {{ old('participation_type') === 'team' ? 'selected' : '' }}>Tim</option>
+                            </select>
+                        </label>
+                    </div>
+                </template>
                 <label class="block sm:col-span-2">
                     <span class="text-sm font-semibold text-gray-700">Deskripsi</span>
                     <textarea name="description" rows="3" class="mt-1 w-full rounded-md border-gray-300 text-sm shadow-sm focus:border-emerald-500 focus:ring-emerald-500">{{ old('description') }}</textarea>
@@ -456,8 +460,23 @@
                         <span class="text-sm font-semibold text-gray-700">URL Guide Book</span>
                         <input type="url" name="guide_book_url" value="{{ old('guide_book_url') }}" class="mt-1 w-full rounded-md border-gray-300 text-sm shadow-sm focus:border-emerald-500 focus:ring-emerald-500">
                     </label>
+                </div>
+                <div x-show="type === 'non_competition'" x-cloak class="sm:col-span-2 grid gap-4 sm:grid-cols-2 mt-2 border-t border-gray-200 pt-4">
                     <label class="block">
-                        <span class="text-sm font-semibold text-gray-700">Contact Person 1</span>
+                        <span class="text-sm font-semibold text-gray-700">Metode Pelaksanaan <span class="text-red-500">*</span></span>
+                        <select name="method" class="mt-1 w-full rounded-md border-gray-300 text-sm shadow-sm focus:border-emerald-500 focus:ring-emerald-500">
+                            <option value="offline" {{ old('method') === 'offline' ? 'selected' : '' }}>Offline</option>
+                            <option value="online" {{ old('method') === 'online' ? 'selected' : '' }}>Online</option>
+                        </select>
+                    </label>
+                    <label class="block">
+                        <span class="text-sm font-semibold text-gray-700">Maksimal Peserta</span>
+                        <input type="number" name="max_noncompetition_participant" placeholder="Kosongkan jika tidak ada batas" value="{{ old('max_noncompetition_participant') }}" class="mt-1 w-full rounded-md border-gray-300 text-sm shadow-sm focus:border-emerald-500 focus:ring-emerald-500">
+                    </label>
+                </div>
+                <div class="sm:col-span-2 grid gap-4 sm:grid-cols-2 mt-2 border-t border-gray-200 pt-4">
+                    <label class="block">
+                        <span class="text-sm font-semibold text-gray-700">Contact Person 1 <span class="text-red-500">*</span></span>
                         <input type="text" inputmode="numeric" name="contact_person1" placeholder="Contoh: 08xxx" value="{{ old('contact_person1') }}" class="mt-1 w-full rounded-md border-gray-300 text-sm shadow-sm focus:border-emerald-500 focus:ring-emerald-500">
                     </label>
                     <label class="block">
@@ -465,7 +484,7 @@
                         <input type="text" inputmode="numeric" name="contact_person2" placeholder="Contoh: 08xxx" value="{{ old('contact_person2') }}" class="mt-1 w-full rounded-md border-gray-300 text-sm shadow-sm focus:border-emerald-500 focus:ring-emerald-500">
                     </label>
                     <label class="block sm:col-span-2">
-                        <span class="text-sm font-semibold text-gray-700">Logo Event</span>
+                        <span class="text-sm font-semibold text-gray-700">Logo Event <span class="text-red-500">*</span></span>
                         <input type="file" name="logo" accept="image/*" x-bind:required="type === 'competition'" class="mt-1 block w-full text-sm text-gray-500 file:mr-4 file:rounded-md file:border-0 file:bg-emerald-50 file:px-4 file:py-2 file:text-sm file:font-semibold file:text-emerald-700 hover:file:bg-emerald-100">
                     </label>
                 </div>
@@ -488,7 +507,7 @@
                 </div>
                 <div class="mt-5 grid gap-4 sm:grid-cols-2">
                     <label class="block sm:col-span-2">
-                        <span class="text-sm font-semibold text-gray-700">Tipe Event</span>
+                        <span class="text-sm font-semibold text-gray-700">Tipe Event <span class="text-red-500">*</span></span>
                         <select name="type" x-model="type" required class="mt-1 w-full rounded-md border-gray-300 text-sm shadow-sm focus:border-emerald-500 focus:ring-emerald-500">
                             @if(Auth::user()->role !== 'admin_keuangan')
                             <option value="competition">Kompetisi</option>
@@ -497,21 +516,25 @@
                         </select>
                     </label>
                     <label class="block">
-                        <span class="text-sm font-semibold text-gray-700">Nama Event</span>
+                        <span class="text-sm font-semibold text-gray-700">Nama Event <span class="text-red-500">*</span></span>
                         <input name="title" value="{{ old('title', $event->title) }}" required class="mt-1 w-full rounded-md border-gray-300 text-sm shadow-sm focus:border-emerald-500 focus:ring-emerald-500">
                     </label>
-                    <label class="block">
-                        <span class="text-sm font-semibold text-gray-700">Biaya Pendaftaran</span>
-                        <x-admin.currency-input name="price" :value="old('price', $event->price)" />
-                    </label>
-                    <label class="block">
-                        <span class="text-sm font-semibold text-gray-700">Tipe Partisipasi</span>
-                        <select name="participation_type" required class="mt-1 w-full rounded-md border-gray-300 text-sm shadow-sm focus:border-emerald-500 focus:ring-emerald-500">
-                            <option value="">-- Pilih Tipe --</option>
-                            <option value="individual" {{ old('participation_type', $event->participation_type) === 'individual' ? 'selected' : '' }}>Individu</option>
-                            <option value="team" {{ old('participation_type', $event->participation_type) === 'team' ? 'selected' : '' }}>Tim</option>
-                        </select>
-                    </label>
+                    <template x-if="type === 'competition'">
+                        <div class="sm:col-span-2 grid gap-4 sm:grid-cols-2">
+                            <label class="block">
+                                <span class="text-sm font-semibold text-gray-700">Biaya Pendaftaran <span class="text-red-500">*</span></span>
+                                <x-admin.currency-input name="price" :value="old('price', $event->price)" />
+                            </label>
+                            <label class="block">
+                                <span class="text-sm font-semibold text-gray-700">Tipe Partisipasi <span class="text-red-500">*</span></span>
+                                <select name="participation_type" required class="mt-1 w-full rounded-md border-gray-300 text-sm shadow-sm focus:border-emerald-500 focus:ring-emerald-500">
+                                    <option value="">-- Pilih Tipe --</option>
+                                    <option value="individual" {{ old('participation_type', $event->participation_type) === 'individual' ? 'selected' : '' }}>Individu</option>
+                                    <option value="team" {{ old('participation_type', $event->participation_type) === 'team' ? 'selected' : '' }}>Tim</option>
+                                </select>
+                            </label>
+                        </div>
+                    </template>
                     <label class="flex items-center gap-3 rounded-md border border-gray-200 px-3 py-3">
                         <input type="hidden" name="is_active" value="0">
                         <input type="checkbox" name="is_active" value="1" @checked(old('is_active', $event->is_active)) class="rounded border-gray-300 text-emerald-600 focus:ring-emerald-500">
@@ -535,6 +558,21 @@
                             <span class="text-sm font-semibold text-gray-700">URL Guide Book</span>
                             <input type="url" name="guide_book_url" value="{{ old('guide_book_url', $event->guide_book_url) }}" class="mt-1 w-full rounded-md border-gray-300 text-sm shadow-sm focus:border-emerald-500 focus:ring-emerald-500">
                         </label>
+                    </div>
+                    <div x-show="type === 'non_competition'" x-cloak class="sm:col-span-2 grid gap-4 sm:grid-cols-2 mt-2 border-t border-gray-200 pt-4">
+                        <label class="block">
+                            <span class="text-sm font-semibold text-gray-700">Metode Pelaksanaan <span class="text-red-500">*</span></span>
+                            <select name="method" class="mt-1 w-full rounded-md border-gray-300 text-sm shadow-sm focus:border-emerald-500 focus:ring-emerald-500">
+                                <option value="offline" {{ old('method', $event->method ?? 'offline') === 'offline' ? 'selected' : '' }}>Offline</option>
+                                <option value="online" {{ old('method', $event->method ?? 'offline') === 'online' ? 'selected' : '' }}>Online</option>
+                            </select>
+                        </label>
+                        <label class="block">
+                            <span class="text-sm font-semibold text-gray-700">Maksimal Peserta</span>
+                            <input type="number" name="max_noncompetition_participant" placeholder="Kosongkan jika tidak ada batas" value="{{ old('max_noncompetition_participant', $event->max_noncompetition_participant) }}" class="mt-1 w-full rounded-md border-gray-300 text-sm shadow-sm focus:border-emerald-500 focus:ring-emerald-500">
+                        </label>
+                    </div>
+                    <div class="sm:col-span-2 grid gap-4 sm:grid-cols-2 mt-2 border-t border-gray-200 pt-4">
                         <label class="block">
                             <span class="text-sm font-semibold text-gray-700">Contact Person 1</span>
                             <input type="text" inputmode="numeric" name="contact_person1" placeholder="Contoh: 08xxx" value="{{ old('contact_person1', $event->contact_person1) }}" class="mt-1 w-full rounded-md border-gray-300 text-sm shadow-sm focus:border-emerald-500 focus:ring-emerald-500">
@@ -544,7 +582,7 @@
                             <input type="text" inputmode="numeric" name="contact_person2" placeholder="Contoh: 08xxx" value="{{ old('contact_person2', $event->contact_person2) }}" class="mt-1 w-full rounded-md border-gray-300 text-sm shadow-sm focus:border-emerald-500 focus:ring-emerald-500">
                         </label>
                         <label class="block sm:col-span-2">
-                            <span class="text-sm font-semibold text-gray-700">Ubah Logo Event (Opsional)</span>
+                            <span class="text-sm font-semibold text-gray-700">Ubah Logo Event <span class="text-red-500">*</span></span>
                             <input type="file" name="logo" accept="image/*" class="mt-1 block w-full text-sm text-gray-500 file:mr-4 file:rounded-md file:border-0 file:bg-emerald-50 file:px-4 file:py-2 file:text-sm file:font-semibold file:text-emerald-700 hover:file:bg-emerald-100">
                             @if($event->logo_url)
                                 <p class="mt-2 text-xs text-gray-500">Logo saat ini sudah terpasang. Unggah logo baru hanya jika ingin menggantinya.</p>
@@ -573,11 +611,11 @@
                 </div>
                 <div class="mt-5 grid gap-4">
                     <label class="block">
-                        <span class="text-sm font-semibold text-gray-700">Deskripsi</span>
+                        <span class="text-sm font-semibold text-gray-700">Deskripsi <span class="text-red-500">*</span></span>
                         <textarea name="description" required rows="4" class="mt-1 w-full rounded-md border-gray-300 text-sm shadow-sm focus:border-blue-500 focus:ring-blue-500">{{ old('description', $event->description) }}</textarea>
                     </label>
                     <label class="block">
-                        <span class="text-sm font-semibold text-gray-700">URL Guide Book</span>
+                        <span class="text-sm font-semibold text-gray-700">URL Guide Book <span class="text-red-500">*</span></span>
                         <input type="url" name="guide_book_url" value="{{ old('guide_book_url', $event->guide_book_url) }}" required class="mt-1 w-full rounded-md border-gray-300 text-sm shadow-sm focus:border-blue-500 focus:ring-blue-500">
                     </label>
                     <label class="block">
@@ -585,7 +623,7 @@
                         <input type="url" name="whatsapp_group_link" value="{{ old('whatsapp_group_link', $event->whatsapp_group_link) }}" class="mt-1 w-full rounded-md border-gray-300 text-sm shadow-sm focus:border-blue-500 focus:ring-blue-500" placeholder="https://chat.whatsapp.com/...">
                     </label>
                     <label class="block">
-                        <span class="text-sm font-semibold text-gray-700">Contact Person 1 (Hanya Angka)</span>
+                        <span class="text-sm font-semibold text-gray-700">Contact Person 1 (Hanya Angka) <span class="text-red-500">*</span></span>
                         <input type="text" inputmode="numeric" name="contact_person1" placeholder="Contoh: 08xxx" value="{{ old('contact_person1', $event->contact_person1) }}" required class="mt-1 w-full rounded-md border-gray-300 text-sm shadow-sm focus:border-blue-500 focus:ring-blue-500">
                     </label>
                     <label class="block">

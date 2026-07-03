@@ -421,7 +421,6 @@ class AdminDashboardController extends Controller
             'id' => (string) Str::uuid(),
             'is_active' => true,
             'logo_url' => $logoUrl,
-            'max_noncompetition_participant' => null,
         ]);
 
         return back()->with('status', 'Kompetisi berhasil ditambahkan.');
@@ -696,6 +695,17 @@ class AdminDashboardController extends Controller
 
     private function validateCompetition(Request $request): array
     {
+        if ($request->input('type') === 'non_competition') {
+            $request->merge([
+                'price' => 0,
+                'participation_type' => 'individual',
+            ]);
+        } else if ($request->input('type') === 'competition') {
+            $request->merge([
+                'method' => 'offline',
+            ]);
+        }
+
         return $request->validate([
             'title' => ['required', 'string', 'max:191'],
             'type' => ['required', 'string', \Illuminate\Validation\Rule::in(['competition', 'non_competition'])],
@@ -708,6 +718,8 @@ class AdminDashboardController extends Controller
             'requires_submission' => ['sometimes', 'boolean'],
             'contact_person1' => ['nullable', 'string', 'max:191'],
             'contact_person2' => ['nullable', 'string', 'max:191'],
+            'max_noncompetition_participant' => ['nullable', 'integer', 'min:1'],
+            'method' => ['required', 'string', Rule::in(['online', 'offline'])],
             'logo' => [$request->isMethod('post') ? 'required_if:type,competition' : 'nullable', 'image', 'max:2048'],
         ]);
     }

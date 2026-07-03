@@ -61,12 +61,7 @@
                         </x-nav-link>
                     @endif
 
-                    <!-- Verifikasi Event Non-Kompetisi: Superadmin, Admin Keuangan -->
-                    @if(Auth::check() && in_array(Auth::user()->role, ['superadmin', 'admin_keuangan']))
-                        <x-nav-link :href="route('admin.event-participants.index')" :active="request()->routeIs('admin.event-participants.*')">
-                            {{ __('Verifikasi Event') }}
-                        </x-nav-link>
-                    @endif
+
 
                     <!-- Pengumuman: All admin staff roles -->
                     @if(Auth::check() && in_array(Auth::user()->role, ['superadmin', 'admin_keuangan', 'panitia']))
@@ -163,9 +158,7 @@
                 <x-responsive-nav-link :href="route('admin.transactions.index')" :active="request()->routeIs('admin.transactions.*')">
                     {{ __('Verifikasi Pembayaran Tim') }}
                 </x-responsive-nav-link>
-                <x-responsive-nav-link :href="route('admin.event-participants.index')" :active="request()->routeIs('admin.event-participants.*')">
-                    {{ __('Verifikasi Event') }}
-                </x-responsive-nav-link>
+
             @endif
 
             @if(Auth::check() && in_array(Auth::user()->role, ['superadmin', 'admin_keuangan', 'panitia']))

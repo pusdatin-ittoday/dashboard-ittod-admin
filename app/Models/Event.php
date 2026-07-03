@@ -33,6 +33,7 @@ class Event extends Model
         'whatsapp_group_link',
         'logo_url',
         'participation_type',
+        'method',
     ];
 
     protected $casts = [

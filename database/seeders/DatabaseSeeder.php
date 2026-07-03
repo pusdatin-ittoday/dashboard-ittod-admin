@@ -25,13 +25,13 @@ class DatabaseSeeder extends Seeder
     {
         Event::create([
             'id' => 'HackToday',
-            'title' => 'HackToday',
+            'title' => 'Hack Today',
             'description' => 'Kompetisi Capture the Flag (CTF) tingkat nasional untuk menguji kemampuan analisis dan eksploitasi keamanan siber.',
             'guide_book_url' => 'https://ittoday.web.id/guidebook-hacktoday.pdf',
             'type' => 'competition',
             'price' => 150000,
-            'contact_person1' => 'wa.me/628123456780',
-            'contact_person2' => 'wa.me/628123456781',
+            'contact_person1' => '628123456780',
+            'contact_person2' => '628123456781',
             'participation_type' => 'team',
             'max_noncompetition_participant' => null,
         ]);
@@ -43,34 +43,34 @@ class DatabaseSeeder extends Seeder
             'guide_book_url' => 'https://ittoday.web.id/guidebook-uxtoday.pdf',
             'type' => 'competition',
             'price' => 100000,
-            'contact_person1' => 'wa.me/628123456782',
-            'contact_person2' => 'wa.me/628123456783',
+            'contact_person1' => '628123456782',
+            'contact_person2' => '628123456783',
             'participation_type' => 'team',
             'max_noncompetition_participant' => null,
         ]);
 
         Event::create([
-            'id' => 'ITBrains',
+            'id' => 'CodeToday',
             'title' => 'IT-Brains',
             'description' => 'Kompetisi analisis bisnis IT dan pemecahan masalah (IT Case Study) berskala nasional.',
             'guide_book_url' => 'https://ittoday.web.id/guidebook-itbrains.pdf',
             'type' => 'competition',
             'price' => 120000,
-            'contact_person1' => 'wa.me/628123456784',
-            'contact_person2' => 'wa.me/628123456785',
+            'contact_person1' => '628123456784',
+            'contact_person2' => '628123456785',
             'participation_type' => 'team',
             'max_noncompetition_participant' => null,
         ]);
 
         Event::create([
-            'id' => 'GameToday',
-            'title' => 'GameToday',
+            'id' => 'MineToday',
+            'title' => 'Mine Today',
             'description' => 'Kompetisi perancangan dan pengembangan game tingkat nasional untuk memamerkan kreativitas dan gameplay inovatif.',
             'guide_book_url' => 'https://ittoday.web.id/guidebook-gametoday.pdf',
             'type' => 'competition',
             'price' => 130000,
-            'contact_person1' => 'wa.me/628123456786',
-            'contact_person2' => 'wa.me/628123456787',
+            'contact_person1' => '628123456786',
+            'contact_person2' => '628123456787',
             'participation_type' => 'team',
             'max_noncompetition_participant' => null,
         ]);
@@ -82,7 +82,7 @@ class DatabaseSeeder extends Seeder
             'guide_book_url' => 'https://ittoday.web.id/guidebook-seminar.pdf',
             'type' => 'non_competition',
             'price' => 50000,
-            'contact_person1' => 'wa.me/628123456788',
+            'contact_person1' => '628123456788',
             'contact_person2' => null,
             'participation_type' => 'individual',
             'max_noncompetition_participant' => 500,
@@ -95,7 +95,7 @@ class DatabaseSeeder extends Seeder
             'guide_book_url' => 'https://ittoday.web.id/guidebook-exhibition.pdf',
             'type' => 'non_competition',
             'price' => 0,
-            'contact_person1' => 'wa.me/628123456789',
+            'contact_person1' => '628123456789',
             'contact_person2' => null,
             'participation_type' => 'individual',
             'max_noncompetition_participant' => 1000,
@@ -172,31 +172,31 @@ class DatabaseSeeder extends Seeder
         ]);
         $panitiaUxIdentity->events()->attach(['UXToday']);
 
-        // Akun Panitia 3 (ITBrains)
+        // Akun Panitia 3 (CodeToday)
         $panitiaItbrainsUser = User::create([
             'id' => '55555555-5555-5555-5555-555555555555',
             'email' => 'panitia.itbrains@ittoday.id',
-            'full_name' => 'Panitia ITBrains',
+            'full_name' => 'Panitia CodeToday',
             'is_registration_complete' => 1,
         ]);
         $panitiaItbrainsIdentity = UserIdentity::create([
             'id' => '55555555-5555-5555-5555-555555555555', 'email' => 'panitia.itbrains@ittoday.id', 'provider' => 'basic', 'hash' => Hash::make('panitia'),
             'role' => 'panitia', 'is_verified' => 1, 'verification_token' => Str::random(40), 'verification_token_expiration' => now()->addYear(),
         ]);
-        $panitiaItbrainsIdentity->events()->attach(['ITBrains']);
+        $panitiaItbrainsIdentity->events()->attach(['CodeToday']);
 
-        // Akun Panitia 4 (GameToday)
-        $panitiaGameTodayUser = User::create([
+        // Akun Panitia 4 (MineToday)
+        $panitiaMineTodayUser = User::create([
             'id' => '66666666-6666-6666-6666-666666666666',
             'email' => 'panitia.gametoday@ittoday.id',
-            'full_name' => 'Panitia GameToday',
+            'full_name' => 'Panitia MineToday',
             'is_registration_complete' => 1,
         ]);
-        $panitiaGameTodayIdentity = UserIdentity::create([
+        $panitiaMineTodayIdentity = UserIdentity::create([
             'id' => '66666666-6666-6666-6666-666666666666', 'email' => 'panitia.gametoday@ittoday.id', 'provider' => 'basic', 'hash' => Hash::make('panitia'),
             'role' => 'panitia', 'is_verified' => 1, 'verification_token' => Str::random(40), 'verification_token_expiration' => now()->addYear(),
         ]);
-        $panitiaGameTodayIdentity->events()->attach(['GameToday']);
+        $panitiaMineTodayIdentity->events()->attach(['MineToday']);
 
         // Akun Panitia 5 (Seminar - Non-Competition)
         $panitiaSeminarUser = User::create([
@@ -302,10 +302,10 @@ class DatabaseSeeder extends Seeder
         TeamMember::create(['user_id' => $peserta[5]->id, 'team_id' => $t3, 'role' => 'member', 'kartu_id' => $mediaKtm[5], 'is_verified' => 1]);
         TeamMember::create(['user_id' => $peserta[6]->id, 'team_id' => $t3, 'role' => 'member', 'kartu_id' => $mediaKtm[6], 'is_verified' => 1]);
 
-        // Tim 4: Pembayaran Ditolak (ITBrains, 2 Members)
+        // Tim 4: Pembayaran Ditolak (CodeToday, 2 Members)
         $t4 = (string) Str::uuid();
         Team::create([
-            'id' => $t4, 'competition_id' => 'ITBrains', 'team_name' => 'Tim Ditolak Uang', 'team_code' => 'T4-NMON', 'max_member' => 3,
+            'id' => $t4, 'competition_id' => 'CodeToday', 'team_name' => 'Tim Ditolak Uang', 'team_code' => 'T4-NMON', 'max_member' => 3,
             'is_document_verified' => 'approved', 'is_verified' => 'rejected', 'payment_proof_id' => $mediaPay[4],
             'verification_error' => 'Nominal transfer kurang Rp 50.000',
         ]);
@@ -327,14 +327,14 @@ class DatabaseSeeder extends Seeder
         EventTimeline::create([
             'id' => (string) Str::uuid(),
             'event_id' => 'HackToday',
-            'title' => 'Open Registration HackToday',
+            'title' => 'Open Registration Hack Today',
             'date' => now()->addDays(7),
         ]);
 
         EventTimeline::create([
             'id' => (string) Str::uuid(),
             'event_id' => 'HackToday',
-            'title' => 'Close Registration HackToday',
+            'title' => 'Close Registration Hack Today',
             'date' => now()->addDays(14),
         ]);
 
