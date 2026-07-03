@@ -121,9 +121,12 @@
                                             <td class="px-4 py-3 text-sm font-semibold text-gray-950">{{ $submission->team->team_name ?? 'Tim Tidak Diketahui' }}</td>
                                             <td class="px-4 py-3 text-sm text-gray-600">{{ $submission->created_at->format('d M Y H:i') }}</td>
                                             <td class="px-4 py-3 text-sm text-gray-700">
-                                                @if (is_array($submission->submission_object))
+                                                @php
+                                                    $subObj = is_string($submission->submission_object) ? json_decode($submission->submission_object, true) : $submission->submission_object;
+                                                @endphp
+                                                @if (is_array($subObj))
                                                     <ul class="list-disc pl-4 space-y-1">
-                                                        @foreach ($submission->submission_object as $key => $value)
+                                                        @foreach ($subObj as $key => $value)
                                                             <li>
                                                                 <span class="font-medium">{{ Str::title(str_replace('_', ' ', $key)) }}:</span> 
                                                                 @if (filter_var($value, FILTER_VALIDATE_URL))
