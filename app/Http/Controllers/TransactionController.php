@@ -20,10 +20,10 @@ class TransactionController extends Controller
      */
     public function verify(Request $request, $teamId)
     {
-        if (!auth()->check() || !in_array(auth()->user()->role, ['admin_keuangan', 'superadmin'])) {
+        if (!auth()->check() || !in_array(auth()->user()->role, ['admin_biasa', 'superadmin'])) {
             return response()->json([
                 'success' => false,
-                'message' => 'Forbidden: Hanya Admin Keuangan dan Superadmin yang dapat mengakses fitur ini.'
+                'message' => 'Forbidden: Hanya Admin Biasa dan Superadmin yang dapat mengakses fitur ini.'
             ], 403);
         }
 
@@ -62,10 +62,10 @@ class TransactionController extends Controller
      */
     public function getRecap()
     {
-        if (!auth()->check() || !in_array(auth()->user()->role, ['admin_keuangan', 'superadmin'])) {
+        if (!auth()->check() || !in_array(auth()->user()->role, ['admin_biasa', 'superadmin'])) {
             return response()->json([
                 'success' => false,
-                'message' => 'Forbidden: Hanya Admin Keuangan dan Superadmin yang dapat mengakses fitur ini.'
+                'message' => 'Forbidden: Hanya Admin Biasa dan Superadmin yang dapat mengakses fitur ini.'
             ], 403);
         }
 

@@ -14,14 +14,14 @@ class ExportController extends Controller
 {
     public function exportTeams(Request $request): StreamedResponse
     {
-        abort_unless(in_array(auth()->user()->role, ['superadmin', 'panitia', 'admin_keuangan']), 403);
+        abort_unless(in_array(auth()->user()->role, ['superadmin', 'panitia_lomba', 'admin_biasa']), 403);
         $request->validate([
             'event_id' => ['required', 'string', 'exists:event,id'],
         ]);
 
         $event    = Event::findOrFail($request->input('event_id'));
 
-        if (auth()->user()->role === 'panitia') {
+        if (auth()->user()->role === 'panitia_lomba') {
             abort_unless(auth()->user()->events->contains('id', $event->id), 403);
         }
 
@@ -37,14 +37,14 @@ class ExportController extends Controller
 
     public function exportParticipants(Request $request): StreamedResponse
     {
-        abort_unless(in_array(auth()->user()->role, ['superadmin', 'panitia', 'admin_keuangan']), 403);
+        abort_unless(in_array(auth()->user()->role, ['superadmin', 'panitia_lomba', 'admin_biasa']), 403);
         $request->validate([
             'event_id' => ['required', 'string', 'exists:event,id'],
         ]);
 
         $event    = Event::findOrFail($request->input('event_id'));
 
-        if (auth()->user()->role === 'panitia') {
+        if (auth()->user()->role === 'panitia_lomba') {
             abort_unless(auth()->user()->events->contains('id', $event->id), 403);
         }
 
@@ -61,7 +61,7 @@ class ExportController extends Controller
 
     public function exportTeamsGlobal(): StreamedResponse
     {
-        abort_unless(in_array(auth()->user()->role, ['superadmin', 'admin_keuangan']), 403);
+        abort_unless(in_array(auth()->user()->role, ['superadmin', 'admin_biasa']), 403);
         $filename = 'rekap-tim-semua-' . now()->format('Y-m-d') . '.csv';
 
         return response()->stream(function () {
@@ -74,7 +74,7 @@ class ExportController extends Controller
 
     public function exportParticipantsGlobal(): StreamedResponse
     {
-        abort_unless(in_array(auth()->user()->role, ['superadmin', 'admin_keuangan']), 403);
+        abort_unless(in_array(auth()->user()->role, ['superadmin', 'admin_biasa']), 403);
         $filename = 'rekap-peserta-semua-' . now()->format('Y-m-d') . '.csv';
 
         return response()->stream(function () {
@@ -88,7 +88,7 @@ class ExportController extends Controller
     public function exportUsersGlobal(\Illuminate\Http\Request $request): StreamedResponse
     {
         $userRole = auth()->user()->role;
-        abort_unless(in_array($userRole, ['superadmin', 'admin_keuangan', 'panitia']), 403);
+        abort_unless(in_array($userRole, ['superadmin', 'admin_biasa', 'panitia_lomba']), 403);
         $filename = 'rekap-pengguna-umum-' . now()->format('Y-m-d') . '.csv';
 
         $requestedEventId = $request->input('event_id');
@@ -100,7 +100,7 @@ class ExportController extends Controller
             $eventIds = null;
             if ($requestedEventId) {
                 $eventIds = [$requestedEventId];
-            } elseif ($userRole === 'panitia') {
+            } elseif ($userRole === 'panitia_lomba') {
                 $eventIds = auth()->user()->events->pluck('id')->toArray();
             }
             

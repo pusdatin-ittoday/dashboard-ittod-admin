@@ -140,87 +140,87 @@ class DatabaseSeeder extends Seeder
             'email' => 'admin@ittoday.id',
             'provider' => 'basic',
             'hash' => Hash::make('admin'),
-            'role' => 'admin_keuangan',
+            'role' => 'admin_biasa',
             'is_verified' => 1,
             'verification_token' => Str::random(40),
             'verification_token_expiration' => now()->addYear(),
         ]);
 
-        // Akun Panitia 1 (HackToday)
+        // Akun Panitia Lomba 1 (HackToday)
         $panitiaUser = User::create([
             'id' => '33333333-3333-3333-3333-333333333333',
-            'email' => 'panitia@ittoday.id',
-            'full_name' => 'Panitia HackToday',
+            'email' => 'panitia_lomba@ittoday.id',
+            'full_name' => 'Panitia Lomba HackToday',
             'is_registration_complete' => 1,
         ]);
         $panitiaIdentity = UserIdentity::create([
-            'id' => '33333333-3333-3333-3333-333333333333', 'email' => 'panitia@ittoday.id', 'provider' => 'basic', 'hash' => Hash::make('panitia'),
-            'role' => 'panitia', 'is_verified' => 1, 'verification_token' => Str::random(40), 'verification_token_expiration' => now()->addYear(),
+            'id' => '33333333-3333-3333-3333-333333333333', 'email' => 'panitia_lomba@ittoday.id', 'provider' => 'basic', 'hash' => Hash::make('panitia_lomba'),
+            'role' => 'panitia_lomba', 'is_verified' => 1, 'verification_token' => Str::random(40), 'verification_token_expiration' => now()->addYear(),
         ]);
         $panitiaIdentity->events()->attach(['HackToday']);
 
-        // Akun Panitia 2 (UX Today)
+        // Akun Panitia Lomba 2 (UX Today)
         $panitiaUxUser = User::create([
             'id' => '44444444-4444-4444-4444-444444444444',
-            'email' => 'panitia.uxtoday@ittoday.id',
-            'full_name' => 'Panitia UX Today',
+            'email' => 'panitia_lomba.uxtoday@ittoday.id',
+            'full_name' => 'Panitia Lomba UX Today',
             'is_registration_complete' => 1,
         ]);
         $panitiaUxIdentity = UserIdentity::create([
-            'id' => '44444444-4444-4444-4444-444444444444', 'email' => 'panitia.uxtoday@ittoday.id', 'provider' => 'basic', 'hash' => Hash::make('panitia'),
-            'role' => 'panitia', 'is_verified' => 1, 'verification_token' => Str::random(40), 'verification_token_expiration' => now()->addYear(),
+            'id' => '44444444-4444-4444-4444-444444444444', 'email' => 'panitia_lomba.uxtoday@ittoday.id', 'provider' => 'basic', 'hash' => Hash::make('panitia_lomba'),
+            'role' => 'panitia_lomba', 'is_verified' => 1, 'verification_token' => Str::random(40), 'verification_token_expiration' => now()->addYear(),
         ]);
         $panitiaUxIdentity->events()->attach(['UXToday']);
 
-        // Akun Panitia 3 (CodeToday)
+        // Akun Panitia Lomba 3 (CodeToday)
         $panitiaItbrainsUser = User::create([
             'id' => '55555555-5555-5555-5555-555555555555',
-            'email' => 'panitia.itbrains@ittoday.id',
-            'full_name' => 'Panitia CodeToday',
+            'email' => 'panitia_lomba.itbrains@ittoday.id',
+            'full_name' => 'Panitia Lomba CodeToday',
             'is_registration_complete' => 1,
         ]);
         $panitiaItbrainsIdentity = UserIdentity::create([
-            'id' => '55555555-5555-5555-5555-555555555555', 'email' => 'panitia.itbrains@ittoday.id', 'provider' => 'basic', 'hash' => Hash::make('panitia'),
-            'role' => 'panitia', 'is_verified' => 1, 'verification_token' => Str::random(40), 'verification_token_expiration' => now()->addYear(),
+            'id' => '55555555-5555-5555-5555-555555555555', 'email' => 'panitia_lomba.itbrains@ittoday.id', 'provider' => 'basic', 'hash' => Hash::make('panitia_lomba'),
+            'role' => 'panitia_lomba', 'is_verified' => 1, 'verification_token' => Str::random(40), 'verification_token_expiration' => now()->addYear(),
         ]);
         $panitiaItbrainsIdentity->events()->attach(['CodeToday']);
 
-        // Akun Panitia 4 (MineToday)
+        // Akun Panitia Lomba 4 (MineToday)
         $panitiaMineTodayUser = User::create([
             'id' => '66666666-6666-6666-6666-666666666666',
-            'email' => 'panitia.gametoday@ittoday.id',
-            'full_name' => 'Panitia MineToday',
+            'email' => 'panitia_lomba.gametoday@ittoday.id',
+            'full_name' => 'Panitia Lomba MineToday',
             'is_registration_complete' => 1,
         ]);
         $panitiaMineTodayIdentity = UserIdentity::create([
-            'id' => '66666666-6666-6666-6666-666666666666', 'email' => 'panitia.gametoday@ittoday.id', 'provider' => 'basic', 'hash' => Hash::make('panitia'),
-            'role' => 'panitia', 'is_verified' => 1, 'verification_token' => Str::random(40), 'verification_token_expiration' => now()->addYear(),
+            'id' => '66666666-6666-6666-6666-666666666666', 'email' => 'panitia_lomba.gametoday@ittoday.id', 'provider' => 'basic', 'hash' => Hash::make('panitia_lomba'),
+            'role' => 'panitia_lomba', 'is_verified' => 1, 'verification_token' => Str::random(40), 'verification_token_expiration' => now()->addYear(),
         ]);
         $panitiaMineTodayIdentity->events()->attach(['MineToday']);
 
-        // Akun Panitia 5 (Seminar - Non-Competition)
+        // Akun Panitia Lomba 5 (Seminar - Non-Competition)
         $panitiaSeminarUser = User::create([
             'id' => '77777777-7777-7777-7777-777777777777',
-            'email' => 'panitia.seminar@ittoday.id',
-            'full_name' => 'Panitia Seminar',
+            'email' => 'panitia_lomba.seminar@ittoday.id',
+            'full_name' => 'Panitia Lomba Seminar',
             'is_registration_complete' => 1,
         ]);
         $panitiaSeminarIdentity = UserIdentity::create([
-            'id' => '77777777-7777-7777-7777-777777777777', 'email' => 'panitia.seminar@ittoday.id', 'provider' => 'basic', 'hash' => Hash::make('panitia'),
-            'role' => 'panitia', 'is_verified' => 1, 'verification_token' => Str::random(40), 'verification_token_expiration' => now()->addYear(),
+            'id' => '77777777-7777-7777-7777-777777777777', 'email' => 'panitia_lomba.seminar@ittoday.id', 'provider' => 'basic', 'hash' => Hash::make('panitia_lomba'),
+            'role' => 'panitia_lomba', 'is_verified' => 1, 'verification_token' => Str::random(40), 'verification_token_expiration' => now()->addYear(),
         ]);
         $panitiaSeminarIdentity->events()->attach(['Seminar']);
 
-        // Akun Panitia 6 (Exhibition - Non-Competition)
+        // Akun Panitia Lomba 6 (Exhibition - Non-Competition)
         $panitiaExhibitionUser = User::create([
             'id' => '88888888-8888-8888-8888-888888888888',
-            'email' => 'panitia.exhibition@ittoday.id',
-            'full_name' => 'Panitia Exhibition',
+            'email' => 'panitia_lomba.exhibition@ittoday.id',
+            'full_name' => 'Panitia Lomba Exhibition',
             'is_registration_complete' => 1,
         ]);
         $panitiaExhibitionIdentity = UserIdentity::create([
-            'id' => '88888888-8888-8888-8888-888888888888', 'email' => 'panitia.exhibition@ittoday.id', 'provider' => 'basic', 'hash' => Hash::make('panitia'),
-            'role' => 'panitia', 'is_verified' => 1, 'verification_token' => Str::random(40), 'verification_token_expiration' => now()->addYear(),
+            'id' => '88888888-8888-8888-8888-888888888888', 'email' => 'panitia_lomba.exhibition@ittoday.id', 'provider' => 'basic', 'hash' => Hash::make('panitia_lomba'),
+            'role' => 'panitia_lomba', 'is_verified' => 1, 'verification_token' => Str::random(40), 'verification_token_expiration' => now()->addYear(),
         ]);
         $panitiaExhibitionIdentity->events()->attach(['Exhibition']);
 

@@ -29,8 +29,8 @@ class OperationTest extends TestCase
     /** @test */
     public function admin_can_access_operation_teams_list()
     {
-        // Ambil akun admin_keuangan yang dibuat oleh DatabaseSeeder
-        $admin = UserIdentity::where('role', 'admin_keuangan')->first();
+        // Ambil akun admin_biasa yang dibuat oleh DatabaseSeeder
+        $admin = UserIdentity::where('role', 'admin_biasa')->first();
 
         $response = $this->actingAs($admin)
             ->get('/operation/teams');
@@ -42,7 +42,7 @@ class OperationTest extends TestCase
     /** @test */
     public function admin_can_update_team_verification_status()
     {
-        $admin = UserIdentity::where('role', 'admin_keuangan')->first();
+        $admin = UserIdentity::where('role', 'admin_biasa')->first();
         $team = Team::first();
 
         $response = $this->actingAs($admin)
@@ -58,7 +58,7 @@ class OperationTest extends TestCase
     /** @test */
     public function admin_can_crud_non_competition_timelines()
     {
-        $admin = UserIdentity::where('role', 'admin_keuangan')->first();
+        $admin = UserIdentity::where('role', 'admin_biasa')->first();
 
         // 1. Read
         $response = $this->actingAs($admin)->get('/operation/timeline');

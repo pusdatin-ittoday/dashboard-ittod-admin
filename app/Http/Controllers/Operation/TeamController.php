@@ -11,11 +11,11 @@ class TeamController extends Controller
 {
     // Menampilkan daftar semua tim (UC-04)
     public function index() {
-        abort_unless(in_array(auth()->user()->role, ['superadmin', 'panitia'], true), 403);
+        abort_unless(in_array(auth()->user()->role, ['superadmin', 'panitia_lomba'], true), 403);
         
         $query = Team::with(['event', 'members.user']);
         
-        if (auth()->user()->role === 'panitia') {
+        if (auth()->user()->role === 'panitia_lomba') {
             $query->whereIn('competition_id', auth()->user()->events->pluck('id'));
         }
         
@@ -25,10 +25,10 @@ class TeamController extends Controller
 
     // Melihat detail berkas identitas (REQ-08)
     public function show(string $id) {
-        abort_unless(in_array(auth()->user()->role, ['superadmin', 'panitia'], true), 403);
+        abort_unless(in_array(auth()->user()->role, ['superadmin', 'panitia_lomba'], true), 403);
         $team = Team::with(['event', 'members.user', 'members.kartu', 'paymentProof'])->findOrFail($id);
         
-        if (auth()->user()->role === 'panitia') {
+        if (auth()->user()->role === 'panitia_lomba') {
             abort_unless(auth()->user()->events->contains('id', $team->competition_id), 403);
         }
         
@@ -37,10 +37,10 @@ class TeamController extends Controller
 
     // Mengubah status verifikasi berkas tim (REQ-08)
     public function updateStatus(Request $request, string $id) {
-        abort_unless(in_array(auth()->user()->role, ['superadmin', 'panitia'], true), 403);
+        abort_unless(in_array(auth()->user()->role, ['superadmin', 'panitia_lomba'], true), 403);
         $team = Team::with('members')->findOrFail($id);
         
-        if (auth()->user()->role === 'panitia') {
+        if (auth()->user()->role === 'panitia_lomba') {
             abort_unless(auth()->user()->events->contains('id', $team->competition_id), 403);
         }
 
@@ -84,14 +84,14 @@ class TeamController extends Controller
 
     // Mengubah status verifikasi dokumen anggota secara individual
     public function updateMemberStatus(Request $request, string $teamId, string $userId) {
-        abort_unless(in_array(auth()->user()->role, ['superadmin', 'panitia'], true), 403);
+        abort_unless(in_array(auth()->user()->role, ['superadmin', 'panitia_lomba'], true), 403);
         $member = TeamMember::where('team_id', $teamId)
             ->where('user_id', $userId)
             ->firstOrFail();
 
         $team = Team::findOrFail($teamId);
 
-        if (auth()->user()->role === 'panitia') {
+        if (auth()->user()->role === 'panitia_lomba') {
             abort_unless(auth()->user()->events->contains('id', $team->competition_id), 403);
         }
 

@@ -2,7 +2,7 @@
     title="Dashboard Operasional"
     subtitle="Ringkasan cepat antrean verifikasi, event aktif, dan pekerjaan admin."
 >
-    @if(in_array($userRole, ['superadmin', 'admin_keuangan']) && $globalStats)
+    @if(in_array($userRole, ['superadmin', 'admin_biasa']) && $globalStats)
         <div class="mb-8">
             <h2 class="text-xl font-bold text-gray-900 mb-4">Statistik Global</h2>
             <div class="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
@@ -14,7 +14,7 @@
         </div>
     @endif
 
-    @if(in_array($userRole, ['superadmin', 'panitia']) && $competitions)
+    @if(in_array($userRole, ['superadmin', 'panitia_lomba']) && $competitions)
         <div class="mb-8">
             <h2 class="text-xl font-bold text-gray-900 mb-4">
                 {{ $userRole === 'superadmin' ? 'Summary Kompetisi' : 'Kompetisi yang Dikelola' }}
@@ -65,7 +65,7 @@
         </div>
 
         <div class="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-            @if(in_array($userRole, ['superadmin', 'panitia']))
+            @if(in_array($userRole, ['superadmin', 'panitia_lomba']))
                 <a href="{{ route('operation.teams.index') }}" class="group block rounded-lg border border-gray-200 p-5 hover:border-indigo-500 hover:bg-indigo-50 transition-colors">
                     <div class="flex items-center gap-3 mb-2">
                         <div class="rounded-md bg-indigo-100 p-2 text-indigo-600 group-hover:bg-indigo-600 group-hover:text-white transition-colors">
@@ -91,7 +91,7 @@
                 </a>
             @endif
 
-            @if(in_array($userRole, ['superadmin', 'admin_keuangan', 'panitia']))
+            @if(in_array($userRole, ['superadmin', 'admin_biasa', 'panitia_lomba']))
                 <a href="{{ route('admin.announcements.index') }}" class="group block rounded-lg border border-gray-200 p-5 hover:border-blue-500 hover:bg-blue-50 transition-colors">
                     <div class="flex items-center gap-3 mb-2">
                         <div class="rounded-md bg-blue-100 p-2 text-blue-600 group-hover:bg-blue-600 group-hover:text-white transition-colors">
@@ -105,7 +105,7 @@
                 </a>
             @endif
             
-            @if(in_array($userRole, ['superadmin', 'admin_keuangan']))
+            @if(in_array($userRole, ['superadmin', 'admin_biasa']))
                 <a href="{{ route('admin.transactions.index') }}" class="group block rounded-lg border border-gray-200 p-5 hover:border-amber-500 hover:bg-amber-50 transition-colors">
                     <div class="flex items-center gap-3 mb-2">
                         <div class="rounded-md bg-amber-100 p-2 text-amber-600 group-hover:bg-amber-600 group-hover:text-white transition-colors">

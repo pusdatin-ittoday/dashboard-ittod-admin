@@ -1,6 +1,6 @@
 @php
     $isSinglePanitia = !$canManageCompetitions && $events->count() === 1;
-    $title = Auth::user()->role === 'superadmin' ? "Kelola Event dan Kompetisi" : (Auth::user()->role === 'admin_keuangan' ? "Kelola Event" : "Kelola Kompetisi");
+    $title = Auth::user()->role === 'superadmin' ? "Kelola Event dan Kompetisi" : (Auth::user()->role === 'admin_biasa' ? "Kelola Event" : "Kelola Kompetisi");
     $subtitle = $isSinglePanitia ? "Detail kompetisi " . $events->first()->title : "Kelola fase pendaftaran, submission, penjurian, final, serta link guidebook khusus event/lomba.";
 @endphp
 
@@ -41,7 +41,7 @@
                 <div class="rounded border border-gray-200 p-4">
                     <h3 class="text-lg font-bold text-gray-800 mb-2">Deskripsi</h3>
                     <p class="text-sm text-gray-600 whitespace-pre-wrap">{{ $singleEvent->description }}</p>
-                    <button type="button" x-data x-on:click="$dispatch('open-modal', 'edit-panitia-description-{{ $singleEvent->id }}')" class="mt-4 text-sm font-semibold text-blue-600 hover:text-blue-800">Edit Deskripsi</button>
+                    <button type="button" x-data x-on:click="$dispatch('open-modal', 'edit-panitia_lomba-description-{{ $singleEvent->id }}')" class="mt-4 text-sm font-semibold text-blue-600 hover:text-blue-800">Edit Deskripsi</button>
                 </div>
 
                 <!-- Guidebook & WhatsApp Section -->
@@ -65,7 +65,7 @@
                             @endif
                         </div>
                         <div class="mt-2">
-                            <button type="button" x-data x-on:click="$dispatch('open-modal', 'edit-panitia-links-{{ $singleEvent->id }}')" class="inline-flex items-center justify-center rounded-md border border-gray-300 px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50 transition-all duration-150">
+                            <button type="button" x-data x-on:click="$dispatch('open-modal', 'edit-panitia_lomba-links-{{ $singleEvent->id }}')" class="inline-flex items-center justify-center rounded-md border border-gray-300 px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50 transition-all duration-150">
                                 Edit Tautan
                             </button>
                         </div>
@@ -81,7 +81,7 @@
                         <p class="text-sm text-gray-700"><span class="font-semibold">CP 2:</span> {{ $singleEvent->contact_person2 }}</p>
                         @endif
                     </div>
-                    <button type="button" x-data x-on:click="$dispatch('open-modal', 'edit-panitia-cp-{{ $singleEvent->id }}')" class="mt-4 text-sm font-semibold text-blue-600 hover:text-blue-800">
+                    <button type="button" x-data x-on:click="$dispatch('open-modal', 'edit-panitia_lomba-cp-{{ $singleEvent->id }}')" class="mt-4 text-sm font-semibold text-blue-600 hover:text-blue-800">
                         Edit Contact Person
                     </button>
                 </div>
@@ -152,8 +152,8 @@
             </div>
         </div>
 
-        <x-modal name="edit-panitia-description-{{ $singleEvent->id }}" maxWidth="lg" focusable>
-            <form method="POST" action="{{ route('admin.competitions.panitia-details', $singleEvent) }}" class="p-6">
+        <x-modal name="edit-panitia_lomba-description-{{ $singleEvent->id }}" maxWidth="lg" focusable>
+            <form method="POST" action="{{ route('admin.competitions.panitia_lomba-details', $singleEvent) }}" class="p-6">
                 @csrf
                 @method('PATCH')
                 <div class="border-b border-gray-200 pb-4">
@@ -169,14 +169,14 @@
                     <input type="hidden" name="whatsapp_group_link" value="{{ $singleEvent->whatsapp_group_link }}">
                 </div>
                 <div class="mt-6 flex justify-end gap-3">
-                    <button type="button" x-on:click="$dispatch('close-modal', 'edit-panitia-description-{{ $singleEvent->id }}')" class="rounded-md border border-gray-300 px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50">Batal</button>
+                    <button type="button" x-on:click="$dispatch('close-modal', 'edit-panitia_lomba-description-{{ $singleEvent->id }}')" class="rounded-md border border-gray-300 px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50">Batal</button>
                     <button type="submit" class="rounded-md bg-blue-700 px-4 py-2 text-sm font-bold text-white hover:bg-blue-800">Simpan Deskripsi</button>
                 </div>
             </form>
         </x-modal>
 
-        <x-modal name="edit-panitia-links-{{ $singleEvent->id }}" maxWidth="lg" focusable>
-            <form method="POST" action="{{ route('admin.competitions.panitia-details', $singleEvent) }}" class="p-6">
+        <x-modal name="edit-panitia_lomba-links-{{ $singleEvent->id }}" maxWidth="lg" focusable>
+            <form method="POST" action="{{ route('admin.competitions.panitia_lomba-details', $singleEvent) }}" class="p-6">
                 @csrf
                 @method('PATCH')
                 <div class="border-b border-gray-200 pb-4">
@@ -195,14 +195,14 @@
                     <input type="hidden" name="description" value="{{ $singleEvent->description }}">
                 </div>
                 <div class="mt-6 flex justify-end gap-3">
-                    <button type="button" x-on:click="$dispatch('close-modal', 'edit-panitia-links-{{ $singleEvent->id }}')" class="rounded-md border border-gray-300 px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50">Batal</button>
+                    <button type="button" x-on:click="$dispatch('close-modal', 'edit-panitia_lomba-links-{{ $singleEvent->id }}')" class="rounded-md border border-gray-300 px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50">Batal</button>
                     <button type="submit" class="rounded-md bg-blue-700 px-4 py-2 text-sm font-bold text-white hover:bg-blue-800">Simpan Tautan</button>
                 </div>
             </form>
         </x-modal>
 
-        <x-modal name="edit-panitia-cp-{{ $singleEvent->id }}" maxWidth="lg" focusable>
-            <form method="POST" action="{{ route('admin.competitions.panitia-details', $singleEvent) }}" class="p-6">
+        <x-modal name="edit-panitia_lomba-cp-{{ $singleEvent->id }}" maxWidth="lg" focusable>
+            <form method="POST" action="{{ route('admin.competitions.panitia_lomba-details', $singleEvent) }}" class="p-6">
                 @csrf
                 @method('PATCH')
                 <div class="border-b border-gray-200 pb-4">
@@ -220,7 +220,7 @@
                     </label>
                 </div>
                 <div class="mt-6 flex justify-end gap-3">
-                    <button type="button" x-on:click="$dispatch('close-modal', 'edit-panitia-cp-{{ $singleEvent->id }}')" class="rounded-md border border-gray-300 px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50">Batal</button>
+                    <button type="button" x-on:click="$dispatch('close-modal', 'edit-panitia_lomba-cp-{{ $singleEvent->id }}')" class="rounded-md border border-gray-300 px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50">Batal</button>
                     <button type="submit" class="rounded-md bg-blue-700 px-4 py-2 text-sm font-bold text-white hover:bg-blue-800">Simpan Contact Person</button>
                 </div>
             </form>
@@ -361,7 +361,7 @@
                                                 <button
                                                     type="button"
                                                     x-data
-                                                    x-on:click="$dispatch('open-modal', 'edit-panitia-details-{{ $event->id }}')"
+                                                    x-on:click="$dispatch('open-modal', 'edit-panitia_lomba-details-{{ $event->id }}')"
                                                     class="rounded-md border border-blue-200 bg-blue-50 px-3 py-2 text-sm font-semibold text-blue-800 hover:bg-blue-100"
                                                 >
                                                     Edit Detail
@@ -409,7 +409,7 @@
 
     @if ($canManageCompetitions)
     <x-modal name="create-competition" maxWidth="2xl" focusable>
-        <form x-data="{ type: '{{ Auth::user()->role === 'admin_keuangan' ? 'non_competition' : old('type', 'competition') }}' }" method="POST" action="{{ route('admin.competitions.store') }}" enctype="multipart/form-data" class="p-6">
+        <form x-data="{ type: '{{ Auth::user()->role === 'admin_biasa' ? 'non_competition' : old('type', 'competition') }}' }" method="POST" action="{{ route('admin.competitions.store') }}" enctype="multipart/form-data" class="p-6">
             @csrf
             <div class="border-b border-gray-200 pb-4">
                 <h3 class="text-lg font-semibold text-gray-950">Tambah Event</h3>
@@ -419,7 +419,7 @@
                 <label class="block sm:col-span-2">
                     <span class="text-sm font-semibold text-gray-700">Tipe Event <span class="text-red-500">*</span></span>
                     <select name="type" x-model="type" required class="mt-1 w-full rounded-md border-gray-300 text-sm shadow-sm focus:border-emerald-500 focus:ring-emerald-500">
-                        @if(Auth::user()->role !== 'admin_keuangan')
+                        @if(Auth::user()->role !== 'admin_biasa')
                         <option value="competition">Kompetisi</option>
                         @endif
                         <option value="non_competition">Non-Kompetisi</option>
@@ -512,7 +512,7 @@
                     <label class="block sm:col-span-2">
                         <span class="text-sm font-semibold text-gray-700">Tipe Event <span class="text-red-500">*</span></span>
                         <select name="type" x-model="type" required class="mt-1 w-full rounded-md border-gray-300 text-sm shadow-sm focus:border-emerald-500 focus:ring-emerald-500">
-                            @if(Auth::user()->role !== 'admin_keuangan')
+                            @if(Auth::user()->role !== 'admin_biasa')
                             <option value="competition">Kompetisi</option>
                             @endif
                             <option value="non_competition">Non-Kompetisi</option>
@@ -604,8 +604,8 @@
 
     @if ($canManageCompetitions || $canManageTimelines)
     @foreach ($events as $event)
-        <x-modal name="edit-panitia-details-{{ $event->id }}" maxWidth="lg" focusable>
-            <form method="POST" action="{{ route('admin.competitions.panitia-details', $event) }}" class="p-6">
+        <x-modal name="edit-panitia_lomba-details-{{ $event->id }}" maxWidth="lg" focusable>
+            <form method="POST" action="{{ route('admin.competitions.panitia_lomba-details', $event) }}" class="p-6">
                 @csrf
                 @method('PATCH')
                 <div class="border-b border-gray-200 pb-4">
@@ -635,7 +635,7 @@
                     </label>
                 </div>
                 <div class="mt-6 flex justify-end gap-3">
-                    <button type="button" x-on:click="$dispatch('close-modal', 'edit-panitia-details-{{ $event->id }}')" class="rounded-md border border-gray-300 px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50">Batal</button>
+                    <button type="button" x-on:click="$dispatch('close-modal', 'edit-panitia_lomba-details-{{ $event->id }}')" class="rounded-md border border-gray-300 px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50">Batal</button>
                     <button type="submit" class="rounded-md bg-blue-700 px-4 py-2 text-sm font-bold text-white hover:bg-blue-800">Simpan Perubahan</button>
                 </div>
             </form>

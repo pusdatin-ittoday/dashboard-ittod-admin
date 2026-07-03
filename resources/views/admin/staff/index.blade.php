@@ -1,19 +1,19 @@
 @php
     $roleLabels = [
         'superadmin' => 'Super Admin',
-        'admin_keuangan' => 'Admin Keuangan',
-        'panitia' => 'Admin Panitia',
+        'admin_biasa' => 'Admin Biasa',
+        'panitia_lomba' => 'Panitia Lomba',
     ];
 
     $roleBadgeClasses = [
         'superadmin' => 'border-orange-200 bg-orange-50 text-orange-700',
-        'admin_keuangan' => 'border-emerald-200 bg-emerald-50 text-emerald-700',
-        'panitia' => 'border-sky-200 bg-sky-50 text-sky-700',
+        'admin_biasa' => 'border-emerald-200 bg-emerald-50 text-emerald-700',
+        'panitia_lomba' => 'border-sky-200 bg-sky-50 text-sky-700',
     ];
 
     $accessScopes = [
         'superadmin' => 'Semua event',
-        'admin_keuangan' => 'Verifikasi Transaksi',
+        'admin_biasa' => 'Verifikasi Transaksi',
     ];
 @endphp
 
@@ -30,7 +30,7 @@
                     Superadmin Restricted
                 </span>
             </div>
-            <p class="mt-1 text-xs font-semibold uppercase tracking-wide text-gray-700">Manage superadmin, admin keuangan, and admin panitia</p>
+            <p class="mt-1 text-xs font-semibold uppercase tracking-wide text-gray-700">Manage superadmin, admin biasa, and admin panitia_lomba</p>
         </div>
 
         @if ($canManageStaff)
@@ -195,7 +195,7 @@
                 </label>
             </div>
 
-            <template x-if="createRole === 'panitia'">
+            <template x-if="createRole === 'panitia_lomba'">
                 <div class="mt-5">
                     <p class="text-sm font-semibold text-gray-700">Kompetisi yang dikelola</p>
                     <div class="mt-2 grid gap-2 sm:grid-cols-2">
@@ -258,7 +258,7 @@
                 </label>
             </div>
 
-            <template x-if="form.role === 'panitia'">
+            <template x-if="form.role === 'panitia_lomba'">
                 <div class="mt-5">
                     <p class="text-sm font-semibold text-gray-700">Kompetisi yang dikelola</p>
                     <div class="mt-2 grid gap-2 sm:grid-cols-2">
@@ -299,7 +299,7 @@
                 email: '',
                 password: '',
                 password_confirmation: '',
-                role: 'panitia',
+                role: 'panitia_lomba',
                 is_verified: true,
                 event_ids: [],
             },

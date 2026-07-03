@@ -107,7 +107,7 @@
             </div>
             <div class="content">
                 <p>Halo Ketua Tim,</p>
-                <p>Kami ingin menginformasikan bahwa pembayaran pendaftaran tim Anda telah berhasil diverifikasi oleh Admin Keuangan IT Today. Selamat! Tim Anda sekarang resmi terdaftar.</p>
+                <p>Kami ingin menginformasikan bahwa pembayaran pendaftaran tim Anda telah berhasil diverifikasi oleh Admin Biasa IT Today. Selamat! Tim Anda sekarang resmi terdaftar.</p>
                 
                 <div class="details-box">
                     <div class="details-row">
@@ -137,7 +137,7 @@
             </div>
             <div class="content">
                 <p>Halo Ketua Tim,</p>
-                <p>Mohon maaf, bukti transfer pembayaran pendaftaran yang Anda unggah untuk tim Anda tidak dapat diverifikasi oleh Admin Keuangan kami.</p>
+                <p>Mohon maaf, bukti transfer pembayaran pendaftaran yang Anda unggah untuk tim Anda tidak dapat diverifikasi oleh Admin Biasa kami.</p>
                 
                 <div class="details-box">
                     <div class="details-row">

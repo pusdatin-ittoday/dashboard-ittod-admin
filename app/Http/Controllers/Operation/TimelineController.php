@@ -13,7 +13,7 @@ class TimelineController extends Controller
 {
     private function checkAccess()
     {
-        abort_unless(in_array(auth()->user()->role, ['superadmin', 'admin_keuangan', 'panitia']), 403);
+        abort_unless(in_array(auth()->user()->role, ['superadmin', 'admin_biasa', 'panitia_lomba']), 403);
     }
 
     // Menampilkan daftar lini masa kegiatan non-kompetisi (REQ-10)
@@ -24,7 +24,7 @@ class TimelineController extends Controller
             ->whereHas('event', fn ($query) => $query->where('type', 'non_competition'))
             ->orderBy('date', 'asc');
             
-        if (auth()->user()->role === 'panitia') {
+        if (auth()->user()->role === 'panitia_lomba') {
             $query->whereIn('event_id', auth()->user()->events->pluck('id'));
         }
 
@@ -39,7 +39,7 @@ class TimelineController extends Controller
         $this->checkAccess();
         $query = Event::where('type', 'non_competition')->orderBy('title');
         
-        if (auth()->user()->role === 'panitia') {
+        if (auth()->user()->role === 'panitia_lomba') {
             $query->whereIn('id', auth()->user()->events->pluck('id'));
         }
         
@@ -88,7 +88,7 @@ class TimelineController extends Controller
             Rule::exists('event', 'id')->where(fn ($query) => $query->where('type', 'non_competition')),
         ];
         
-        if (auth()->user()->role === 'panitia') {
+        if (auth()->user()->role === 'panitia_lomba') {
             $eventRules[] = Rule::in(auth()->user()->events->pluck('id')->toArray());
         }
 
@@ -113,12 +113,12 @@ class TimelineController extends Controller
         $this->checkAccess();
         $timeline = EventTimeline::whereHas('event', fn ($query) => $query->where('type', 'non_competition'))->findOrFail($id);
         
-        if (auth()->user()->role === 'panitia') {
+        if (auth()->user()->role === 'panitia_lomba') {
             abort_unless(auth()->user()->events->contains('id', $timeline->event_id), 403);
         }
 
         $query = Event::where('type', 'non_competition')->orderBy('title');
-        if (auth()->user()->role === 'panitia') {
+        if (auth()->user()->role === 'panitia_lomba') {
             $query->whereIn('id', auth()->user()->events->pluck('id'));
         }
         $events = $query->get();
@@ -132,7 +132,7 @@ class TimelineController extends Controller
         $this->checkAccess();
         $timeline = EventTimeline::whereHas('event', fn ($query) => $query->where('type', 'non_competition'))->findOrFail($id);
         
-        if (auth()->user()->role === 'panitia') {
+        if (auth()->user()->role === 'panitia_lomba') {
             abort_unless(auth()->user()->events->contains('id', $timeline->event_id), 403);
         }
 
@@ -141,7 +141,7 @@ class TimelineController extends Controller
             Rule::exists('event', 'id')->where(fn ($query) => $query->where('type', 'non_competition')),
         ];
         
-        if (auth()->user()->role === 'panitia') {
+        if (auth()->user()->role === 'panitia_lomba') {
             $eventRules[] = Rule::in(auth()->user()->events->pluck('id')->toArray());
         }
 
@@ -166,7 +166,7 @@ class TimelineController extends Controller
         $this->checkAccess();
         $timeline = EventTimeline::whereHas('event', fn ($query) => $query->where('type', 'non_competition'))->findOrFail($id);
         
-        if (auth()->user()->role === 'panitia') {
+        if (auth()->user()->role === 'panitia_lomba') {
             abort_unless(auth()->user()->events->contains('id', $timeline->event_id), 403);
         }
         

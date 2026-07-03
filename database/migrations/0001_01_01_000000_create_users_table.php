@@ -42,7 +42,7 @@ return new class extends Migration
             $table->string('password_recovery_token', 191)->nullable();
             $table->dateTime('password_recovery_token_expiration', 3)->nullable();
             $table->string('refresh_token', 191)->nullable();
-            $table->enum('role', ['superadmin', 'admin_keuangan', 'panitia', 'user'])->default('user');
+            $table->enum('role', ['superadmin', 'admin_biasa', 'panitia_lomba', 'user'])->default('user');
             $table->rememberToken();
             $table->dateTime('created_at', 3)->useCurrent();
             $table->dateTime('updated_at', 3)->nullable();

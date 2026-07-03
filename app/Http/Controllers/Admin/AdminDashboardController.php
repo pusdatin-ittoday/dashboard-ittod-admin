@@ -30,7 +30,7 @@ class AdminDashboardController extends Controller
         $role = $user->role;
 
         $globalStats = null;
-        if (in_array($role, ['superadmin', 'admin_keuangan'])) {
+        if (in_array($role, ['superadmin', 'admin_biasa'])) {
             $globalStats = [
                 'events' => Event::count(),
                 'teams' => Team::count(),
@@ -40,9 +40,9 @@ class AdminDashboardController extends Controller
         }
 
         $competitions = null;
-        if (in_array($role, ['superadmin', 'panitia'])) {
+        if (in_array($role, ['superadmin', 'panitia_lomba'])) {
             $query = Event::where('type', 'competition')->orderBy('title');
-            if ($role === 'panitia') {
+            if ($role === 'panitia_lomba') {
                 $query->whereIn('id', $user->events->pluck('id'));
             }
 
@@ -74,7 +74,7 @@ class AdminDashboardController extends Controller
 
         return view('admin.staff.index', [
             'staffAccounts' => UserIdentity::with(['user', 'events'])
-                ->whereIn('role', ['superadmin', 'admin_keuangan', 'panitia'])
+                ->whereIn('role', ['superadmin', 'admin_biasa', 'panitia_lomba'])
                 ->orderBy('role')
                 ->orderBy('email')
                 ->get(),
@@ -90,7 +90,7 @@ class AdminDashboardController extends Controller
         $validated = $request->validate([
             'full_name' => ['required', 'string', 'max:191'],
             'email' => ['required', 'email', 'max:191', 'unique:user,email', 'unique:user_identity,email'],
-            'role' => ['required', Rule::in(['superadmin', 'admin_keuangan', 'panitia'])],
+            'role' => ['required', Rule::in(['superadmin', 'admin_biasa', 'panitia_lomba'])],
             'event_ids' => ['array'],
             'event_ids.*' => [
                 'string',
@@ -117,7 +117,7 @@ class AdminDashboardController extends Controller
                 'role' => $validated['role'],
             ]);
 
-            $staff->events()->sync($validated['role'] === 'panitia' ? ($validated['event_ids'] ?? []) : []);
+            $staff->events()->sync($validated['role'] === 'panitia_lomba' ? ($validated['event_ids'] ?? []) : []);
         });
 
         // Send a password reset link to the newly created user
@@ -129,7 +129,7 @@ class AdminDashboardController extends Controller
     public function showStaff(UserIdentity $staff): JsonResponse
     {
         $this->ensureSuperadmin();
-        abort_unless(in_array($staff->role, ['superadmin', 'admin_keuangan', 'panitia'], true), 404);
+        abort_unless(in_array($staff->role, ['superadmin', 'admin_biasa', 'panitia_lomba'], true), 404);
 
         $staff->load(['user', 'events:id']);
 
@@ -157,7 +157,7 @@ class AdminDashboardController extends Controller
                 Rule::unique('user', 'email')->ignore($staff->id, 'id'),
                 Rule::unique('user_identity', 'email')->ignore($staff->id, 'id'),
             ],
-            'role' => ['required', Rule::in(['superadmin', 'admin_keuangan', 'panitia'])],
+            'role' => ['required', Rule::in(['superadmin', 'admin_biasa', 'panitia_lomba'])],
             'event_ids' => ['array'],
             'event_ids.*' => [
                 'string',
@@ -182,7 +182,7 @@ class AdminDashboardController extends Controller
             ];
 
             $staff->update($identityPayload);
-            $staff->events()->sync($validated['role'] === 'panitia' ? ($validated['event_ids'] ?? []) : []);
+            $staff->events()->sync($validated['role'] === 'panitia_lomba' ? ($validated['event_ids'] ?? []) : []);
         });
 
         return back()->with('status', 'Akun staff berhasil diperbarui.');
@@ -212,10 +212,10 @@ class AdminDashboardController extends Controller
     public function users(\Illuminate\Http\Request $request): View
     {
         $userRole = auth()->user()?->role;
-        abort_unless(in_array($userRole, ['superadmin', 'admin_keuangan', 'panitia']), 403);
+        abort_unless(in_array($userRole, ['superadmin', 'admin_biasa', 'panitia_lomba']), 403);
 
         $eventsQuery = \App\Models\Event::query()->orderBy('title');
-        if ($userRole === 'panitia') {
+        if ($userRole === 'panitia_lomba') {
             $eventsQuery->whereIn('id', auth()->user()->events->pluck('id'));
         }
         $events = $eventsQuery->get();
@@ -232,7 +232,7 @@ class AdminDashboardController extends Controller
                     $q2->where('event_id', $filterEventId);
                 });
             });
-        } elseif ($userRole === 'panitia') {
+        } elseif ($userRole === 'panitia_lomba') {
             $eventIds = $events->pluck('id');
             $query->whereHas('user', function ($q) use ($eventIds) {
                 $q->whereHas('teams', function ($q2) use ($eventIds) {
@@ -254,7 +254,7 @@ class AdminDashboardController extends Controller
 
     public function transactions(\Illuminate\Http\Request $request): View
     {
-        abort_unless(in_array(auth()->user()?->role, ['superadmin', 'admin_keuangan']), 403);
+        abort_unless(in_array(auth()->user()?->role, ['superadmin', 'admin_biasa']), 403);
         $query = Team::with(['event', 'paymentProof', 'members.user'])
             ->where('is_document_verified', 'approved');
 
@@ -285,7 +285,7 @@ class AdminDashboardController extends Controller
 
     public function acceptTransaction(Team $team): RedirectResponse
     {
-        abort_unless(in_array(auth()->user()?->role, ['superadmin', 'admin_keuangan']), 403);
+        abort_unless(in_array(auth()->user()?->role, ['superadmin', 'admin_biasa']), 403);
 
         if ($team->is_verified === 'approved') {
             return back()->with('error', 'Transaksi yang sudah diterima tidak dapat diubah.');
@@ -301,7 +301,7 @@ class AdminDashboardController extends Controller
 
     public function rejectTransaction(\Illuminate\Http\Request $request, Team $team): RedirectResponse
     {
-        abort_unless(in_array(auth()->user()?->role, ['superadmin', 'admin_keuangan']), 403);
+        abort_unless(in_array(auth()->user()?->role, ['superadmin', 'admin_biasa']), 403);
 
         if ($team->is_verified === 'approved') {
             return back()->with('error', 'Transaksi yang sudah diterima tidak dapat diubah.');
@@ -321,12 +321,12 @@ class AdminDashboardController extends Controller
 
     public function filesParticipants(): View
     {
-        abort_unless(in_array(auth()->user()?->role, ['superadmin', 'panitia']), 403);
+        abort_unless(in_array(auth()->user()?->role, ['superadmin', 'panitia_lomba']), 403);
         
         $user = auth()->user();
         $query = Event::withCount(['teams', 'participants'])->orderBy('title');
         
-        if ($user->role === 'panitia') {
+        if ($user->role === 'panitia_lomba') {
             $query->whereIn('id', $user->events->pluck('id'));
         }
 
@@ -337,7 +337,7 @@ class AdminDashboardController extends Controller
 
     public function files(): View
     {
-        abort_unless(in_array(auth()->user()?->role, ['superadmin', 'panitia']), 403);
+        abort_unless(in_array(auth()->user()?->role, ['superadmin', 'panitia_lomba']), 403);
         return view('admin.files.index', [
             'recentFiles' => Media::with('uploader')
                 ->whereIn('grouping', ['competition_submission', 'dokum_tahun_lalu', 'twibbon'])
@@ -349,20 +349,20 @@ class AdminDashboardController extends Controller
 
     public function timelines(): View
     {
-        abort_unless(in_array(auth()->user()?->role, ['superadmin', 'panitia', 'admin_keuangan']), 403);
+        abort_unless(in_array(auth()->user()?->role, ['superadmin', 'panitia_lomba', 'admin_biasa']), 403);
 
         $user = auth()->user();
         $query = Event::withCount(['teams', 'timelines'])
             ->orderBy('title');
 
-        if ($user->role === 'panitia') {
+        if ($user->role === 'panitia_lomba') {
             $query->whereIn('id', $user->events->pluck('id'));
-        } elseif ($user->role === 'admin_keuangan') {
+        } elseif ($user->role === 'admin_biasa') {
             $query->where('type', 'non_competition');
         }
 
         $events = $query->get();
-        $canManageCompetitions = in_array($user->role, ['superadmin', 'admin_keuangan']);
+        $canManageCompetitions = in_array($user->role, ['superadmin', 'admin_biasa']);
 
         if (!$canManageCompetitions && $events->count() === 1) {
             $events->load('submissions.team');
@@ -371,21 +371,21 @@ class AdminDashboardController extends Controller
         return view('admin.timelines.index', [
             'events' => $events,
             'canManageCompetitions' => $canManageCompetitions,
-            'canManageTimelines' => in_array($user->role, ['superadmin', 'panitia', 'admin_keuangan'], true),
+            'canManageTimelines' => in_array($user->role, ['superadmin', 'panitia_lomba', 'admin_biasa'], true),
         ]);
     }
 
     public function timelineAgenda(Event $event): View
     {
-        abort_unless(in_array(auth()->user()?->role, ['superadmin', 'panitia']), 403);
+        abort_unless(in_array(auth()->user()?->role, ['superadmin', 'panitia_lomba']), 403);
         $this->abortUnlessCompetition($event);
 
-        if (auth()->user()->role === 'panitia') {
+        if (auth()->user()->role === 'panitia_lomba') {
             abort_unless(auth()->user()->events->contains('id', $event->id), 403);
         }
 
         $eventsQuery = Event::orderBy('title');
-        if (auth()->user()->role === 'panitia') {
+        if (auth()->user()->role === 'panitia_lomba') {
             $eventsQuery->whereIn('id', auth()->user()->events->pluck('id'));
         }
 
@@ -393,7 +393,7 @@ class AdminDashboardController extends Controller
             'event' => $event->load(['timelines' => fn ($query) => $query->orderBy('date')])
                 ->loadCount('teams'),
             'events' => $eventsQuery->get(),
-            'canManageTimelines' => in_array(auth()->user()?->role, ['superadmin', 'panitia'], true),
+            'canManageTimelines' => in_array(auth()->user()?->role, ['superadmin', 'panitia_lomba'], true),
         ]);
     }
 
@@ -402,8 +402,8 @@ class AdminDashboardController extends Controller
         $this->ensureSuperadminOrAdminKeuangan();
 
         $validated = $this->validateCompetition($request);
-        if (auth()->user()?->role === 'admin_keuangan') {
-            abort_if($validated['type'] !== 'non_competition', 403, 'Admin Keuangan hanya dapat membuat event non-kompetisi.');
+        if (auth()->user()?->role === 'admin_biasa') {
+            abort_if($validated['type'] !== 'non_competition', 403, 'Admin Biasa hanya dapat membuat event non-kompetisi.');
         }
         
         $logoUrl = null;
@@ -432,8 +432,8 @@ class AdminDashboardController extends Controller
         $this->abortUnlessCompetition($event);
 
         $validated = $this->validateCompetition($request);
-        if (auth()->user()?->role === 'admin_keuangan') {
-            abort_if($validated['type'] !== 'non_competition', 403, 'Admin Keuangan tidak dapat mengubah event menjadi kompetisi.');
+        if (auth()->user()?->role === 'admin_biasa') {
+            abort_if($validated['type'] !== 'non_competition', 403, 'Admin Biasa tidak dapat mengubah event menjadi kompetisi.');
         }
         
         if ($request->hasFile('logo')) {
@@ -452,7 +452,7 @@ class AdminDashboardController extends Controller
 
     public function updatePanitiaDetails(Request $request, Event $event): RedirectResponse
     {
-        abort_unless(in_array(auth()->user()?->role, ['superadmin', 'panitia']), 403);
+        abort_unless(in_array(auth()->user()?->role, ['superadmin', 'panitia_lomba']), 403);
         $this->abortUnlessCompetition($event);
         $this->abortIfUnassignedPanitia($event->id);
 
@@ -547,7 +547,7 @@ class AdminDashboardController extends Controller
         $eventsQuery = Event::orderBy('title');
         $announcementsQuery = EventAnnouncement::with(['event', 'author'])->latest('created_at');
 
-        if ($user->role === 'panitia') {
+        if ($user->role === 'panitia_lomba') {
             $assignedEventIds = $user->events->pluck('id');
             $eventsQuery->whereIn('id', $assignedEventIds);
             $announcementsQuery->whereIn('event_id', $assignedEventIds);
@@ -566,7 +566,7 @@ class AdminDashboardController extends Controller
         $user = auth()->user();
         $eventRules = ['nullable', 'string', Rule::exists('event', 'id')];
         
-        if ($user->role === 'panitia') {
+        if ($user->role === 'panitia_lomba') {
             $eventRules = ['required', 'string', Rule::exists('event', 'id'), Rule::in($user->events->pluck('id')->toArray())];
         }
 
@@ -592,7 +592,7 @@ class AdminDashboardController extends Controller
         $user = auth()->user();
         $eventRules = ['nullable', 'string', Rule::exists('event', 'id')];
         
-        if ($user->role === 'panitia') {
+        if ($user->role === 'panitia_lomba') {
             abort_unless($announcement->event_id && $user->events->contains('id', $announcement->event_id), 403);
             $eventRules = ['required', 'string', Rule::exists('event', 'id'), Rule::in($user->events->pluck('id')->toArray())];
         }
@@ -612,7 +612,7 @@ class AdminDashboardController extends Controller
     {
         abort_unless($this->isAdminStaff(), 403);
 
-        if (auth()->user()->role === 'panitia') {
+        if (auth()->user()->role === 'panitia_lomba') {
             abort_unless(auth()->user()->events->contains('id', $announcement->event_id), 403);
         }
 
@@ -642,26 +642,26 @@ class AdminDashboardController extends Controller
     private function ensureSuperadminOrAdminKeuangan(?Event $event = null): void
     {
         $role = auth()->user()?->role;
-        abort_unless(in_array($role, ['superadmin', 'admin_keuangan']), 403);
+        abort_unless(in_array($role, ['superadmin', 'admin_biasa']), 403);
         
-        if ($role === 'admin_keuangan' && $event) {
-            abort_if($event->type !== 'non_competition', 403, 'Admin Keuangan hanya dapat mengelola event non-kompetisi.');
+        if ($role === 'admin_biasa' && $event) {
+            abort_if($event->type !== 'non_competition', 403, 'Admin Biasa hanya dapat mengelola event non-kompetisi.');
         }
     }
 
     private function ensureCompetitionTimelineManager(): void
     {
-        abort_unless(in_array(auth()->user()?->role, ['superadmin', 'panitia'], true), 403);
+        abort_unless(in_array(auth()->user()?->role, ['superadmin', 'panitia_lomba'], true), 403);
     }
 
     private function isAdminStaff(): bool
     {
-        return in_array(auth()->user()?->role, ['superadmin', 'admin_keuangan', 'panitia'], true);
+        return in_array(auth()->user()?->role, ['superadmin', 'admin_biasa', 'panitia_lomba'], true);
     }
 
     private function abortIfUnassignedPanitia(string $eventId): void
     {
-        if (auth()->user()?->role === 'panitia') {
+        if (auth()->user()?->role === 'panitia_lomba') {
             abort_unless(auth()->user()->events->contains('id', $eventId), 403);
         }
     }

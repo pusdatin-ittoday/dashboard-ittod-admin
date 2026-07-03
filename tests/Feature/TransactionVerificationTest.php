@@ -75,14 +75,14 @@ class TransactionVerificationTest extends TestCase
         // 4. Create an Admin User Identity
         $adminUser = User::create([
             'email' => 'admin@example.com',
-            'full_name' => 'Admin Keuangan',
+            'full_name' => 'Admin Biasa',
         ]);
 
         $this->adminIdentity = UserIdentity::create([
             'id' => $adminUser->id,
             'email' => 'admin@example.com',
             'provider' => 'basic',
-            'role' => 'admin_keuangan',
+            'role' => 'admin_biasa',
             'is_verified' => 1,
         ]);
 
@@ -130,9 +130,9 @@ class TransactionVerificationTest extends TestCase
     }
 
     /**
-     * Test Admin Keuangan can get recap of total accumulated funds.
+     * Test Admin Biasa can get recap of total accumulated funds.
      */
-    public function test_admin_keuangan_can_get_recap(): void
+    public function test_admin_biasa_can_get_recap(): void
     {
         // Set team as verified
         $this->team->is_verified = 1;
@@ -149,9 +149,9 @@ class TransactionVerificationTest extends TestCase
     }
 
     /**
-     * Test Admin Keuangan can verify a transaction.
+     * Test Admin Biasa can verify a transaction.
      */
-    public function test_admin_keuangan_can_verify_transaction(): void
+    public function test_admin_biasa_can_verify_transaction(): void
     {
         Queue::fake();
 
@@ -174,9 +174,9 @@ class TransactionVerificationTest extends TestCase
     }
 
     /**
-     * Test Admin Keuangan can reject a transaction with a note.
+     * Test Admin Biasa can reject a transaction with a note.
      */
-    public function test_admin_keuangan_can_reject_transaction_with_note(): void
+    public function test_admin_biasa_can_reject_transaction_with_note(): void
     {
         Queue::fake();
 

@@ -1,6 +1,6 @@
 # Architecture
 
-Dokumen ini merangkum implementasi Admin Dashboard Portal IT Today berdasarkan use case multi-role: Superadmin, Admin Keuangan, dan Panitia Lomba.
+Dokumen ini merangkum implementasi Admin Dashboard Portal IT Today berdasarkan use case multi-role: Superadmin, Admin Biasa, dan Panitia Lomba.
 
 ## Ringkasan Sistem
 
@@ -18,7 +18,7 @@ Modul utama:
 
 ## Role Dan Use Case
 
-| Use Case | Superadmin | Admin Keuangan | Panitia Lomba |
+| Use Case | Superadmin | Admin Biasa | Panitia Lomba |
 | --- | --- | --- | --- |
 | UC-01 Kelola Akun & Data Staff | Ya | Tidak | Tidak |
 | UC-02 Verifikasi Pembayaran Tim | Ya | Ya | Tidak |
@@ -27,7 +27,7 @@ Modul utama:
 | UC-05 Kelola Lini Masa & Event | Ya | Ya | Ya |
 | UC-06 Publish Pengumuman Dashboard | Ya | Ya | Ya |
 | UC-07 Ekspor Rekapitulasi Data CSV | Ya | Ya | Ya |
-| UC-08 Input Alasan Penolakan | Ya | Ya untuk transaksi, Panitia untuk berkas | Ya untuk berkas |
+| UC-08 Input Alasan Penolakan | Ya | Ya untuk transaksi, Panitia Lomba untuk berkas | Ya untuk berkas |
 | UC-09 Login Multi-Role | Ya | Ya | Ya |
 | UC-10 Verifikasi Event Non-Kompetisi | Ya | Ya | Tidak |
 | UC-11 List Peserta | Ya (Semua) | Ya (Semua) | Ya (Hanya event ditugaskan) |
@@ -37,8 +37,8 @@ Modul utama:
 Role disimpan di tabel `user_identity.role` dengan nilai:
 
 - `superadmin`
-- `admin_keuangan`
-- `panitia`
+- `admin_biasa`
+- `panitia_lomba`
 - `user`
 
 Model auth:
@@ -56,12 +56,12 @@ Route utama:
 
 - `/dashboard`: dashboard staff yang sudah login dan verified.
 - `/admin/staff`: manajemen staff, dikunci di controller untuk superadmin.
-- `/admin/transactions`: verifikasi pembayaran tim (kompetisi) untuk superadmin dan admin keuangan.
-- `/admin/event-participants`: verifikasi bukti bayar event non-kompetisi untuk superadmin dan admin keuangan.
-- `/admin/users`: direktori/list peserta (pengguna). Superadmin & Admin Keuangan melihat semua, Panitia melihat sesuai event.
-- `/operation/teams`: kelola data dan berkas tim untuk superadmin dan panitia.
-- `/admin/timelines`: daftar timeline kompetisi dan event untuk superadmin, admin keuangan, dan panitia.
-- `/admin/timelines/{event}/agenda`: agenda kegiatan untuk superadmin, admin keuangan, dan panitia yang ditugaskan.
+- `/admin/transactions`: verifikasi pembayaran tim (kompetisi) untuk superadmin dan admin biasa.
+- `/admin/event-participants`: verifikasi bukti bayar event non-kompetisi untuk superadmin dan admin biasa.
+- `/admin/users`: direktori/list peserta (pengguna). Superadmin & Admin Biasa melihat semua, Panitia Lomba melihat sesuai event.
+- `/operation/teams`: kelola data dan berkas tim untuk superadmin dan panitia_lomba.
+- `/admin/timelines`: daftar timeline kompetisi dan event untuk superadmin, admin biasa, dan panitia_lomba.
+- `/admin/timelines/{event}/agenda`: agenda kegiatan untuk superadmin, admin biasa, dan panitia_lomba yang ditugaskan.
 - `/admin/announcements`: pengumuman untuk semua role staff.
 - `/export/*`: export CSV, dikunci di `ExportController`.
 
@@ -83,10 +83,10 @@ Tanggung jawab:
 Pembatasan akses penting:
 
 - `staff()`, `storeStaff()`, `showStaff()`, `updateStaff()`, `destroyStaff()` hanya untuk superadmin.
-- `transactions()`, `acceptTransaction()`, `rejectTransaction()` hanya untuk superadmin dan admin keuangan.
-- `filesParticipants()`, `files()` hanya untuk superadmin dan panitia.
-- `storeCompetition()`, `updateCompetition()`, `destroyCompetition()`, `toggleCompetitionStatus()` dapat diakses superadmin (seluruh event) dan admin keuangan (hanya event `non_competition`).
-- `announcements()`, `storeAnnouncement()`, `updateAnnouncement()`, `destroyAnnouncement()` untuk semua staff, dengan panitia dibatasi hanya event yang ditugaskan. Pengumuman "Umum" (event_id null) hanya bisa dibuat oleh superadmin dan admin keuangan.
+- `transactions()`, `acceptTransaction()`, `rejectTransaction()` hanya untuk superadmin dan admin biasa.
+- `filesParticipants()`, `files()` hanya untuk superadmin dan panitia_lomba.
+- `storeCompetition()`, `updateCompetition()`, `destroyCompetition()`, `toggleCompetitionStatus()` dapat diakses superadmin (seluruh event) dan admin biasa (hanya event `non_competition`).
+- `announcements()`, `storeAnnouncement()`, `updateAnnouncement()`, `destroyAnnouncement()` untuk semua staff, dengan panitia_lomba dibatasi hanya event yang ditugaskan. Pengumuman "Umum" (event_id null) hanya bisa dibuat oleh superadmin dan admin biasa.
 
 ### `Operation\TeamController`
 
@@ -99,17 +99,17 @@ Tanggung jawab:
 
 Pembatasan akses:
 
-- `index()` dan `show()` hanya untuk superadmin dan panitia.
-- `updateStatus()` dan `updateMemberStatus()` hanya untuk superadmin dan panitia.
-- Panitia hanya bisa mengakses tim dari event yang ditugaskan lewat `event_staff`.
+- `index()` dan `show()` hanya untuk superadmin dan panitia_lomba.
+- `updateStatus()` dan `updateMemberStatus()` hanya untuk superadmin dan panitia_lomba.
+- Panitia Lomba hanya bisa mengakses tim dari event yang ditugaskan lewat `event_staff`.
 
 ### `Operation\TimelineController`
 
 Tanggung jawab:
 
 - CRUD timeline kegiatan non-kompetisi atau agenda seminar.
-- Akses untuk superadmin, admin keuangan, dan panitia.
-- Panitia hanya bisa mengelola event yang ditugaskan.
+- Akses untuk superadmin, admin biasa, dan panitia_lomba.
+- Panitia Lomba hanya bisa mengelola event yang ditugaskan.
 
 ### `Admin\EventParticipantController`
 
@@ -128,8 +128,8 @@ Tanggung jawab:
 
 Pembatasan akses:
 
-- `verify()` hanya untuk superadmin dan admin keuangan.
-- `getRecap()` hanya untuk superadmin dan admin keuangan.
+- `verify()` hanya untuk superadmin dan admin biasa.
+- `getRecap()` hanya untuk superadmin dan admin biasa.
 - Reject transaksi mewajibkan `verification_error`.
 
 ### `ExportController`
@@ -143,9 +143,9 @@ Tanggung jawab:
 
 Pembatasan akses:
 
-- Per-event: superadmin, admin keuangan, dan panitia.
-- Panitia hanya bisa export event yang ditugaskan.
-- Global: superadmin dan admin keuangan.
+- Per-event: superadmin, admin biasa, dan panitia_lomba.
+- Panitia Lomba hanya bisa export event yang ditugaskan.
+- Global: superadmin dan admin biasa.
 
 ## Model Dan Relasi
 
@@ -195,7 +195,7 @@ Field penting:
 - `price`: Biaya pendaftaran (otomatis 0 untuk event non-kompetisi).
 
 > **Catatan Validasi & UI:**
-> Input `Deskripsi`, `URL Guide Book`, dan `Contact Person 1` tidak diwajibkan (optional) saat superadmin membuat atau mengedit event. Namun, form tersebut bersifat wajib (mandatory) ketika Panitia memperbarui detail event melalui modul Edit Panitia.
+> Input `Deskripsi`, `URL Guide Book`, dan `Contact Person 1` tidak diwajibkan (optional) saat superadmin membuat atau mengedit event. Namun, form tersebut bersifat wajib (mandatory) ketika Panitia Lomba memperbarui detail event melalui modul Edit Panitia Lomba.
 
 ### `Team`
 
@@ -251,13 +251,13 @@ Halaman: `/admin/staff`
 Fitur:
 
 - Superadmin dapat membuat staff baru tanpa mengatur password. Sistem secara otomatis mengirimkan email berisi link pembuatan password.
-- Akun staff baru (admin/panitia) secara default tidak aktif (`is_verified = false`). Akun otomatis menjadi aktif setelah staff mengatur password mereka sendiri via email.
+- Akun staff baru (admin/panitia_lomba) secara default tidak aktif (`is_verified = false`). Akun otomatis menjadi aktif setelah staff mengatur password mereka sendiri via email.
 - Superadmin dapat mengedit detail staff.
 - Superadmin dapat menghapus staff, kecuali akun sendiri.
 - Minimal harus ada satu superadmin.
 - Edit staff melakukan fetch detail terbaru melalui `GET /admin/staff/{staff}` sebelum modal dibuka.
-- Field "Kompetisi yang dikelola" hanya dirender untuk role `panitia`.
-- Role `admin_keuangan` dan `superadmin` tidak menyimpan assignment event.
+- Field "Kompetisi yang dikelola" hanya dirender untuk role `panitia_lomba`.
+- Role `admin_biasa` dan `superadmin` tidak menyimpan assignment event.
 
 ## Pengumuman
 
@@ -265,9 +265,9 @@ Halaman: `/admin/announcements`
 
 Fitur:
 
-- Superadmin, admin keuangan, dan panitia dapat membuka halaman pengumuman.
-- Superadmin dan admin keuangan dapat mengelola pengumuman untuk semua event, serta pengumuman "Umum" (Seluruh Peserta).
-- Panitia hanya dapat melihat dan mengelola pengumuman pada event yang ditugaskan (tidak bisa membuat pengumuman Umum).
+- Superadmin, admin biasa, dan panitia_lomba dapat membuka halaman pengumuman.
+- Superadmin dan admin biasa dapat mengelola pengumuman untuk semua event, serta pengumuman "Umum" (Seluruh Peserta).
+- Panitia Lomba hanya dapat melihat dan mengelola pengumuman pada event yang ditugaskan (tidak bisa membuat pengumuman Umum).
 
 ## Timeline Kompetisi
 
@@ -279,9 +279,9 @@ Halaman:
 Fitur:
 
 - Superadmin dapat mengelola seluruh event dan kompetisi.
-- Admin Keuangan dapat mengelola khusus event `non_competition`.
-- Superadmin, Admin Keuangan, dan Panitia dapat mengelola agenda timeline kegiatan sesuai wewenang.
-- Panitia hanya dapat mengelola agenda pada kompetisi atau event yang ditugaskan kepadanya.
+- Admin Biasa dapat mengelola khusus event `non_competition`.
+- Superadmin, Admin Biasa, dan Panitia Lomba dapat mengelola agenda timeline kegiatan sesuai wewenang.
+- Panitia Lomba hanya dapat mengelola agenda pada kompetisi atau event yang ditugaskan kepadanya.
 
 ## Data Dan Berkas Tim
 
@@ -292,12 +292,12 @@ Halaman:
 
 Fitur:
 
-- Superadmin dan panitia dapat melihat daftar tim dan detail berkas.
-- Panitia hanya melihat tim dari event yang ditugaskan.
+- Superadmin dan panitia_lomba dapat melihat daftar tim dan detail berkas.
+- Panitia Lomba hanya melihat tim dari event yang ditugaskan.
 - Penolakan verifikasi berkas tim membutuhkan alasan.
 - Jika alasan penolakan kosong, UI menampilkan pesan inline tanpa native JavaScript alert.
 - Tim tidak bisa disetujui selama masih ada catatan kesalahan pada dokumen anggota.
-- Setelah peserta memperbarui berkas, panitia menekan `Setuju` pada anggota yang sudah valid untuk mengosongkan catatan kesalahan, lalu menyetujui ulang berkas tim.
+- Setelah peserta memperbarui berkas, panitia_lomba menekan `Setuju` pada anggota yang sudah valid untuk mengosongkan catatan kesalahan, lalu menyetujui ulang berkas tim.
 - Tombol `Tolak` pada anggota wajib menyertakan catatan kesalahan.
 - Kartu anggota menampilkan ketua di urutan paling atas dan menyediakan dropdown data lengkap peserta.
 
@@ -316,7 +316,7 @@ Endpoint JSON & Verifikasi:
 
 Fitur:
 
-- Superadmin dan admin keuangan dapat memverifikasi pembayaran.
+- Superadmin dan admin biasa dapat memverifikasi pembayaran.
 - Tim baru masuk ke antrean transaksi dengan status `pending` setelah seluruh
   berkas tim disetujui. Penolakan berkas tidak boleh mengubah status transaksi
   menjadi `rejected`.
@@ -355,7 +355,7 @@ Data yang dibuat:
 
 - Event kompetisi: Hack Today, UX Today, Code Today, Mine Today.
 - Event non-kompetisi: Seminar Nasional IT Today.
-- Akun superadmin, admin keuangan, panitia, dan peserta.
+- Akun superadmin, admin biasa, panitia_lomba, dan peserta.
 - Tim dan team member.
 - Media PDF dummy.
 - Media image contoh untuk bukti pembayaran.
@@ -397,7 +397,7 @@ Validasi role saat ini dilakukan terutama di controller:
 - `isAdminStaff()`
 - `ensureCompetitionTimelineManager()`
 - pengecekan role inline dengan `abort_unless(...)`
-- pembatasan panitia melalui `event_staff`
+- pembatasan panitia_lomba melalui `event_staff`
 
 ## Catatan Teknis
 

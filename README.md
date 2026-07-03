@@ -7,7 +7,7 @@ Sistem informasi manajemen terintegrasi untuk operasional internal IT Today. Pro
 Sistem ini menerapkan Role-Based Access Control (RBAC) dengan 3 aktor utama:
 
 * **Superadmin:** Pengelola tingkat tertinggi dengan hak akses penuh (CRUD) untuk mengonfigurasi seluruh aspek sistem, data staff internal, dan pengaturan role.
-* **Admin Keuangan:** Bertanggung jawab penuh atas validasi keuangan, pemeriksaan berkas bukti transfer, persetujuan/penolakan pembayaran (dilengkapi catatan error), dan pemantauan rekapitulasi dana pendaftaran keseluruhan.
+* **Admin Biasa:** Bertanggung jawab penuh atas validasi keuangan, pemeriksaan berkas bukti transfer, persetujuan/penolakan pembayaran (dilengkapi catatan error), dan pemantauan rekapitulasi dana pendaftaran keseluruhan.
 * **Panitia Lomba (Kadiv/Perwakilan):** Pengelola teknis operasional kompetisi. Memiliki hak akses terisolasi untuk memverifikasi berkas identitas peserta (KTM, Twibbon), mengelola lini masa (timeline) lomba, dan menerbitkan pengumuman di dashboard peserta.
 
 ## 📊 Use Case Diagram

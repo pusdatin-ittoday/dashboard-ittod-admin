@@ -64,7 +64,7 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/files', [AdminDashboardController::class, 'files'])->name('files.index');
         Route::post('/competitions', [AdminDashboardController::class, 'storeCompetition'])->name('competitions.store');
         Route::patch('/competitions/{event}', [AdminDashboardController::class, 'updateCompetition'])->name('competitions.update');
-        Route::patch('/competitions/{event}/panitia-details', [AdminDashboardController::class, 'updatePanitiaDetails'])->name('competitions.panitia-details');
+        Route::patch('/competitions/{event}/panitia_lomba-details', [AdminDashboardController::class, 'updatePanitiaDetails'])->name('competitions.panitia_lomba-details');
         Route::patch('/competitions/{event}/status', [AdminDashboardController::class, 'toggleCompetitionStatus'])->name('competitions.status');
         Route::delete('/competitions/{event}', [AdminDashboardController::class, 'destroyCompetition'])->name('competitions.destroy');
         Route::get('/timelines', [AdminDashboardController::class, 'timelines'])->name('timelines.index');

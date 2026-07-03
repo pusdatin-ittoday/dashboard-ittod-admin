@@ -126,8 +126,8 @@
             <div class="mt-5 grid gap-4">
                 <label class="block">
                     <span class="text-sm font-semibold text-gray-700">Event</span>
-                    <select name="event_id" {{ auth()->user()->role === 'panitia' ? 'required' : '' }} class="mt-1 w-full rounded-md border-gray-300 text-sm shadow-sm focus:border-emerald-500 focus:ring-emerald-500">
-                        @if(auth()->user()->role !== 'panitia')
+                    <select name="event_id" {{ auth()->user()->role === 'panitia_lomba' ? 'required' : '' }} class="mt-1 w-full rounded-md border-gray-300 text-sm shadow-sm focus:border-emerald-500 focus:ring-emerald-500">
+                        @if(auth()->user()->role !== 'panitia_lomba')
                             <option value="">Umum (Seluruh Peserta)</option>
                         @else
                             <option value="" disabled selected>Pilih Event</option>
@@ -169,8 +169,8 @@
                 <div class="mt-5 grid gap-4">
                     <label class="block">
                         <span class="text-sm font-semibold text-gray-700">Event</span>
-                        <select name="event_id" {{ auth()->user()->role === 'panitia' ? 'required' : '' }} class="mt-1 w-full rounded-md border-gray-300 text-sm shadow-sm focus:border-emerald-500 focus:ring-emerald-500">
-                            @if(auth()->user()->role !== 'panitia')
+                        <select name="event_id" {{ auth()->user()->role === 'panitia_lomba' ? 'required' : '' }} class="mt-1 w-full rounded-md border-gray-300 text-sm shadow-sm focus:border-emerald-500 focus:ring-emerald-500">
+                            @if(auth()->user()->role !== 'panitia_lomba')
                                 <option value="">Umum (Seluruh Peserta)</option>
                             @else
                                 <option value="" disabled @selected(empty($announcement->event_id))>Pilih Event</option>

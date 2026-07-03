@@ -13,7 +13,7 @@ class EventParticipantController extends Controller
 {
     public function index(Request $request): View
     {
-        abort_unless(in_array(auth()->user()?->role, ['superadmin', 'admin_keuangan']), 403);
+        abort_unless(in_array(auth()->user()?->role, ['superadmin', 'admin_biasa']), 403);
 
         $events = Event::where('type', 'non_competition')->orderBy('title')->get();
         
@@ -58,7 +58,7 @@ class EventParticipantController extends Controller
 
     public function verify(Request $request)
     {
-        abort_unless(in_array(auth()->user()?->role, ['superadmin', 'admin_keuangan']), 403);
+        abort_unless(in_array(auth()->user()?->role, ['superadmin', 'admin_biasa']), 403);
 
         $request->validate([
             'user_id' => 'required|string',
