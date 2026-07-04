@@ -243,7 +243,7 @@
                                             <div class="mt-3 rounded-md border border-rose-100 bg-rose-50 px-3 py-2 text-sm text-rose-700">
                                                 {{ $member->verification_error }}
                                             </div>
-                                        @elseif($team->is_document_verified === 'approved' && empty($member->verification_error))
+                                        @elseif($member->is_verified)
                                             <span class="mt-2 inline-flex items-center rounded-md bg-emerald-50 px-2.5 py-1 text-xs font-semibold text-emerald-700">
                                                 Berkas Valid
                                             </span>
