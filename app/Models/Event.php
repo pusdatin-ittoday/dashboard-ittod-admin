@@ -30,6 +30,7 @@ class Event extends Model
         'max_noncompetition_participant',
         'price',
         'requires_submission',
+        'external_platform_link',
         'whatsapp_group_link',
         'logo_url',
         'participation_type',

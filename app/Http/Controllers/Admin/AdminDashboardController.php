@@ -460,6 +460,7 @@ class AdminDashboardController extends Controller
             'description' => ['sometimes', 'required', 'string', 'max:2000'],
             'guide_book_url' => ['sometimes', 'required', 'url', 'max:500'],
             'whatsapp_group_link' => ['sometimes', 'nullable', 'url', 'max:500'],
+            'external_platform_link' => ['sometimes', 'nullable', 'url', 'max:500'],
             'contact_person1' => ['nullable', 'string', 'max:191'],
             'contact_person2' => ['nullable', 'string', 'max:191'],
         ]);
@@ -712,6 +713,7 @@ class AdminDashboardController extends Controller
             'description' => ['nullable', 'string', 'max:2000'],
             'guide_book_url' => ['nullable', 'url', 'max:500'],
             'whatsapp_group_link' => ['nullable', 'url', 'max:500'],
+            'external_platform_link' => ['nullable', 'url', 'max:500'],
             'price' => ['nullable', 'integer', 'min:0'],
             'participation_type' => ['required', Rule::in(['individual', 'team'])],
             'is_active' => ['sometimes', 'boolean'],

@@ -64,6 +64,18 @@
                                 <span class="text-sm text-gray-500 italic">Belum diatur</span>
                             @endif
                         </div>
+                        @if(!$singleEvent->requires_submission)
+                        <div class="flex flex-wrap items-center gap-3">
+                            <span class="text-sm font-semibold text-gray-700 w-24">Platform:</span>
+                            @if($singleEvent->external_platform_link)
+                                <a href="{{ $singleEvent->external_platform_link }}" target="_blank" class="inline-flex items-center justify-center rounded-md bg-purple-600 px-4 py-2 text-sm font-semibold text-white hover:bg-purple-700 shadow-sm transition-all duration-150">
+                                    Buka Platform
+                                </a>
+                            @else
+                                <span class="text-sm text-gray-500 italic">Belum diatur (Platform Eksternal)</span>
+                            @endif
+                        </div>
+                        @endif
                         <div class="mt-2">
                             <button type="button" x-data x-on:click="$dispatch('open-modal', 'edit-panitia_lomba-links-{{ $singleEvent->id }}')" class="inline-flex items-center justify-center rounded-md border border-gray-300 px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50 transition-all duration-150">
                                 Edit Tautan
@@ -167,6 +179,7 @@
                     </label>
                     <input type="hidden" name="guide_book_url" value="{{ $singleEvent->guide_book_url }}">
                     <input type="hidden" name="whatsapp_group_link" value="{{ $singleEvent->whatsapp_group_link }}">
+                    <input type="hidden" name="external_platform_link" value="{{ $singleEvent->external_platform_link }}">
                 </div>
                 <div class="mt-6 flex justify-end gap-3">
                     <button type="button" x-on:click="$dispatch('close-modal', 'edit-panitia_lomba-description-{{ $singleEvent->id }}')" class="rounded-md border border-gray-300 px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50">Batal</button>
@@ -192,6 +205,14 @@
                         <span class="text-sm font-semibold text-gray-700">Link Grup WhatsApp</span>
                         <input type="url" name="whatsapp_group_link" value="{{ old('whatsapp_group_link', $singleEvent->whatsapp_group_link) }}" class="mt-1 w-full rounded-md border-gray-300 text-sm shadow-sm focus:border-blue-500 focus:ring-blue-500" placeholder="https://chat.whatsapp.com/...">
                     </label>
+                    @if(!$singleEvent->requires_submission)
+                    <label class="block">
+                        <span class="text-sm font-semibold text-gray-700">Link Platform Eksternal</span>
+                        <input type="url" name="external_platform_link" value="{{ old('external_platform_link', $singleEvent->external_platform_link) }}" class="mt-1 w-full rounded-md border-gray-300 text-sm shadow-sm focus:border-blue-500 focus:ring-blue-500" placeholder="Misal platform external (Hackerrank, dsb)">
+                    </label>
+                    @else
+                    <input type="hidden" name="external_platform_link" value="{{ $singleEvent->external_platform_link }}">
+                    @endif
                     <input type="hidden" name="description" value="{{ $singleEvent->description }}">
                 </div>
                 <div class="mt-6 flex justify-end gap-3">
@@ -453,6 +474,12 @@
                     <span class="text-sm font-semibold text-gray-700">Link Grup WhatsApp</span>
                     <input type="url" name="whatsapp_group_link" value="{{ old('whatsapp_group_link') }}" class="mt-1 w-full rounded-md border-gray-300 text-sm shadow-sm focus:border-emerald-500 focus:ring-emerald-500" placeholder="https://chat.whatsapp.com/...">
                 </label>
+                <div x-show="type === 'competition'" x-cloak class="sm:col-span-2 grid gap-4 sm:grid-cols-2 mt-2">
+                    <label class="block sm:col-span-2">
+                        <span class="text-sm font-semibold text-gray-700">Link Platform Eksternal (Opsional)</span>
+                        <input type="url" name="external_platform_link" value="{{ old('external_platform_link') }}" class="mt-1 w-full rounded-md border-gray-300 text-sm shadow-sm focus:border-emerald-500 focus:ring-emerald-500" placeholder="https://platform.com/...">
+                    </label>
+                </div>
                 <div x-show="type === 'competition'" x-cloak class="sm:col-span-2 grid gap-4 sm:grid-cols-2 mt-2 border-t border-gray-200 pt-4">
                     <label class="flex items-center gap-3 rounded-md border border-gray-200 px-3 py-3 sm:col-span-2">
                         <input type="hidden" name="requires_submission" value="0">
@@ -551,6 +578,12 @@
                         <span class="text-sm font-semibold text-gray-700">Link Grup WhatsApp</span>
                         <input type="url" name="whatsapp_group_link" value="{{ old('whatsapp_group_link', $event->whatsapp_group_link) }}" class="mt-1 w-full rounded-md border-gray-300 text-sm shadow-sm focus:border-emerald-500 focus:ring-emerald-500" placeholder="https://chat.whatsapp.com/...">
                     </label>
+                    <div x-show="type === 'competition'" x-cloak class="sm:col-span-2 grid gap-4 sm:grid-cols-2 mt-2">
+                        <label class="block sm:col-span-2">
+                            <span class="text-sm font-semibold text-gray-700">Link Platform Eksternal (Opsional)</span>
+                            <input type="url" name="external_platform_link" value="{{ old('external_platform_link', $event->external_platform_link) }}" class="mt-1 w-full rounded-md border-gray-300 text-sm shadow-sm focus:border-emerald-500 focus:ring-emerald-500" placeholder="https://platform.com/...">
+                        </label>
+                    </div>
                     <div x-show="type === 'competition'" x-cloak class="sm:col-span-2 grid gap-4 sm:grid-cols-2 mt-2 border-t border-gray-200 pt-4">
                         <label class="flex items-center gap-3 rounded-md border border-gray-200 px-3 py-3 sm:col-span-2">
                             <input type="hidden" name="requires_submission" value="0">
