@@ -36,6 +36,21 @@
                 </span>
             </div>
 
+            <!-- Action Buttons -->
+            <div class="flex flex-wrap items-center gap-3 mb-6 pb-6 border-b border-gray-200">
+                <a href="{{ route('admin.timelines.agenda', $singleEvent) }}" class="inline-flex items-center justify-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50 transition-all duration-150 shadow-sm">
+                    <svg class="mr-2 h-4 w-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                    Kelola Agenda
+                </a>
+                
+                @if ($singleEvent->requires_submission)
+                <a href="{{ route('admin.competitions.submissions', $singleEvent) }}" class="inline-flex items-center justify-center rounded-md bg-blue-700 px-4 py-2 text-sm font-bold text-white hover:bg-blue-800 transition-all duration-150 shadow-sm">
+                    <svg class="mr-2 h-4 w-4 text-blue-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path></svg>
+                    Kelola & Lihat Submissions
+                </a>
+                @endif
+            </div>
+
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <!-- Description Section -->
                 <div class="rounded border border-gray-200 p-4">
@@ -93,133 +108,14 @@
                         <p class="text-sm text-gray-700"><span class="font-semibold">CP 2:</span> {{ $singleEvent->contact_person2 }}</p>
                         @endif
                     </div>
+
                     <button type="button" x-data x-on:click="$dispatch('open-modal', 'edit-panitia_lomba-cp-{{ $singleEvent->id }}')" class="mt-4 text-sm font-semibold text-blue-600 hover:text-blue-800">
                         Edit Contact Person
                     </button>
                 </div>
-
-                <!-- Timeline Section -->
-                <div class="rounded border border-gray-200 p-4 sm:col-span-2">
-                    <div class="flex items-center justify-between mb-4">
-                        <h3 class="text-lg font-bold text-gray-800">Timeline / Agenda</h3>
-                        <a href="{{ route('admin.timelines.agenda', $singleEvent) }}" class="inline-flex items-center justify-center rounded-md border border-gray-300 px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50 transition-all duration-150">
-                            Kelola Agenda
-                        </a>
-                    </div>
-                    <p class="text-sm text-gray-600">Terdapat {{ $singleEvent->timelines_count }} agenda dalam kompetisi ini.</p>
-                </div>
-
-                <!-- Submissions Section -->
-                @if ($singleEvent->requires_submission)
-                <div class="rounded border border-gray-200 p-4 sm:col-span-2">
-                    <div class="flex items-center justify-between mb-4">
-                        <h3 class="text-lg font-bold text-gray-800">Submissions (Karya/Berkas Lomba)</h3>
-                        <button type="button" x-data x-on:click="$dispatch('open-modal', 'edit-panitia_lomba-submission-{{ $singleEvent->id }}')" class="inline-flex items-center justify-center rounded-md border border-gray-300 px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50 transition-all duration-150">
-                            Kelola Format Submission
-                        </button>
-                    </div>
-                    @if ($singleEvent->submissions->isEmpty())
-                        <p class="text-sm text-gray-600">Belum ada tim yang mengumpulkan submission.</p>
-                    @else
-                        <div class="overflow-x-auto rounded border border-gray-200">
-                            <table class="min-w-full divide-y divide-gray-200">
-                                <thead class="bg-gray-50">
-                                    <tr>
-                                        <th class="px-4 py-3 text-left text-xs font-bold uppercase text-gray-600">Tim</th>
-                                        <th class="px-4 py-3 text-left text-xs font-bold uppercase text-gray-600">Waktu Pengumpulan</th>
-                                        <th class="px-4 py-3 text-left text-xs font-bold uppercase text-gray-600">Detail Submission</th>
-                                    </tr>
-                                </thead>
-                                <tbody class="divide-y divide-gray-200 bg-white">
-                                    @foreach ($singleEvent->submissions as $submission)
-                                        <tr class="hover:bg-gray-50">
-                                            <td class="px-4 py-3 text-sm font-semibold text-gray-950">{{ $submission->team->team_name ?? 'Tim Tidak Diketahui' }}</td>
-                                            <td class="px-4 py-3 text-sm text-gray-600">{{ $submission->created_at->format('d M Y H:i') }}</td>
-                                            <td class="px-4 py-3 text-sm text-gray-700">
-                                                @php
-                                                    $subObj = is_string($submission->submission_object) ? json_decode($submission->submission_object, true) : $submission->submission_object;
-                                                @endphp
-                                                @if (is_array($subObj))
-                                                    <ul class="list-disc pl-4 space-y-1">
-                                                        @foreach ($subObj as $key => $value)
-                                                            <li>
-                                                                <span class="font-medium">{{ Str::title(str_replace('_', ' ', $key)) }}:</span> 
-                                                                @if (filter_var($value, FILTER_VALIDATE_URL))
-                                                                    <a href="{{ $value }}" target="_blank" class="text-blue-600 hover:text-blue-800 hover:underline">Buka Tautan</a>
-                                                                @else
-                                                                    <span>{{ $value }}</span>
-                                                                @endif
-                                                            </li>
-                                                        @endforeach
-                                                    </ul>
-                                                @else
-                                                    <span class="text-gray-500 italic">Format tidak didukung</span>
-                                                @endif
-                                            </td>
-                                        </tr>
-                                    @endforeach
-                                </tbody>
-                            </table>
-                        </div>
-                    @endif
-                </div>
-                @endif
             </div>
-        </div>
 
-        <x-modal name="edit-panitia_lomba-submission-{{ $singleEvent->id }}" maxWidth="2xl" focusable>
-            <form method="POST" action="{{ route('admin.competitions.panitia_lomba-details', $singleEvent) }}" class="p-6">
-                @csrf
-                @method('PATCH')
-                <div class="border-b border-gray-200 pb-4">
-                    <h3 class="text-lg font-semibold text-gray-950">Format Submission Karya</h3>
-                    <p class="mt-1 text-sm text-gray-600">Tentukan kolom/isian apa saja yang harus dikumpulkan oleh peserta.</p>
-                </div>
-                <div class="mt-5" x-data="{
-                    fields: {{ json_encode($singleEvent->submission_fields ?? []) }},
-                    addField() {
-                        this.fields.push({ label: '', type: 'text' });
-                    },
-                    removeField(index) {
-                        this.fields.splice(index, 1);
-                    }
-                }">
-                    <input type="hidden" name="submission_fields" x-bind:value="JSON.stringify(fields)">
-                    
-                    <div class="space-y-4">
-                        <template x-for="(field, index) in fields" :key="index">
-                            <div class="flex items-start gap-4 p-4 border border-gray-200 rounded-md bg-gray-50 relative">
-                                <div class="flex-1 grid grid-cols-2 gap-4">
-                                    <label class="block">
-                                        <span class="text-sm font-semibold text-gray-700">Label (Nama Isian) <span class="text-red-500">*</span></span>
-                                        <input type="text" x-model="field.label" required class="mt-1 w-full rounded-md border-gray-300 text-sm shadow-sm focus:border-blue-500 focus:ring-blue-500" placeholder="Misal: Link GDrive Karya">
-                                    </label>
-                                    <label class="block">
-                                        <span class="text-sm font-semibold text-gray-700">Tipe Input <span class="text-red-500">*</span></span>
-                                        <select x-model="field.type" required class="mt-1 w-full rounded-md border-gray-300 text-sm shadow-sm focus:border-blue-500 focus:ring-blue-500">
-                                            <option value="text">Teks Singkat</option>
-                                            <option value="url">Link / URL</option>
-                                            <option value="file">Upload File (PDF/Gambar)</option>
-                                        </select>
-                                    </label>
-                                </div>
-                                <button type="button" @click="removeField(index)" class="mt-6 text-red-600 hover:text-red-800 text-sm font-bold bg-white px-3 py-2 rounded border border-red-200 hover:bg-red-50" title="Hapus field">
-                                    Hapus
-                                </button>
-                            </div>
-                        </template>
-                        <button type="button" @click="addField()" class="inline-flex items-center gap-2 rounded-md border border-dashed border-gray-400 px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50 hover:border-gray-500">
-                            <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
-                            Tambah Field
-                        </button>
-                    </div>
-                </div>
-                <div class="mt-6 flex justify-end gap-3 border-t border-gray-200 pt-4">
-                    <button type="button" x-on:click="$dispatch('close-modal', 'edit-panitia_lomba-submission-{{ $singleEvent->id }}')" class="rounded-md border border-gray-300 px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50">Batal</button>
-                    <button type="submit" class="rounded-md bg-blue-700 px-4 py-2 text-sm font-bold text-white hover:bg-blue-800">Simpan Format</button>
-                </div>
-            </form>
-        </x-modal>
+
 
         <x-modal name="edit-panitia_lomba-description-{{ $singleEvent->id }}" maxWidth="lg" focusable>
             <form method="POST" action="{{ route('admin.competitions.panitia_lomba-details', $singleEvent) }}" class="p-6">

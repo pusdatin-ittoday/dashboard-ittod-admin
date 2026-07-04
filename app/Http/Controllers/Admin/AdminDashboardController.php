@@ -401,6 +401,27 @@ class AdminDashboardController extends Controller
         ]);
     }
 
+    public function submissions(Event $event): View
+    {
+        $user = auth()->user();
+        abort_unless(in_array($user?->role, ['superadmin', 'panitia_lomba', 'admin_biasa']), 403);
+
+        if ($user->role === 'admin_biasa') {
+            abort_unless($event->type === 'non_competition', 403);
+        } elseif ($user->role === 'panitia_lomba') {
+            abort_unless($user->events->contains('id', $event->id), 403);
+        }
+
+        abort_unless($event->requires_submission, 404, 'Event ini tidak membutuhkan pengumpulan karya.');
+
+        $event->load('submissions.team');
+
+        return view('admin.timelines.submissions', [
+            'singleEvent' => $event,
+            'canManageTimelines' => in_array($user?->role, ['superadmin', 'panitia_lomba', 'admin_biasa'], true),
+        ]);
+    }
+
     public function storeCompetition(Request $request): RedirectResponse
     {
         $this->ensureSuperadminOrAdminKeuangan();
