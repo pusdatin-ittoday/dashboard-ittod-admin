@@ -193,6 +193,8 @@ Field penting:
 - `method`: Metode pelaksanaan event (`online` atau `offline`). Otomatis `offline` untuk kompetisi, dapat diset manual untuk non-kompetisi.
 - `max_noncompetition_participant`: Batas maksimal peserta (opsional) untuk event non-kompetisi.
 - `price`: Biaya pendaftaran (otomatis 0 untuk event non-kompetisi).
+- `submission_fields`: Konfigurasi JSON untuk menyimpan format/kolom isian submission karya lomba.
+- `external_platform_link`: URL platform eksternal untuk kompetisi yang tidak memerlukan submission internal (`requires_submission` = false).
 
 > **Catatan Validasi & UI:**
 > Input `Deskripsi`, `URL Guide Book`, dan `Contact Person 1` tidak diwajibkan (optional) saat superadmin membuat atau mengedit event. Namun, form tersebut bersifat wajib (mandatory) ketika Panitia Lomba memperbarui detail event melalui modul Edit Panitia Lomba.

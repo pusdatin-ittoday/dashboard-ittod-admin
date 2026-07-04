@@ -30,6 +30,7 @@ class Event extends Model
         'max_noncompetition_participant',
         'price',
         'requires_submission',
+        'submission_fields',
         'external_platform_link',
         'whatsapp_group_link',
         'logo_url',
@@ -42,6 +43,7 @@ class Event extends Model
         'requires_submission' => 'boolean',
         'price' => 'integer',
         'max_noncompetition_participant' => 'integer',
+        'submission_fields' => 'array',
     ];
 
     /**

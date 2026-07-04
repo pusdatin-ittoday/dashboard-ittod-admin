@@ -114,6 +114,9 @@
                 <div class="rounded border border-gray-200 p-4 sm:col-span-2">
                     <div class="flex items-center justify-between mb-4">
                         <h3 class="text-lg font-bold text-gray-800">Submissions (Karya/Berkas Lomba)</h3>
+                        <button type="button" x-data x-on:click="$dispatch('open-modal', 'edit-panitia_lomba-submission-{{ $singleEvent->id }}')" class="inline-flex items-center justify-center rounded-md border border-gray-300 px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50 transition-all duration-150">
+                            Kelola Format Submission
+                        </button>
                     </div>
                     @if ($singleEvent->submissions->isEmpty())
                         <p class="text-sm text-gray-600">Belum ada tim yang mengumpulkan submission.</p>
@@ -163,6 +166,60 @@
                 @endif
             </div>
         </div>
+
+        <x-modal name="edit-panitia_lomba-submission-{{ $singleEvent->id }}" maxWidth="2xl" focusable>
+            <form method="POST" action="{{ route('admin.competitions.panitia_lomba-details', $singleEvent) }}" class="p-6">
+                @csrf
+                @method('PATCH')
+                <div class="border-b border-gray-200 pb-4">
+                    <h3 class="text-lg font-semibold text-gray-950">Format Submission Karya</h3>
+                    <p class="mt-1 text-sm text-gray-600">Tentukan kolom/isian apa saja yang harus dikumpulkan oleh peserta.</p>
+                </div>
+                <div class="mt-5" x-data="{
+                    fields: {{ json_encode($singleEvent->submission_fields ?? []) }},
+                    addField() {
+                        this.fields.push({ label: '', type: 'text' });
+                    },
+                    removeField(index) {
+                        this.fields.splice(index, 1);
+                    }
+                }">
+                    <input type="hidden" name="submission_fields" x-bind:value="JSON.stringify(fields)">
+                    
+                    <div class="space-y-4">
+                        <template x-for="(field, index) in fields" :key="index">
+                            <div class="flex items-start gap-4 p-4 border border-gray-200 rounded-md bg-gray-50 relative">
+                                <div class="flex-1 grid grid-cols-2 gap-4">
+                                    <label class="block">
+                                        <span class="text-sm font-semibold text-gray-700">Label (Nama Isian) <span class="text-red-500">*</span></span>
+                                        <input type="text" x-model="field.label" required class="mt-1 w-full rounded-md border-gray-300 text-sm shadow-sm focus:border-blue-500 focus:ring-blue-500" placeholder="Misal: Link GDrive Karya">
+                                    </label>
+                                    <label class="block">
+                                        <span class="text-sm font-semibold text-gray-700">Tipe Input <span class="text-red-500">*</span></span>
+                                        <select x-model="field.type" required class="mt-1 w-full rounded-md border-gray-300 text-sm shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                                            <option value="text">Teks Singkat</option>
+                                            <option value="url">Link / URL</option>
+                                            <option value="file">Upload File (PDF/Gambar)</option>
+                                        </select>
+                                    </label>
+                                </div>
+                                <button type="button" @click="removeField(index)" class="mt-6 text-red-600 hover:text-red-800 text-sm font-bold bg-white px-3 py-2 rounded border border-red-200 hover:bg-red-50" title="Hapus field">
+                                    Hapus
+                                </button>
+                            </div>
+                        </template>
+                        <button type="button" @click="addField()" class="inline-flex items-center gap-2 rounded-md border border-dashed border-gray-400 px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50 hover:border-gray-500">
+                            <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+                            Tambah Field
+                        </button>
+                    </div>
+                </div>
+                <div class="mt-6 flex justify-end gap-3 border-t border-gray-200 pt-4">
+                    <button type="button" x-on:click="$dispatch('close-modal', 'edit-panitia_lomba-submission-{{ $singleEvent->id }}')" class="rounded-md border border-gray-300 px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50">Batal</button>
+                    <button type="submit" class="rounded-md bg-blue-700 px-4 py-2 text-sm font-bold text-white hover:bg-blue-800">Simpan Format</button>
+                </div>
+            </form>
+        </x-modal>
 
         <x-modal name="edit-panitia_lomba-description-{{ $singleEvent->id }}" maxWidth="lg" focusable>
             <form method="POST" action="{{ route('admin.competitions.panitia_lomba-details', $singleEvent) }}" class="p-6">
@@ -296,7 +353,7 @@
                     <input
                         type="search"
                         x-model="search"
-                        placeholder="Search event, status, tim, atau jumlah agenda..."
+                        placeholder="Search event, status, tim/peserta, atau jumlah agenda..."
                         class="w-full rounded-md border-gray-300 pl-10 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
                     >
                 </label>
@@ -308,9 +365,9 @@
                         <tr>
                             <th class="px-6 py-3 text-left text-xs font-bold uppercase text-gray-600">Event</th>
                             <th class="px-6 py-3 text-left text-xs font-bold uppercase text-gray-600">Agenda</th>
-                            <th class="px-6 py-3 text-left text-xs font-bold uppercase text-gray-600">Tim</th>
+                            <th class="px-6 py-3 text-left text-xs font-bold uppercase text-gray-600">Tim / Peserta</th>
                             <th class="px-6 py-3 text-left text-xs font-bold uppercase text-gray-600">Status</th>
-                            <th class="px-6 py-3 text-left text-xs font-bold uppercase text-gray-600">Selengkapnya</th>
+                            <th class="px-6 py-3 text-left text-xs font-bold uppercase text-gray-600">Agenda</th>
                             @if ($canManageCompetitions || $canManageTimelines)
                                 <th class="px-6 py-3 text-right text-xs font-bold uppercase text-gray-600">Aksi</th>
                             @endif
@@ -320,7 +377,7 @@
                         @forelse ($events as $event)
                             <tr
                                 x-show="$el.dataset.search.includes(search.toLowerCase())"
-                                data-search="{{ Str::lower($event->title . ' ' . ($event->is_active ? 'aktif' : 'nonaktif') . ' ' . $event->teams_count . ' tim ' . $event->timelines_count . ' agenda') }}"
+                                data-search="{{ Str::lower($event->title . ' ' . ($event->is_active ? 'aktif' : 'nonaktif') . ' ' . ($event->type === 'competition' ? $event->teams_count . ' tim ' : $event->participants_count . ' peserta ') . $event->timelines_count . ' agenda') }}"
                                 class="align-top hover:bg-gray-50"
                             >
                                 <td class="px-6 py-4">
@@ -355,7 +412,13 @@
                                         {{ $event->timelines_count }} agenda
                                     </span>
                                 </td>
-                                <td class="px-6 py-4 text-sm font-semibold text-gray-700">{{ $event->teams_count }} tim</td>
+                                <td class="px-6 py-4 text-sm font-semibold text-gray-700">
+                                    @if($event->type === 'competition')
+                                        {{ $event->teams_count }} tim
+                                    @else
+                                        {{ $event->participants_count }} peserta
+                                    @endif
+                                </td>
                                 <td class="px-6 py-4">
                                     <span class="inline-flex rounded border px-2 py-1 text-[11px] font-bold uppercase {{ $event->is_active ? 'border-emerald-200 bg-emerald-50 text-emerald-700' : 'border-gray-200 bg-gray-50 text-gray-500' }}">
                                         {{ $event->is_active ? 'Aktif' : 'Nonaktif' }}
@@ -363,7 +426,7 @@
                                 </td>
                                 <td class="px-6 py-4">
                                     <a href="{{ route('admin.timelines.agenda', $event) }}" class="inline-flex items-center justify-center rounded-md border border-gray-300 px-3 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50">
-                                        Lihat Detail
+                                        Kelola Agenda
                                     </a>
                                 </td>
                                 @if ($canManageCompetitions || $canManageTimelines)

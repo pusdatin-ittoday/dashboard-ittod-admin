@@ -44,15 +44,7 @@
 
 
 
-                    @php
-                        $user = Auth::user();
-                        $isSeminarPanitia = $user->role === 'panitia_lomba' && $user->events->where('type', 'non_competition')->isNotEmpty();
-                    @endphp
-                    @if(Auth::check() && (in_array($user->role, ['superadmin', 'admin_biasa']) || $isSeminarPanitia))
-                        <x-nav-link :href="route('timeline.index')" :active="request()->routeIs('timeline.*')">
-                            {{ __('Kelola Timeline Event') }}
-                        </x-nav-link>
-                    @endif
+
 
                     <!-- Transaksi: Superadmin & Admin Biasa -->
                     @if(Auth::check() && in_array(Auth::user()->role, ['superadmin', 'admin_biasa']))
@@ -144,15 +136,7 @@
 
 
 
-            @php
-                $user = Auth::user();
-                $isSeminarPanitia = $user?->role === 'panitia_lomba' && $user->events->where('type', 'non_competition')->isNotEmpty();
-            @endphp
-            @if(Auth::check() && (in_array($user->role, ['superadmin', 'admin_biasa']) || $isSeminarPanitia))
-                <x-responsive-nav-link :href="route('timeline.index')" :active="request()->routeIs('timeline.*')">
-                    {{ __('Kelola Timeline Event') }}
-                </x-responsive-nav-link>
-            @endif
+
 
             @if(Auth::check() && in_array(Auth::user()->role, ['superadmin', 'admin_biasa']))
                 <x-responsive-nav-link :href="route('admin.transactions.index')" :active="request()->routeIs('admin.transactions.*')">

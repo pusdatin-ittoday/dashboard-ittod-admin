@@ -352,7 +352,7 @@ class AdminDashboardController extends Controller
         abort_unless(in_array(auth()->user()?->role, ['superadmin', 'panitia_lomba', 'admin_biasa']), 403);
 
         $user = auth()->user();
-        $query = Event::withCount(['teams', 'timelines'])
+        $query = Event::withCount(['teams', 'participants', 'timelines'])
             ->orderBy('title');
 
         if ($user->role === 'panitia_lomba') {
@@ -377,23 +377,27 @@ class AdminDashboardController extends Controller
 
     public function timelineAgenda(Event $event): View
     {
-        abort_unless(in_array(auth()->user()?->role, ['superadmin', 'panitia_lomba']), 403);
-        $this->abortUnlessCompetition($event);
+        $user = auth()->user();
+        abort_unless(in_array($user?->role, ['superadmin', 'panitia_lomba', 'admin_biasa']), 403);
 
-        if (auth()->user()->role === 'panitia_lomba') {
-            abort_unless(auth()->user()->events->contains('id', $event->id), 403);
+        if ($user->role === 'admin_biasa') {
+            abort_unless($event->type === 'non_competition', 403);
+        } elseif ($user->role === 'panitia_lomba') {
+            abort_unless($user->events->contains('id', $event->id), 403);
         }
 
         $eventsQuery = Event::orderBy('title');
-        if (auth()->user()->role === 'panitia_lomba') {
-            $eventsQuery->whereIn('id', auth()->user()->events->pluck('id'));
+        if ($user->role === 'panitia_lomba') {
+            $eventsQuery->whereIn('id', $user->events->pluck('id'));
+        } elseif ($user->role === 'admin_biasa') {
+            $eventsQuery->where('type', 'non_competition');
         }
 
         return view('admin.timelines.agenda', [
             'event' => $event->load(['timelines' => fn ($query) => $query->orderBy('date')])
-                ->loadCount('teams'),
+                ->loadCount(['teams', 'participants']),
             'events' => $eventsQuery->get(),
-            'canManageTimelines' => in_array(auth()->user()?->role, ['superadmin', 'panitia_lomba'], true),
+            'canManageTimelines' => in_array($user?->role, ['superadmin', 'panitia_lomba', 'admin_biasa'], true),
         ]);
     }
 
@@ -463,7 +467,12 @@ class AdminDashboardController extends Controller
             'external_platform_link' => ['sometimes', 'nullable', 'url', 'max:500'],
             'contact_person1' => ['nullable', 'string', 'max:191'],
             'contact_person2' => ['nullable', 'string', 'max:191'],
+            'submission_fields' => ['nullable', 'string'],
         ]);
+
+        if (array_key_exists('submission_fields', $validated)) {
+            $validated['submission_fields'] = json_decode($validated['submission_fields'], true);
+        }
 
         $event->update($validated);
 
@@ -652,7 +661,7 @@ class AdminDashboardController extends Controller
 
     private function ensureCompetitionTimelineManager(): void
     {
-        abort_unless(in_array(auth()->user()?->role, ['superadmin', 'panitia_lomba'], true), 403);
+        abort_unless(in_array(auth()->user()?->role, ['superadmin', 'panitia_lomba', 'admin_biasa'], true), 403);
     }
 
     private function isAdminStaff(): bool
@@ -662,8 +671,12 @@ class AdminDashboardController extends Controller
 
     private function abortIfUnassignedPanitia(string $eventId): void
     {
-        if (auth()->user()?->role === 'panitia_lomba') {
-            abort_unless(auth()->user()->events->contains('id', $eventId), 403);
+        $user = auth()->user();
+        if ($user?->role === 'panitia_lomba') {
+            abort_unless($user->events->contains('id', $eventId), 403);
+        } elseif ($user?->role === 'admin_biasa') {
+            $event = Event::find($eventId);
+            abort_unless($event && $event->type === 'non_competition', 403);
         }
     }
 
@@ -682,7 +695,7 @@ class AdminDashboardController extends Controller
             'event_id' => [
                 'required',
                 'string',
-                Rule::exists('event', 'id')->where(fn ($query) => $query->where('type', 'competition')),
+                Rule::exists('event', 'id'),
             ],
             'title' => ['required', 'string', 'max:191'],
             'date' => ['required', 'date'],
