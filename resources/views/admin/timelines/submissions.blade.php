@@ -131,9 +131,9 @@
             </div>
 
             <div class="mt-5" x-data="{
-                fields: {{ json_encode($singleEvent->submission_fields ?? []) }},
+                fields: ({{ json_encode($singleEvent->submission_fields ?? []) }} || []).map(f => ({ label: f.label || '', type: 'url' })),
                 addField() {
-                    this.fields.push({ label: '', type: 'text' });
+                    this.fields.push({ label: '', type: 'url' });
                 },
                 removeField(index) {
                     this.fields.splice(index, 1);
@@ -151,11 +151,7 @@
                                 </label>
                                 <label class="block">
                                     <span class="text-sm font-semibold text-gray-700">Tipe Input <span class="text-red-500">*</span></span>
-                                    <select x-model="field.type" required class="mt-1 w-full rounded-md border-gray-300 text-sm shadow-sm focus:border-blue-500 focus:ring-blue-500">
-                                        <option value="text">Teks Singkat</option>
-                                        <option value="url">Link / URL</option>
-                                        <option value="file">Upload File (PDF/Gambar)</option>
-                                    </select>
+                                    <input type="text" value="Link / URL" disabled class="mt-1 w-full rounded-md border-gray-300 bg-gray-100 text-sm shadow-sm text-gray-500 cursor-not-allowed">
                                 </label>
                             </div>
                             <button type="button" @click="removeField(index)" class="mt-6 text-red-600 hover:text-red-800 text-sm font-bold bg-white px-3 py-2 rounded border border-red-200 hover:bg-red-50" title="Hapus field">
