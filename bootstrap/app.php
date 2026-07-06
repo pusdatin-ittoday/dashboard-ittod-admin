@@ -19,6 +19,11 @@ return Application::configure(basePath: dirname(__DIR__))
              */
             'data_frozen' => \App\Http\Middleware\EnsureDataNotFrozen::class,
         ]);
+
+        $trustedProxies = env('TRUSTED_PROXIES');
+        if ($trustedProxies) {
+            $middleware->trustProxies(at: $trustedProxies === '*' ? '*' : explode(',', $trustedProxies));
+        }
     })
     ->withExceptions(function (Exceptions $exceptions) {
         //
