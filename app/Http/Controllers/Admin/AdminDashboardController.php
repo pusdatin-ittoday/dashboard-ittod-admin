@@ -542,13 +542,12 @@ class AdminDashboardController extends Controller
 
         EventTimeline::create($validated);
 
-        return back()->with('status', 'Agenda kompetisi berhasil ditambahkan.');
+        return back()->with('status', 'Agenda kegiatan berhasil ditambahkan.');
     }
 
     public function updateTimeline(Request $request, EventTimeline $timeline): RedirectResponse
     {
         $this->ensureCompetitionTimelineManager();
-        $this->abortUnlessCompetitionTimeline($timeline);
         $this->abortIfUnassignedPanitia($timeline->event_id);
 
         $validated = $this->validateCompetitionTimeline($request);
@@ -556,18 +555,17 @@ class AdminDashboardController extends Controller
 
         $timeline->update($validated);
 
-        return back()->with('status', 'Agenda kompetisi berhasil diperbarui.');
+        return back()->with('status', 'Agenda kegiatan berhasil diperbarui.');
     }
 
     public function destroyTimeline(EventTimeline $timeline): RedirectResponse
     {
         $this->ensureCompetitionTimelineManager();
-        $this->abortUnlessCompetitionTimeline($timeline);
         $this->abortIfUnassignedPanitia($timeline->event_id);
 
         $timeline->delete();
 
-        return back()->with('status', 'Agenda kompetisi berhasil dihapus.');
+        return back()->with('status', 'Agenda kegiatan berhasil dihapus.');
     }
 
     public function announcements(): View
@@ -721,11 +719,6 @@ class AdminDashboardController extends Controller
             'title' => ['required', 'string', 'max:191'],
             'date' => ['required', 'date'],
         ]);
-    }
-
-    private function abortUnlessCompetitionTimeline(EventTimeline $timeline): void
-    {
-        $this->abortUnlessCompetition($timeline->event);
     }
 
     private function validateCompetition(Request $request): array
