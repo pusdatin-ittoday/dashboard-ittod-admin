@@ -1,1 +1,1 @@
-<img src="{{ asset('ittod.webp') }}" alt="IT Today Logo" {{ $attributes }} />
+<img src="{{ asset('logo-ittod.webp') }}" alt="IT Today Logo" {{ $attributes }} />
