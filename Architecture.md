@@ -284,6 +284,7 @@ Fitur:
 - Admin Biasa dapat mengelola khusus event `non_competition`.
 - Superadmin, Admin Biasa, dan Panitia Lomba dapat mengelola agenda timeline kegiatan sesuai wewenang.
 - Panitia Lomba hanya dapat mengelola agenda pada kompetisi atau event yang ditugaskan kepadanya.
+- **competition_timeline (Agenda Global Kompetisi)**: Menyimpan timeline yang berlaku secara umum untuk semua kompetisi (tidak memiliki relasi `event_id`). Halaman ini hanya dapat dibuat, diedit, atau dihapus oleh Superadmin. Panitia Lomba hanya dapat melihatnya sebagai info read-only.
 
 ## Data Dan Berkas Tim
 
