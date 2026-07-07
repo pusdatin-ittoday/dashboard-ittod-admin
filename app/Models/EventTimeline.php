@@ -23,10 +23,12 @@ class EventTimeline extends Model
         'event_id',
         'title',
         'date',
+        'end_date',
     ];
 
     protected $casts = [
         'date' => 'datetime',
+        'end_date' => 'datetime',
     ];
 
     /**

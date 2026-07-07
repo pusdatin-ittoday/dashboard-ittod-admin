@@ -69,6 +69,10 @@ Route::middleware(['auth'])->group(function () {
         Route::patch('/competitions/{event}/status', [AdminDashboardController::class, 'toggleCompetitionStatus'])->name('competitions.status');
         Route::delete('/competitions/{event}', [AdminDashboardController::class, 'destroyCompetition'])->name('competitions.destroy');
         Route::get('/timelines', [AdminDashboardController::class, 'timelines'])->name('timelines.index');
+        Route::get('/timelines/competition-agenda', [AdminDashboardController::class, 'globalCompetitionAgenda'])->name('timelines.competition-agenda');
+        Route::post('/timelines/competition-agenda', [AdminDashboardController::class, 'storeGlobalTimeline'])->name('timelines.store-global');
+        Route::patch('/timelines/competition-agenda/{timeline}', [AdminDashboardController::class, 'updateGlobalTimeline'])->name('timelines.update-global');
+        Route::delete('/timelines/competition-agenda/{timeline}', [AdminDashboardController::class, 'destroyGlobalTimeline'])->name('timelines.destroy-global');
         Route::get('/timelines/{event}/agenda', [AdminDashboardController::class, 'timelineAgenda'])->name('timelines.agenda');
         Route::post('/timelines', [AdminDashboardController::class, 'storeTimeline'])->name('timelines.store');
         Route::patch('/timelines/{timeline}', [AdminDashboardController::class, 'updateTimeline'])->name('timelines.update');

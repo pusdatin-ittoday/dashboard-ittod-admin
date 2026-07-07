@@ -12,6 +12,7 @@ use App\Models\CompetitionSubmission;
 use App\Models\EventTimeline;
 use App\Models\EventAnnouncement;
 use App\Models\EventParticipant;
+use App\Models\CompetitionTimeline;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
@@ -324,25 +325,36 @@ class DatabaseSeeder extends Seeder
         // OTHERS
         // ==========================================
 
-        EventTimeline::create([
+        \App\Models\CompetitionTimeline::create([
             'id' => (string) Str::uuid(),
-            'event_id' => 'HackToday',
-            'title' => 'Open Registration Hack Today',
-            'date' => now()->addDays(7),
+            'title' => 'Pendaftaran Early Bird (Global)',
+            'start_date' => now()->addDays(1),
+            'end_date' => now()->addDays(7),
+            'description' => 'Masa pendaftaran dengan harga khusus untuk seluruh kompetisi.',
         ]);
 
         EventTimeline::create([
             'id' => (string) Str::uuid(),
             'event_id' => 'HackToday',
-            'title' => 'Close Registration Hack Today',
-            'date' => now()->addDays(14),
+            'title' => 'Penyisihan Hack Today',
+            'date' => now()->addDays(15),
+            'end_date' => now()->addDays(16),
+        ]);
+
+        EventTimeline::create([
+            'id' => (string) Str::uuid(),
+            'event_id' => 'HackToday',
+            'title' => 'Final Hack Today',
+            'date' => now()->addDays(25),
+            'end_date' => now()->addDays(26),
         ]);
 
         EventTimeline::create([
             'id' => (string) Str::uuid(),
             'event_id' => 'UXToday',
-            'title' => 'Open Registration UX Today',
-            'date' => now()->addDays(7),
+            'title' => 'Pengumpulan Karya UX Today',
+            'date' => now()->addDays(15),
+            'end_date' => now()->addDays(22),
         ]);
 
         EventAnnouncement::create([

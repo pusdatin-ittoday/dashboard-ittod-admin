@@ -40,7 +40,7 @@
             <div class="flex flex-wrap items-center gap-3 mb-6 pb-6 border-b border-gray-200">
                 <a href="{{ route('admin.timelines.agenda', $singleEvent) }}" class="inline-flex items-center justify-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50 transition-all duration-150 shadow-sm">
                     <svg class="mr-2 h-4 w-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
-                    Kelola Agenda
+                    {{ $singleEvent->type === 'competition' ? 'Kelola Agenda Spesifik' : 'Kelola Agenda' }}
                 </a>
                 
                 @if ($singleEvent->requires_submission)
@@ -225,6 +225,35 @@
             </div>
         @endif
 
+        @if ($canManageTimelines)
+            <div class="mb-8 rounded-lg border border-blue-200 bg-blue-50 p-6 shadow-sm">
+                <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                    <div>
+                        <h2 class="text-xl font-bold text-blue-900">Agenda Kompetisi (Global)</h2>
+                        <p class="mt-1 text-sm text-blue-700">Kelola satu lini masa (timeline) yang berlaku serentak untuk semua kategori kompetisi IT Today.</p>
+                    </div>
+                    @if (Auth::user()->role === 'superadmin')
+                    <div class="shrink-0">
+                        <a href="{{ route('admin.timelines.competition-agenda') }}" class="inline-flex items-center justify-center rounded-md bg-blue-700 px-5 py-2.5 text-sm font-bold text-white shadow-sm transition hover:bg-blue-800">
+                            <svg class="mr-2 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                            Kelola Agenda Kompetisi
+                        </a>
+                    </div>
+                    @endif
+                </div>
+                <div class="mt-4 flex gap-3 flex-wrap">
+                    <span class="inline-flex items-center rounded-full bg-blue-100 px-3 py-1 text-xs font-bold text-blue-800">
+                        Total: {{ $competitionTimelines->count() }} Agenda
+                    </span>
+                    @if($competitionTimelines->isNotEmpty())
+                        <span class="inline-flex items-center rounded-full bg-blue-100 px-3 py-1 text-xs font-semibold text-blue-800">
+                            Agenda Terdekat: {{ \Carbon\Carbon::parse($competitionTimelines->first()->date)->translatedFormat('d F Y, H:i') }}
+                        </span>
+                    @endif
+                </div>
+            </div>
+        @endif
+
         <section x-data="{ search: '' }" class="overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm">
             <div class="flex flex-col gap-3 border-b border-gray-200 px-6 py-5 sm:flex-row sm:items-center sm:justify-between">
                 <div>
@@ -321,9 +350,9 @@
                                     </span>
                                 </td>
                                 <td class="px-6 py-4">
-                                    <a href="{{ route('admin.timelines.agenda', $event) }}" class="inline-flex items-center justify-center rounded-md border border-gray-300 px-3 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50">
-                                        Kelola Agenda
-                                    </a>
+                                        <a href="{{ route('admin.timelines.agenda', $event) }}" class="inline-flex items-center justify-center rounded-md border border-gray-300 px-3 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50">
+                                            {{ $event->type === 'competition' ? 'Kelola Agenda Spesifik' : 'Kelola Agenda' }}
+                                        </a>
                                 </td>
                                 @if ($canManageCompetitions || $canManageTimelines)
                                     <td class="px-6 py-4 text-right">

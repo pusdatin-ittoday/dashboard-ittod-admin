@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Event;
 use App\Models\EventAnnouncement;
+use App\Models\CompetitionTimeline;
 use App\Models\EventTimeline;
 use App\Models\Media;
 use App\Models\Team;
@@ -368,11 +369,74 @@ class AdminDashboardController extends Controller
             $events->load('submissions.team');
         }
 
+        $competitionTimelines = CompetitionTimeline::orderBy('start_date')->get();
+
         return view('admin.timelines.index', [
             'events' => $events,
             'canManageCompetitions' => $canManageCompetitions,
             'canManageTimelines' => in_array($user->role, ['superadmin', 'panitia_lomba', 'admin_biasa'], true),
+            'competitionTimelines' => $competitionTimelines,
         ]);
+    }
+
+    public function globalCompetitionAgenda(): View
+    {
+        $user = auth()->user();
+        abort_unless($user?->role === 'superadmin', 403);
+
+        $competitionTimelines = CompetitionTimeline::orderBy('start_date')->get();
+
+        return view('admin.timelines.competition-agenda', [
+            'competitionTimelines' => $competitionTimelines,
+            'canManageTimelines' => true,
+        ]);
+    }
+
+    public function storeGlobalTimeline(Request $request): RedirectResponse
+    {
+        abort_unless(auth()->user()?->role === 'superadmin', 403);
+
+        $validated = $request->validate([
+            'title' => ['required', 'string', 'max:191'],
+            'start_date' => ['required', 'date'],
+            'end_date' => ['required', 'date', 'after_or_equal:start_date'],
+            'description' => ['nullable', 'string'],
+        ]);
+
+        CompetitionTimeline::create([
+            'id' => (string) Str::uuid(),
+            'title' => $validated['title'],
+            'start_date' => $validated['start_date'],
+            'end_date' => $validated['end_date'],
+            'description' => $validated['description'] ?? null,
+        ]);
+
+        return back()->with('status', 'Agenda kompetisi global berhasil ditambahkan.');
+    }
+
+    public function updateGlobalTimeline(Request $request, CompetitionTimeline $timeline): RedirectResponse
+    {
+        abort_unless(auth()->user()?->role === 'superadmin', 403);
+
+        $validated = $request->validate([
+            'title' => ['required', 'string', 'max:191'],
+            'start_date' => ['required', 'date'],
+            'end_date' => ['required', 'date', 'after_or_equal:start_date'],
+            'description' => ['nullable', 'string'],
+        ]);
+
+        $timeline->update($validated);
+
+        return back()->with('status', 'Agenda kompetisi global berhasil diperbarui.');
+    }
+
+    public function destroyGlobalTimeline(CompetitionTimeline $timeline): RedirectResponse
+    {
+        abort_unless(auth()->user()?->role === 'superadmin', 403);
+
+        $timeline->delete();
+
+        return back()->with('status', 'Agenda kompetisi global berhasil dihapus.');
     }
 
     public function timelineAgenda(Event $event): View
@@ -393,10 +457,15 @@ class AdminDashboardController extends Controller
             $eventsQuery->where('type', 'non_competition');
         }
 
+        $globalTimelines = $event->type === 'competition' 
+            ? CompetitionTimeline::orderBy('start_date')->get() 
+            : collect();
+
         return view('admin.timelines.agenda', [
             'event' => $event->load(['timelines' => fn ($query) => $query->orderBy('date')])
                 ->loadCount(['teams', 'participants']),
             'events' => $eventsQuery->get(),
+            'globalTimelines' => $globalTimelines,
             'canManageTimelines' => in_array($user?->role, ['superadmin', 'panitia_lomba', 'admin_biasa'], true),
         ]);
     }
@@ -720,6 +789,7 @@ class AdminDashboardController extends Controller
             ],
             'title' => ['required', 'string', 'max:191'],
             'date' => ['required', 'date'],
+            'end_date' => ['nullable', 'date', 'after_or_equal:date'],
         ]);
     }
 

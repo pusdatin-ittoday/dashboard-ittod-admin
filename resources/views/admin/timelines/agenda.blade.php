@@ -44,6 +44,38 @@
             <p class="text-xs font-semibold uppercase tracking-wide text-gray-500">{{ $event->timelines->count() }} records detected</p>
         </div>
 
+        @if(isset($globalTimelines) && $globalTimelines->isNotEmpty())
+        <div class="border-b border-gray-200 bg-blue-50/50 px-6 py-4">
+            <h3 class="mb-3 text-sm font-bold text-blue-900 flex items-center">
+                <svg class="mr-2 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                Agenda Global Kompetisi (Read-Only)
+            </h3>
+            <div class="overflow-x-auto rounded border border-blue-100 bg-white">
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th class="px-4 py-2 text-left text-xs font-bold uppercase text-gray-600">Agenda</th>
+                            <th class="px-4 py-2 text-left text-xs font-bold uppercase text-gray-600">Waktu Mulai</th>
+                            <th class="px-4 py-2 text-left text-xs font-bold uppercase text-gray-600">Waktu Selesai</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-200 bg-white">
+                        @foreach($globalTimelines as $globalAgenda)
+                            <tr>
+                                <td class="px-4 py-3">
+                                    <p class="text-sm font-semibold text-gray-950">{{ $globalAgenda->title }}</p>
+                                </td>
+                                <td class="px-4 py-3 text-sm font-medium text-gray-700">{{ \Carbon\Carbon::parse($globalAgenda->start_date)->translatedFormat('d M Y, H:i') }}</td>
+                                <td class="px-4 py-3 text-sm font-medium text-gray-700">{{ \Carbon\Carbon::parse($globalAgenda->end_date)->translatedFormat('d M Y, H:i') }}</td>
+                            </tr>
+                        @endforeach
+                    </tbody>
+                </table>
+            </div>
+            <p class="mt-2 text-xs italic text-gray-500">*Agenda di atas berlaku untuk semua kompetisi dan hanya dapat diubah oleh Superadmin.</p>
+        </div>
+        @endif
+
         <div class="border-b border-gray-200 px-6 py-4">
             <label class="relative block">
                 <span class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3 text-gray-400">
@@ -65,7 +97,12 @@
                 <thead class="bg-gray-50">
                     <tr>
                         <th class="px-6 py-3 text-left text-xs font-bold uppercase text-gray-600">Agenda</th>
-                        <th class="px-6 py-3 text-left text-xs font-bold uppercase text-gray-600">Tanggal & Waktu</th>
+                        @if ($event->type === 'competition')
+                            <th class="px-6 py-3 text-left text-xs font-bold uppercase text-gray-600">Waktu Mulai</th>
+                            <th class="px-6 py-3 text-left text-xs font-bold uppercase text-gray-600">Waktu Selesai</th>
+                        @else
+                            <th class="px-6 py-3 text-left text-xs font-bold uppercase text-gray-600">Tanggal & Waktu</th>
+                        @endif
                         @if ($canManageTimelines)
                             <th class="px-6 py-3 text-right text-xs font-bold uppercase text-gray-600">Aksi</th>
                         @endif
@@ -75,14 +112,19 @@
                     @forelse ($event->timelines as $agenda)
                         <tr
                             x-show="$el.dataset.search.includes(search.toLowerCase())"
-                            data-search="{{ Str::lower($agenda->title . ' ' . ($agenda->date?->format('d M Y H:i') ?? '')) }}"
+                            data-search="{{ Str::lower($agenda->title . ' ' . ($agenda->date?->format('d M Y H:i') ?? '') . ($event->type === 'competition' ? ' ' . ($agenda->end_date?->format('d M Y H:i') ?? '') : '')) }}"
                             class="hover:bg-gray-50"
                         >
                             <td class="px-6 py-4">
                                 <p class="font-semibold text-gray-950">{{ $agenda->title }}</p>
                                 <p class="mt-1 text-xs text-gray-500">ID: {{ $agenda->id }}</p>
                             </td>
-                            <td class="px-6 py-4 text-sm font-semibold text-gray-700">{{ $agenda->date?->format('d M Y H:i') }}</td>
+                            @if ($event->type === 'competition')
+                                <td class="px-6 py-4 text-sm font-semibold text-gray-700">{{ $agenda->date?->format('d M Y H:i') }}</td>
+                                <td class="px-6 py-4 text-sm font-semibold text-gray-700">{{ $agenda->end_date?->format('d M Y H:i') }}</td>
+                            @else
+                                <td class="px-6 py-4 text-sm font-semibold text-gray-700">{{ $agenda->date?->format('d M Y H:i') }}</td>
+                            @endif
                             @if ($canManageTimelines)
                                 <td class="px-6 py-4 text-right">
                                     <div class="flex items-center justify-end gap-2">
@@ -107,7 +149,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="{{ $canManageTimelines ? 3 : 2 }}" class="px-6 py-10 text-center text-sm text-gray-600">Belum ada agenda untuk kompetisi ini.</td>
+                            <td colspan="{{ $canManageTimelines ? 3 : 2 }}" class="px-6 py-10 text-center text-sm text-gray-600">Belum ada agenda spesifik/tambahan untuk kompetisi ini.</td>
                         </tr>
                     @endforelse
                 </tbody>
@@ -122,7 +164,7 @@
                 <input type="hidden" name="event_id" value="{{ $event->id }}">
 
                 <div class="border-b border-gray-200 pb-4">
-                    <h3 class="text-lg font-semibold text-gray-950">Tambah Agenda</h3>
+                    <h3 class="text-lg font-semibold text-gray-950">Tambah Agenda Spesifik</h3>
                     <p class="mt-1 text-sm text-gray-600">{{ $event->title }}</p>
                 </div>
 
@@ -138,16 +180,39 @@
                         >
                     </label>
 
-                    <label class="block">
-                        <span class="text-sm font-semibold text-gray-700">Tanggal & Waktu</span>
-                        <input
-                            type="datetime-local"
-                            name="date"
-                            value="{{ old('date') }}"
-                            required
-                            class="mt-1 w-full rounded-md border-gray-300 text-sm shadow-sm focus:border-emerald-500 focus:ring-emerald-500"
-                        >
-                    </label>
+                    @if ($event->type === 'competition')
+                        <label class="block">
+                            <span class="text-sm font-semibold text-gray-700">Waktu Mulai</span>
+                            <input
+                                type="datetime-local"
+                                name="date"
+                                value="{{ old('date') }}"
+                                required
+                                class="mt-1 w-full rounded-md border-gray-300 text-sm shadow-sm focus:border-emerald-500 focus:ring-emerald-500"
+                            >
+                        </label>
+                        <label class="block">
+                            <span class="text-sm font-semibold text-gray-700">Waktu Selesai</span>
+                            <input
+                                type="datetime-local"
+                                name="end_date"
+                                value="{{ old('end_date') }}"
+                                required
+                                class="mt-1 w-full rounded-md border-gray-300 text-sm shadow-sm focus:border-emerald-500 focus:ring-emerald-500"
+                            >
+                        </label>
+                    @else
+                        <label class="block">
+                            <span class="text-sm font-semibold text-gray-700">Tanggal & Waktu</span>
+                            <input
+                                type="datetime-local"
+                                name="date"
+                                value="{{ old('date') }}"
+                                required
+                                class="mt-1 w-full rounded-md border-gray-300 text-sm shadow-sm focus:border-emerald-500 focus:ring-emerald-500"
+                            >
+                        </label>
+                    @endif
                 </div>
 
                 <div class="mt-6 flex justify-end gap-3">
@@ -165,7 +230,7 @@
                     <input type="hidden" name="event_id" value="{{ $event->id }}">
 
                     <div class="border-b border-gray-200 pb-4">
-                        <h3 class="text-lg font-semibold text-gray-950">Edit Agenda</h3>
+                        <h3 class="text-lg font-semibold text-gray-950">Edit Agenda Spesifik</h3>
                         <p class="mt-1 text-sm text-gray-600">{{ $event->title }}</p>
                     </div>
 
@@ -180,16 +245,39 @@
                             >
                         </label>
 
-                        <label class="block">
-                            <span class="text-sm font-semibold text-gray-700">Tanggal & Waktu</span>
-                            <input
-                                type="datetime-local"
-                                name="date"
-                                value="{{ old('date', $agenda->date?->format('Y-m-d\TH:i')) }}"
-                                required
-                                class="mt-1 w-full rounded-md border-gray-300 text-sm shadow-sm focus:border-emerald-500 focus:ring-emerald-500"
-                            >
-                        </label>
+                        @if ($event->type === 'competition')
+                            <label class="block">
+                                <span class="text-sm font-semibold text-gray-700">Waktu Mulai</span>
+                                <input
+                                    type="datetime-local"
+                                    name="date"
+                                    value="{{ old('date', $agenda->date?->format('Y-m-d\TH:i')) }}"
+                                    required
+                                    class="mt-1 w-full rounded-md border-gray-300 text-sm shadow-sm focus:border-emerald-500 focus:ring-emerald-500"
+                                >
+                            </label>
+                            <label class="block">
+                                <span class="text-sm font-semibold text-gray-700">Waktu Selesai</span>
+                                <input
+                                    type="datetime-local"
+                                    name="end_date"
+                                    value="{{ old('end_date', $agenda->end_date?->format('Y-m-d\TH:i')) }}"
+                                    required
+                                    class="mt-1 w-full rounded-md border-gray-300 text-sm shadow-sm focus:border-emerald-500 focus:ring-emerald-500"
+                                >
+                            </label>
+                        @else
+                            <label class="block">
+                                <span class="text-sm font-semibold text-gray-700">Tanggal & Waktu</span>
+                                <input
+                                    type="datetime-local"
+                                    name="date"
+                                    value="{{ old('date', $agenda->date?->format('Y-m-d\TH:i')) }}"
+                                    required
+                                    class="mt-1 w-full rounded-md border-gray-300 text-sm shadow-sm focus:border-emerald-500 focus:ring-emerald-500"
+                                >
+                            </label>
+                        @endif
                     </div>
 
                     <div class="mt-6 flex justify-end gap-3">

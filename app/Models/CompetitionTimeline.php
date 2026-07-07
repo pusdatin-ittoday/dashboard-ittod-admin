@@ -6,8 +6,16 @@ use Illuminate\Database\Eloquent\Model;
 
 class CompetitionTimeline extends Model
 {
-    // Ubah dari competition_timeline menjadi event_timeline sesuai database
-    protected $table = 'event_timeline';
+    protected $table = 'competition_timeline';
 
-    protected $fillable = ['title', 'date', 'description'];
+    protected $fillable = ['id', 'title', 'start_date', 'end_date', 'description'];
+    
+    // Non-incrementing string ID since it uses UUID
+    public $incrementing = false;
+    protected $keyType = 'string';
+
+    protected $casts = [
+        'start_date' => 'datetime',
+        'end_date' => 'datetime',
+    ];
 }
