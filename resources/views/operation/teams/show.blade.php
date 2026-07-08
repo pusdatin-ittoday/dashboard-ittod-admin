@@ -197,7 +197,7 @@
                                         if ($member->kartu) {
                                             $ktmUrl = $member->kartu->url;
                                         } elseif ($participant->ktm_key) {
-                                            $ktmUrl = rtrim(env('API_URL', 'http://localhost:3000'), '/') . '/api/images/' . $participant->ktm_key;
+                                            $ktmUrl = rtrim(config('services.api_url'), '/') . '/api/images/' . $participant->ktm_key;
                                         }
                                     @endphp
                                     @if($ktmUrl)
@@ -220,7 +220,7 @@
                                     <div class="mt-8 border-t border-gray-200 pt-6">
                                         <p class="mb-4 text-xs font-semibold uppercase tracking-wide text-gray-500">Twibbon</p>
                                         @php
-                                            $twibbonUrl = $participant->twibbon_key ? rtrim(env('API_URL', 'http://localhost:3000'), '/') . '/api/images/' . $participant->twibbon_key : null;
+                                            $twibbonUrl = $participant->twibbon_key ? rtrim(config('services.api_url'), '/') . '/api/images/' . $participant->twibbon_key : null;
                                         @endphp
                                         @if($twibbonUrl)
                                             <img src="{{ $twibbonUrl }}" alt="Twibbon {{ $participant->full_name }}" class="max-h-48 rounded-md border border-gray-200 bg-white object-contain p-1">
