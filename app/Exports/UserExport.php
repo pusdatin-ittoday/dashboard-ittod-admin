@@ -10,6 +10,7 @@ class UserExport
         'Nama Lengkap',
         'Email',
         'No. HP',
+        'ID Discord',
         'Pendidikan',
         'Nama Sekolah / Instansi',
         'Status Registrasi',
@@ -23,7 +24,7 @@ class UserExport
      */
     public static function write($handle, ?array $eventIds = null): void
     {
-        fputcsv($handle, self::$headers);
+        fputcsv(handle: $handle, fields: self::$headers);
 
         $query = DB::table('user_identity')
             ->join('user', 'user_identity.id', '=', 'user.id')
@@ -33,6 +34,7 @@ class UserExport
                 'user.full_name',
                 'user_identity.email',
                 'user.phone_number',
+                'user.id_discord',
                 'user.pendidikan',
                 'user.nama_sekolah',
                 'user.is_registration_complete',
@@ -64,6 +66,7 @@ class UserExport
                     $row->full_name,
                     $row->email,
                     $row->phone_number ?? '-',
+                    $row->id_discord ?? '-',
                     $row->pendidikan ?? '-',
                     $row->nama_sekolah ?? '-',
                     $row->is_registration_complete ? 'Lengkap' : 'Belum Lengkap',
