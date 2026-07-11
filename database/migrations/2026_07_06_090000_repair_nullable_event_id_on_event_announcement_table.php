@@ -16,6 +16,13 @@ return new class extends Migration
             return;
         }
 
+        if (DB::getDriverName() === 'sqlite') {
+            Schema::table('event_announcement', function (\Illuminate\Database\Schema\Blueprint $table) {
+                $table->string('event_id')->nullable()->change();
+            });
+            return;
+        }
+
         DB::statement(
             'ALTER TABLE `event_announcement` MODIFY `event_id` VARCHAR(191) NULL'
         );
@@ -32,6 +39,13 @@ return new class extends Migration
             ->exists();
 
         if (! $hasGeneralAnnouncements) {
+            if (DB::getDriverName() === 'sqlite') {
+                Schema::table('event_announcement', function (\Illuminate\Database\Schema\Blueprint $table) {
+                    $table->string('event_id')->nullable(false)->change();
+                });
+                return;
+            }
+
             DB::statement(
                 'ALTER TABLE `event_announcement` MODIFY `event_id` VARCHAR(191) NOT NULL'
             );
