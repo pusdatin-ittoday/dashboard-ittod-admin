@@ -113,7 +113,7 @@
                     Export CSV
                 </button>
 
-                @if(in_array(auth()->user()->role, ['superadmin', 'admin_biasa']))
+                @if(in_array(auth()->user()->role, ['superadmin', 'admin_biasa', 'panitia_lomba']))
                 <button 
                     @click="exportToSheets()" 
                     :disabled="isExporting"

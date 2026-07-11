@@ -56,9 +56,26 @@ class GoogleSheetService
      */
     public function exportUsers(?string $eventId = null): string
     {
-        $spreadsheetId = env('GOOGLE_SHEETS_SPREADSHEET_ID');
-        $settingKey = 'google_sheet_users';
+        $presetSpreadsheets = [
+            'CodeToday' => '1pX9k0PQF6z94aAMNFgM9FxsY-bLXF9VD-RCgA7K301M',
+            'ITBrains'  => '1pX9k0PQF6z94aAMNFgM9FxsY-bLXF9VD-RCgA7K301M',
+            'GameToday' => '1rYYSzL9tPzFVHKv4df9Wv0rGYLxOHTSO1LTT1GgrpZw',
+            'HackToday' => '1aOLg-fSy6NNZ02OuXR3_mIK_m7a5e4Dl2MekM1yvLtQ',
+            'MineToday' => '1OtaGgBNtQHoB5E71BNpuwcVE9ZL1jRUeQVPBxConcww',
+            'UXToday'   => '14uVu1C0I28M1wYTDfeGtPaKOonPg5PzfAMUf60gYhzU',
+        ];
+
+        $spreadsheetId = null;
+        if ($eventId && isset($presetSpreadsheets[$eventId])) {
+            $spreadsheetId = $presetSpreadsheets[$eventId];
+        }
+
+        $settingKey = $eventId ? 'google_sheet_users_' . $eventId : 'google_sheet_users_global';
         $isNewSpreadsheet = false;
+
+        if (!$spreadsheetId) {
+            $spreadsheetId = !$eventId ? env('GOOGLE_SHEETS_SPREADSHEET_ID') : null;
+        }
 
         if (!$spreadsheetId) {
             $spreadsheetId = Setting::get($settingKey);
@@ -302,8 +319,27 @@ class GoogleSheetService
      */
     public function exportRecap(string $type, ?string $eventId = null): string
     {
-        $spreadsheetId = env('GOOGLE_SHEETS_SPREADSHEET_ID');
-        $settingKey = 'google_sheet_users';
+        $presetSpreadsheets = [
+            'CodeToday' => '1pX9k0PQF6z94aAMNFgM9FxsY-bLXF9VD-RCgA7K301M',
+            'ITBrains'  => '1pX9k0PQF6z94aAMNFgM9FxsY-bLXF9VD-RCgA7K301M',
+            'GameToday' => '1rYYSzL9tPzFVHKv4df9Wv0rGYLxOHTSO1LTT1GgrpZw',
+            'HackToday' => '1aOLg-fSy6NNZ02OuXR3_mIK_m7a5e4Dl2MekM1yvLtQ',
+            'MineToday' => '1OtaGgBNtQHoB5E71BNpuwcVE9ZL1jRUeQVPBxConcww',
+            'UXToday'   => '14uVu1C0I28M1wYTDfeGtPaKOonPg5PzfAMUf60gYhzU',
+        ];
+
+        $spreadsheetId = null;
+        if ($eventId && isset($presetSpreadsheets[$eventId])) {
+            $spreadsheetId = $presetSpreadsheets[$eventId];
+        }
+
+        $settingKey = $eventId 
+            ? 'google_sheet_recap_' . $type . '_' . $eventId 
+            : 'google_sheet_recap_' . $type . '_global';
+
+        if (!$spreadsheetId) {
+            $spreadsheetId = !$eventId ? env('GOOGLE_SHEETS_SPREADSHEET_ID') : null;
+        }
 
         if (!$spreadsheetId) {
             $spreadsheetId = Setting::get($settingKey);
