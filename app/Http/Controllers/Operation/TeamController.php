@@ -10,17 +10,41 @@ use Illuminate\Http\Request;
 class TeamController extends Controller
 {
     // Menampilkan daftar semua tim (UC-04)
-    public function index() {
+    public function index(Request $request) {
         abort_unless(in_array(auth()->user()->role, ['superadmin', 'panitia_lomba'], true), 403);
         
         $query = Team::with(['event', 'members.user']);
-        
-        if (auth()->user()->role === 'panitia_lomba') {
+        $filterEventId = $request->input('event_id');
+
+        if ($filterEventId) {
+            if ($filterEventId === 'all_teams') {
+                $query->whereHas('event', function($q) {
+                    $q->where('type', 'competition');
+                });
+            } elseif ($filterEventId === 'all_participants') {
+                $query->whereHas('event', function($q) {
+                    $q->where('type', 'seminar');
+                });
+            } else {
+                if (auth()->user()->role === 'panitia_lomba') {
+                    abort_unless(auth()->user()->events->contains('id', $filterEventId), 403);
+                }
+                $query->where('competition_id', $filterEventId);
+            }
+        } elseif (auth()->user()->role === 'panitia_lomba') {
             $query->whereIn('competition_id', auth()->user()->events->pluck('id'));
         }
         
         $teams = $query->get();
-        return view('operation.teams.index', compact('teams'));
+
+        // Get events list for dropdown filter
+        if (auth()->user()->role === 'panitia_lomba') {
+            $events = auth()->user()->events()->orderBy('title')->get();
+        } else {
+            $events = \App\Models\Event::orderBy('title')->get();
+        }
+        
+        return view('operation.teams.index', compact('teams', 'events', 'filterEventId'));
     }
 
     // Melihat detail berkas identitas (REQ-08)

@@ -12,60 +12,123 @@
         </div>
     @endif
 
-    <div class="mb-6 rounded-lg border border-gray-200 bg-white p-4 shadow-sm">
-        <p class="text-xs font-bold uppercase tracking-wider text-gray-500 mb-3">Menu Ekspor Laporan (CSV)</p>
-        
-        <div class="flex flex-wrap items-center gap-3">
-            @if(in_array(auth()->user()->role, ['superadmin', 'admin_biasa']))
-                <a href="{{ route('export.teams.global') }}" class="inline-flex items-center justify-center rounded-md bg-emerald-600 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-700 shadow-sm transition-all duration-150">
-                    <svg class="mr-2 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-                    </svg>
-                    Unduh Semua Tim
-                </a>
-                <a href="{{ route('export.participants.global') }}" class="inline-flex items-center justify-center rounded-md bg-indigo-600 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-700 shadow-sm transition-all duration-150">
-                    <svg class="mr-2 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-                    </svg>
-                    Unduh Semua Peserta Seminar
-                </a>
+    <div x-data="{
+        search: '',
+        isExporting: false,
+        eventTypes: {
+            @foreach($events as $e)
+                '{{ $e->id }}': '{{ $e->type }}',
+            @endforeach
+        },
+        exportCsv() {
+            const filter = '{{ $filterEventId }}' || 'all_teams';
+            if (filter === 'all_teams') {
+                window.location.href = '{{ route('export.teams.global') }}';
+            } else if (filter === 'all_participants') {
+                window.location.href = '{{ route('export.participants.global') }}';
+            } else {
+                const type = this.eventTypes[filter];
+                if (type === 'competition') {
+                    window.location.href = '{{ route('export.teams') }}?event_id=' + filter;
+                } else {
+                    window.location.href = '{{ route('export.participants') }}?event_id=' + filter;
+                }
+            }
+        },
+        async exportToSheets() {
+            this.isExporting = true;
+            const filter = '{{ $filterEventId }}' || 'all_teams';
+            
+            let exportType = 'event';
+            if (filter === 'all_teams') {
+                exportType = 'teams_global';
+            } else if (filter === 'all_participants') {
+                exportType = 'participants_global';
+            }
+            
+            try {
+                const response = await fetch('{{ route('export.recap.sheets') }}', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json',
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                    },
+                    body: JSON.stringify({
+                        export_type: exportType,
+                        event_id: filter
+                    })
+                });
+                const data = await response.json();
+                if (data.success) {
+                    const newWindow = window.open(data.url, '_blank');
+                    if (!newWindow || newWindow.closed || typeof newWindow.closed === 'undefined') {
+                        alert('Ekspor berhasil! Namun tab baru terblokir oleh browser. Silakan buka manual: ' + data.url);
+                    }
+                } else {
+                    alert('Gagal mengekspor: ' + (data.message || 'Terjadi kesalahan.'));
+                }
+            } catch (error) {
+                console.error(error);
+                alert('Terjadi kesalahan jaringan.');
+            } finally {
+                this.isExporting = false;
+            }
+        }
+    }">
+        <div class="mb-6 flex flex-col gap-4 border-b border-gray-200 pb-6 sm:flex-row sm:items-end sm:justify-between">
+            <div>
+                <div class="flex flex-wrap items-center gap-3">
+                    <h2 class="text-xl font-semibold text-gray-950">{{ $title }}</h2>
+                    <span class="rounded border border-emerald-200 bg-emerald-50 px-2 py-1 text-[10px] font-bold uppercase text-emerald-700">
+                        Participant Files
+                    </span>
+                </div>
+                <p class="mt-1 text-xs font-semibold uppercase tracking-wide text-gray-700">Periksa kelengkapan data dan dokumen persyaratan lomba</p>
+            </div>
 
-                <div class="h-6 w-[1px] bg-gray-300 hidden md:block"></div>
+            <div class="flex flex-col sm:flex-row items-end sm:items-center gap-3">
+                <form method="GET" action="{{ route('operation.teams.index') }}" class="flex items-center gap-2">
+                    <label class="sr-only">Filter Event</label>
+                    <select name="event_id" onchange="this.form.submit()" class="rounded-md border-gray-300 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                        @if(in_array(auth()->user()->role, ['superadmin', 'admin_biasa']))
+                            <option value="all_teams" @selected($filterEventId === 'all_teams' || !$filterEventId)>Semua Tim (Global)</option>
+                            <option value="all_participants" @selected($filterEventId === 'all_participants')>Semua Peserta Seminar (Global)</option>
+                        @else
+                            <option value="" @selected(!$filterEventId)>Pilih Event</option>
+                        @endif
+                        
+                        @foreach($events as $event)
+                            <option value="{{ $event->id }}" @selected($filterEventId === $event->id)>
+                                {{ $event->type === 'competition' ? 'Lomba' : 'Seminar' }}: {{ $event->title }}
+                            </option>
+                        @endforeach
+                    </select>
+                </form>
 
-                @foreach(\App\Models\Event::orderBy('title')->get() as $event)
-                    @if($event->type === 'competition')
-                        <a href="{{ route('export.teams', ['event_id' => $event->id]) }}" class="inline-flex items-center justify-center rounded-md border border-gray-300 bg-white px-3 py-1.5 text-xs font-semibold text-gray-700 hover:bg-gray-50 transition-all duration-150">
-                            Unduh {{ $event->participation_type === 'individual' ? 'Peserta' : 'Tim' }} {{ $event->title }}
-                        </a>
-                    @else
-                        <a href="{{ route('export.participants', ['event_id' => $event->id]) }}" class="inline-flex items-center justify-center rounded-md border border-gray-300 bg-white px-3 py-1.5 text-xs font-semibold text-gray-700 hover:bg-gray-50 transition-all duration-150">
-                            Unduh Peserta {{ $event->title }}
-                        </a>
-                    @endif
-                @endforeach
-            @elseif(auth()->user()->role === 'panitia_lomba')
-                @foreach(auth()->user()->events as $event)
-                    @if($event->type === 'competition')
-                        <a href="{{ route('export.teams', ['event_id' => $event->id]) }}" class="inline-flex items-center justify-center rounded-md bg-emerald-600 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-700 shadow-sm transition-all duration-150">
-                            <svg class="mr-2 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-                            </svg>
-                            Unduh {{ $event->participation_type === 'individual' ? 'Peserta' : 'Tim' }} {{ $event->title }}
-                        </a>
-                    @else
-                        <a href="{{ route('export.participants', ['event_id' => $event->id]) }}" class="inline-flex items-center justify-center rounded-md bg-indigo-600 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-700 shadow-sm transition-all duration-150">
-                            <svg class="mr-2 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-                            </svg>
-                            Unduh Peserta {{ $event->title }}
-                        </a>
-                    @endif
-                @endforeach
-            @endif
+                <button 
+                    @click="exportCsv()" 
+                    class="inline-flex items-center justify-center rounded-md bg-indigo-600 px-4 py-2 text-sm font-bold uppercase text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+                >
+                    Export CSV
+                </button>
+
+                <button 
+                    @click="exportToSheets()" 
+                    :disabled="isExporting"
+                    class="inline-flex items-center justify-center rounded-md bg-emerald-600 px-4 py-2 text-sm font-bold uppercase text-white shadow-sm hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                    <template x-if="isExporting">
+                        <span>Exporting...</span>
+                    </template>
+                    <template x-if="!isExporting">
+                        <span>Export Google Sheets</span>
+                    </template>
+                </button>
+            </div>
         </div>
-    </div>
 
-    <section x-data="{ search: '' }" class="overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm">
+        <section class="overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm">
         <div class="flex flex-col gap-3 border-b border-gray-200 px-6 py-5 sm:flex-row sm:items-center sm:justify-between">
             <div>
                 <div class="flex flex-wrap items-center gap-3">
@@ -181,4 +244,5 @@
             </table>
         </div>
     </section>
+</div>
 </x-admin.layout>

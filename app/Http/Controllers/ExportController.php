@@ -6,6 +6,7 @@ use App\Exports\ParticipantRecapExport;
 use App\Exports\TeamRecapExport;
 use App\Exports\UserExport;
 use App\Models\Event;
+use App\Services\GoogleSheetService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Symfony\Component\HttpFoundation\StreamedResponse;
@@ -107,6 +108,80 @@ class ExportController extends Controller
             UserExport::write($handle, $eventIds);
             fclose($handle);
         }, 200, $this->buildCsvHeaders($filename));
+    }
+
+    public function exportUsersGoogleSheets(Request $request, GoogleSheetService $service)
+    {
+        $userRole = auth()->user()->role;
+        abort_unless(in_array($userRole, ['superadmin', 'admin_biasa', 'panitia_lomba']), 403);
+
+        try {
+            $eventId = $request->input('event_id');
+            if ($userRole === 'panitia_lomba') {
+                if ($eventId) {
+                    abort_unless(auth()->user()->events->contains('id', $eventId), 403);
+                } else {
+                    $myEvents = auth()->user()->events;
+                    if ($myEvents->isEmpty()) {
+                        abort(403, 'Anda tidak memiliki event.');
+                    }
+                    $eventId = $myEvents->first()->id;
+                }
+            }
+
+            $url = $service->exportUsers($eventId);
+
+            return response()->json([
+                'success' => true,
+                'url'     => $url,
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    public function exportRecapGoogleSheets(Request $request, GoogleSheetService $service)
+    {
+        abort_unless(in_array(auth()->user()->role, ['superadmin', 'panitia_lomba', 'admin_biasa']), 403);
+
+        try {
+            $exportType = $request->input('export_type'); // 'teams_global', 'participants_global', 'event'
+            $eventId = $request->input('event_id');
+
+            if ($exportType === 'teams_global') {
+                abort_unless(in_array(auth()->user()->role, ['superadmin', 'admin_biasa']), 403);
+                $url = $service->exportRecap('teams_global');
+            } elseif ($exportType === 'participants_global') {
+                abort_unless(in_array(auth()->user()->role, ['superadmin', 'admin_biasa']), 403);
+                $url = $service->exportRecap('participants_global');
+            } elseif ($exportType === 'event') {
+                $event = Event::findOrFail($eventId);
+                if (auth()->user()->role === 'panitia_lomba') {
+                    abort_unless(auth()->user()->events->contains('id', $event->id), 403);
+                }
+
+                if ($event->type === 'competition') {
+                    $url = $service->exportRecap('teams_event', $event->id);
+                } else {
+                    $url = $service->exportRecap('participants_event', $event->id);
+                }
+            } else {
+                abort(400, 'Invalid export type.');
+            }
+
+            return response()->json([
+                'success' => true,
+                'url'     => $url,
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage(),
+            ], 500);
+        }
     }
 
     private function buildCsvHeaders(string $filename): array
