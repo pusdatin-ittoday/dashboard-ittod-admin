@@ -24,7 +24,7 @@ class UserExport
      */
     public static function write($handle, ?array $eventIds = null): void
     {
-        fputcsv(handle: $handle, fields: self::$headers);
+        fputcsv($handle, self::$headers);
 
         $query = DB::table('user_identity')
             ->join('user', 'user_identity.id', '=', 'user.id')

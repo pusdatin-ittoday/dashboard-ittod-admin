@@ -2,7 +2,40 @@
     title="Daftar Pengguna"
     subtitle="Admin dapat melihat daftar seluruh peserta umum (users)."
 >
-<div x-data="{ search: '' }">
+<div x-data="{ 
+    search: '', 
+    isExporting: false, 
+    async exportToSheets() {
+        this.isExporting = true;
+        try {
+            const response = await fetch('{{ route('export.users.sheets') }}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                },
+                body: JSON.stringify({
+                    event_id: '{{ $filterEventId }}'
+                })
+            });
+            const data = await response.json();
+            if (data.success) {
+                const newWindow = window.open(data.url, '_blank');
+                if (!newWindow || newWindow.closed || typeof newWindow.closed === 'undefined') {
+                    alert('Ekspor berhasil! Namun tab baru terblokir oleh browser. Silakan buka manual: ' + data.url);
+                }
+            } else {
+                alert('Gagal mengekspor: ' + (data.message || 'Terjadi kesalahan.'));
+            }
+        } catch (error) {
+            console.error(error);
+            alert('Terjadi kesalahan jaringan.');
+        } finally {
+            this.isExporting = false;
+        }
+    }
+}">
     <div class="mb-6 flex flex-col gap-4 border-b border-gray-200 pb-6 sm:flex-row sm:items-end sm:justify-between">
         <div>
             <div class="flex flex-wrap items-center gap-3">
@@ -27,6 +60,18 @@
             <a href="{{ route('export.users.global', ['event_id' => $filterEventId]) }}" class="inline-flex items-center justify-center rounded-md bg-indigo-600 px-4 py-2 text-sm font-bold uppercase text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
                 Export CSV
             </a>
+            <button 
+                @click="exportToSheets()" 
+                :disabled="isExporting"
+                class="inline-flex items-center justify-center rounded-md bg-emerald-600 px-4 py-2 text-sm font-bold uppercase text-white shadow-sm hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+                <template x-if="isExporting">
+                    <span>Exporting...</span>
+                </template>
+                <template x-if="!isExporting">
+                    <span>Export Google Sheets</span>
+                </template>
+            </button>
         </div>
     </div>
 
