@@ -6,7 +6,6 @@ use App\Exports\ParticipantRecapExport;
 use App\Exports\TeamRecapExport;
 use App\Exports\UserExport;
 use App\Models\Event;
-use App\Services\GoogleSheetService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Symfony\Component\HttpFoundation\StreamedResponse;
@@ -108,39 +107,6 @@ class ExportController extends Controller
             UserExport::write($handle, $eventIds);
             fclose($handle);
         }, 200, $this->buildCsvHeaders($filename));
-    }
-
-    public function exportUsersGoogleSheets(Request $request, GoogleSheetService $service)
-    {
-        $userRole = auth()->user()->role;
-        abort_unless(in_array($userRole, ['superadmin', 'admin_biasa', 'panitia_lomba']), 403);
-
-        try {
-            $eventId = $request->input('event_id');
-            if ($userRole === 'panitia_lomba') {
-                if ($eventId) {
-                    abort_unless(auth()->user()->events->contains('id', $eventId), 403);
-                } else {
-                    $myEvents = auth()->user()->events;
-                    if ($myEvents->isEmpty()) {
-                        abort(403, 'Anda tidak memiliki event.');
-                    }
-                    $eventId = $myEvents->first()->id;
-                }
-            }
-
-            $url = $service->exportUsers($eventId);
-
-            return response()->json([
-                'success' => true,
-                'url'     => $url,
-            ]);
-        } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => $e->getMessage(),
-            ], 500);
-        }
     }
 
     private function buildCsvHeaders(string $filename): array
