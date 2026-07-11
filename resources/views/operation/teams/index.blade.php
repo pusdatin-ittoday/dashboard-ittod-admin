@@ -113,6 +113,7 @@
                     Export CSV
                 </button>
 
+                @if(in_array(auth()->user()->role, ['superadmin', 'admin_biasa']))
                 <button 
                     @click="exportToSheets()" 
                     :disabled="isExporting"
@@ -125,6 +126,7 @@
                         <span>Export Google Sheets</span>
                     </template>
                 </button>
+                @endif
             </div>
         </div>
 

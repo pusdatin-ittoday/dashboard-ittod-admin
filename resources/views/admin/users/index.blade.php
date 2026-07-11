@@ -60,6 +60,7 @@
             <a href="{{ route('export.users.global', ['event_id' => $filterEventId]) }}" class="inline-flex items-center justify-center rounded-md bg-indigo-600 px-4 py-2 text-sm font-bold uppercase text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
                 Export CSV
             </a>
+            @if(in_array(auth()->user()->role, ['superadmin', 'admin_biasa']))
             <button 
                 @click="exportToSheets()" 
                 :disabled="isExporting"
@@ -72,6 +73,7 @@
                     <span>Export Google Sheets</span>
                 </template>
             </button>
+            @endif
         </div>
     </div>
 
