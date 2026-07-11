@@ -104,7 +104,25 @@ class GoogleSheetService
         // Fetch user data using same logic as UserExport
         $query = DB::table('user_identity')
             ->join('user', 'user_identity.id', '=', 'user.id')
-            ->where('user_identity.role', 'user')
+            ->where('user_identity.role', 'user');
+
+        if ($eventId !== null) {
+            $query->leftJoin('team_member', function($join) use ($eventId) {
+                $join->on('team_member.user_id', '=', 'user.id')
+                     ->whereIn('team_member.team_id', function($q) use ($eventId) {
+                         $q->select('id')->from('team')->where('competition_id', $eventId);
+                     });
+            })
+            ->leftJoin('team', 'team_member.team_id', '=', 'team.id')
+            ->leftJoin('event_participant', function($join) use ($eventId) {
+                $join->on('event_participant.user_id', '=', 'user.id')
+                     ->where('event_participant.event_id', '=', $eventId);
+            })
+            ->leftJoin('event', 'event.id', '=', DB::raw("'$eventId'"))
+            ->where(function($q) {
+                $q->whereNotNull('team_member.id')
+                  ->orWhereNotNull('event_participant.id');
+            })
             ->select([
                 'user.id as user_id',
                 'user.full_name',
@@ -116,54 +134,98 @@ class GoogleSheetService
                 'user.is_registration_complete',
                 'user_identity.is_verified',
                 'user_identity.created_at',
-            ])
-            ->orderBy('user_identity.created_at');
-
-        if ($eventId !== null) {
-            $query->where(function ($q) use ($eventId) {
-                $q->whereExists(function ($q2) use ($eventId) {
-                    $q2->select(DB::raw(1))
-                        ->from('team_member')
-                        ->join('team', 'team_member.team_id', '=', 'team.id')
-                        ->whereColumn('team_member.user_id', 'user.id')
-                        ->whereIn('team.competition_id', [$eventId]);
-                })->orWhereExists(function ($q2) use ($eventId) {
-                    $q2->select(DB::raw(1))
-                        ->from('event_participant')
-                        ->whereColumn('event_participant.user_id', 'user.id')
-                        ->whereIn('event_participant.event_id', [$eventId]);
-                });
-            });
+                'event.title as event_title',
+                'team.team_name',
+                'team_member.role as team_role',
+                'event_participant.id as participant_id'
+            ]);
+        } else {
+            $query->select([
+                'user.id as user_id',
+                'user.full_name',
+                'user_identity.email',
+                'user.phone_number',
+                'user.id_discord',
+                'user.pendidikan',
+                'user.nama_sekolah',
+                'user.is_registration_complete',
+                'user_identity.is_verified',
+                'user_identity.created_at',
+            ]);
         }
 
+        $query->orderBy('user_identity.created_at');
         $rows = $query->get();
 
-        $values = [
-            [
-                'Nama Lengkap',
-                'Email',
-                'No. HP',
-                'ID Discord',
-                'Pendidikan',
-                'Nama Sekolah / Instansi',
-                'Status Registrasi',
-                'Status Verifikasi Login',
-                'Tanggal Daftar',
-            ]
-        ];
+        if ($eventId !== null) {
+            $values = [
+                [
+                    'Nama Lengkap',
+                    'Email',
+                    'No. HP',
+                    'ID Discord',
+                    'Pendidikan',
+                    'Nama Sekolah / Instansi',
+                    'Status Registrasi',
+                    'Status Verifikasi Login',
+                    'Tanggal Daftar',
+                    'Nama Kompetisi',
+                    'Nama Tim',
+                    'Posisi',
+                ]
+            ];
+        } else {
+            $values = [
+                [
+                    'Nama Lengkap',
+                    'Email',
+                    'No. HP',
+                    'ID Discord',
+                    'Pendidikan',
+                    'Nama Sekolah / Instansi',
+                    'Status Registrasi',
+                    'Status Verifikasi Login',
+                    'Tanggal Daftar',
+                ]
+            ];
+        }
 
         foreach ($rows as $row) {
-            $values[] = [
-                $row->full_name,
-                $row->email,
-                $row->phone_number ?? '-',
-                $row->id_discord ?? '-',
-                $row->pendidikan ?? '-',
-                $row->nama_sekolah ?? '-',
-                $row->is_registration_complete ? 'Lengkap' : 'Belum Lengkap',
-                $row->is_verified ? 'Terverifikasi' : 'Belum',
-                $row->created_at,
-            ];
+            if ($eventId !== null) {
+                $posisi = '-';
+                if ($row->team_role) {
+                    $posisi = $row->team_role === 'leader' ? 'Ketua' : 'Anggota';
+                } elseif ($row->participant_id) {
+                    $posisi = 'Peserta Seminar';
+                }
+
+                $values[] = [
+                    $row->full_name,
+                    $row->email,
+                    $row->phone_number ?? '-',
+                    $row->id_discord ?? '-',
+                    $row->pendidikan ?? '-',
+                    $row->nama_sekolah ?? '-',
+                    $row->is_registration_complete ? 'Lengkap' : 'Belum Lengkap',
+                    $row->is_verified ? 'Terverifikasi' : 'Belum',
+                    $row->created_at,
+                    $row->event_title ?? '-',
+                    $row->team_name ?? '-',
+                    $posisi,
+                ];
+            } else {
+                $values[] = [
+                    $row->full_name,
+                    $row->email,
+                    $row->phone_number ?? '-',
+                    $row->id_discord ?? '-',
+                    $row->pendidikan ?? '-',
+                    $row->nama_sekolah ?? '-',
+                    $row->is_registration_complete ? 'Lengkap' : 'Belum Lengkap',
+                    $row->is_verified ? 'Terverifikasi' : 'Belum',
+                    $row->created_at,
+                ];
+            }
         }
 
         // Check if the sheet (tab) exists, or create it if it doesn't
