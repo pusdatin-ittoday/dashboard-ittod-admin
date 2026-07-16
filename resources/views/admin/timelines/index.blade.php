@@ -418,7 +418,7 @@
 
     @if ($canManageCompetitions)
     <x-modal name="create-competition" maxWidth="2xl" focusable>
-        <form x-data="{ type: '{{ Auth::user()->role === 'admin_biasa' ? 'non_competition' : old('type', 'competition') }}' }" method="POST" action="{{ route('admin.competitions.store') }}" enctype="multipart/form-data" class="p-6">
+        <form x-data="{ type: '{{ Auth::user()->role === 'admin_biasa' ? 'non_competition' : old('type', 'competition') }}', participationType: '{{ old('participation_type', '') }}' }" method="POST" action="{{ route('admin.competitions.store') }}" enctype="multipart/form-data" class="p-6">
             @csrf
             <div class="border-b border-gray-200 pb-4">
                 <h3 class="text-lg font-semibold text-gray-950">Tambah Event</h3>
@@ -446,12 +446,18 @@
                         </label>
                         <label class="block">
                             <span class="text-sm font-semibold text-gray-700">Tipe Partisipasi <span class="text-red-500">*</span></span>
-                            <select name="participation_type" required class="mt-1 w-full rounded-md border-gray-300 text-sm shadow-sm focus:border-emerald-500 focus:ring-emerald-500">
+                            <select name="participation_type" x-model="participationType" required class="mt-1 w-full rounded-md border-gray-300 text-sm shadow-sm focus:border-emerald-500 focus:ring-emerald-500">
                                 <option value="">-- Pilih Tipe --</option>
                                 <option value="individual" {{ old('participation_type') === 'individual' ? 'selected' : '' }}>Individu</option>
                                 <option value="team" {{ old('participation_type') === 'team' ? 'selected' : '' }}>Tim</option>
                             </select>
                         </label>
+                        <div x-show="participationType === 'team'" class="sm:col-span-2">
+                            <label class="block">
+                                <span class="text-sm font-semibold text-gray-700">Maksimal Anggota Tim (1 - 10) <span class="text-red-500">*</span></span>
+                                <input type="number" min="1" max="10" name="max_member" value="{{ old('max_member', 3) }}" class="mt-1 w-full rounded-md border-gray-300 text-sm shadow-sm focus:border-emerald-500 focus:ring-emerald-500">
+                            </label>
+                        </div>
                     </div>
                 </template>
                 <label class="block sm:col-span-2">
@@ -516,7 +522,7 @@
 
     @foreach ($events as $event)
         <x-modal name="edit-competition-{{ $event->id }}" maxWidth="2xl" focusable>
-            <form x-data="{ type: '{{ old('type', $event->type) }}' }" method="POST" action="{{ route('admin.competitions.update', $event) }}" enctype="multipart/form-data" class="p-6">
+            <form x-data="{ type: '{{ old('type', $event->type) }}', participationType: '{{ old('participation_type', $event->participation_type) }}' }" method="POST" action="{{ route('admin.competitions.update', $event) }}" enctype="multipart/form-data" class="p-6">
                 @csrf
                 @method('PATCH')
                 <div class="border-b border-gray-200 pb-4">
@@ -545,12 +551,18 @@
                             </label>
                             <label class="block">
                                 <span class="text-sm font-semibold text-gray-700">Tipe Partisipasi <span class="text-red-500">*</span></span>
-                                <select name="participation_type" required class="mt-1 w-full rounded-md border-gray-300 text-sm shadow-sm focus:border-emerald-500 focus:ring-emerald-500">
+                                <select name="participation_type" x-model="participationType" required class="mt-1 w-full rounded-md border-gray-300 text-sm shadow-sm focus:border-emerald-500 focus:ring-emerald-500">
                                     <option value="">-- Pilih Tipe --</option>
                                     <option value="individual" {{ old('participation_type', $event->participation_type) === 'individual' ? 'selected' : '' }}>Individu</option>
                                     <option value="team" {{ old('participation_type', $event->participation_type) === 'team' ? 'selected' : '' }}>Tim</option>
                                 </select>
                             </label>
+                            <div x-show="participationType === 'team'" class="sm:col-span-2">
+                                <label class="block">
+                                    <span class="text-sm font-semibold text-gray-700">Maksimal Anggota Tim (1 - 10) <span class="text-red-500">*</span></span>
+                                    <input type="number" min="1" max="10" name="max_member" value="{{ old('max_member', $event->max_member ?? 3) }}" class="mt-1 w-full rounded-md border-gray-300 text-sm shadow-sm focus:border-emerald-500 focus:ring-emerald-500">
+                                </label>
+                            </div>
                         </div>
                     </template>
                     <label class="flex items-center gap-3 rounded-md border border-gray-200 px-3 py-3">
@@ -646,6 +658,12 @@
                         <span class="text-sm font-semibold text-gray-700">Link Grup WhatsApp</span>
                         <input type="url" name="whatsapp_group_link" value="{{ old('whatsapp_group_link', $event->whatsapp_group_link) }}" class="mt-1 w-full rounded-md border-gray-300 text-sm shadow-sm focus:border-blue-500 focus:ring-blue-500" placeholder="https://chat.whatsapp.com/...">
                     </label>
+                    @if ($event->participation_type === 'team')
+                    <label class="block">
+                        <span class="text-sm font-semibold text-gray-700">Maksimal Anggota Tim (1 - 10) <span class="text-red-500">*</span></span>
+                        <input type="number" min="1" max="10" name="max_member" value="{{ old('max_member', $event->max_member ?? 3) }}" required class="mt-1 w-full rounded-md border-gray-300 text-sm shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                    </label>
+                    @endif
                     <label class="block">
                         <span class="text-sm font-semibold text-gray-700">Contact Person 1 (Hanya Angka) <span class="text-red-500">*</span></span>
                         <input type="text" inputmode="numeric" name="contact_person1" placeholder="Contoh: 08xxx" value="{{ old('contact_person1', $event->contact_person1) }}" required class="mt-1 w-full rounded-md border-gray-300 text-sm shadow-sm focus:border-blue-500 focus:ring-blue-500">

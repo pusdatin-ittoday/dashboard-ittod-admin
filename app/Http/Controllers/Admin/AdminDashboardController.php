@@ -558,6 +558,7 @@ class AdminDashboardController extends Controller
             'contact_person1' => ['nullable', 'string', 'max:191'],
             'contact_person2' => ['nullable', 'string', 'max:191'],
             'submission_fields' => ['nullable', 'string'],
+            'max_member' => ['sometimes', 'nullable', 'integer', 'min:1', 'max:10'],
         ]);
 
         if (array_key_exists('submission_fields', $validated)) {
@@ -643,7 +644,9 @@ class AdminDashboardController extends Controller
         
         $user = auth()->user();
         $eventsQuery = Event::orderBy('title');
-        $announcementsQuery = EventAnnouncement::with(['event', 'author'])->latest('created_at');
+        $announcementsQuery = EventAnnouncement::with(['event', 'author'])
+            ->orderBy('is_pinned', 'desc')
+            ->latest('created_at');
 
         if ($user->role === 'panitia_lomba') {
             $assignedEventIds = $user->events->pluck('id');
@@ -804,7 +807,7 @@ class AdminDashboardController extends Controller
             ]);
         }
 
-        return $request->validate([
+        $validated = $request->validate([
             'title' => ['required', 'string', 'max:191'],
             'type' => ['required', 'string', \Illuminate\Validation\Rule::in(['competition', 'non_competition'])],
             'description' => ['nullable', 'string', 'max:2000'],
@@ -820,7 +823,31 @@ class AdminDashboardController extends Controller
             'max_noncompetition_participant' => ['nullable', 'integer', 'min:1'],
             'method' => ['required', 'string', Rule::in(['online', 'offline'])],
             'logo' => [$request->isMethod('post') ? 'required_if:type,competition' : 'nullable', 'image', 'max:2048'],
+            'max_member' => ['sometimes', 'nullable', 'integer', 'min:1', 'max:10'],
         ]);
+
+        if ($validated['participation_type'] === 'individual') {
+            $validated['max_member'] = 1;
+        } elseif (empty($validated['max_member'])) {
+            $validated['max_member'] = 3;
+        }
+
+        return $validated;
+    }
+
+    public function togglePinAnnouncement(EventAnnouncement $announcement): RedirectResponse
+    {
+        abort_unless($this->isAdminStaff(), 403);
+
+        if (auth()->user()->role === 'panitia_lomba') {
+            abort_unless(auth()->user()->events->contains('id', $announcement->event_id), 403);
+        }
+
+        $announcement->update(['is_pinned' => !$announcement->is_pinned]);
+
+        return back()->with('status', $announcement->is_pinned
+            ? 'Pengumuman berhasil di-pin.'
+            : 'Pin pengumuman berhasil dilepas.');
     }
 
     private function abortUnlessCompetition(?Event $event): void

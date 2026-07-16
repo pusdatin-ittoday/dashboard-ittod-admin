@@ -22,6 +22,11 @@ class EventAnnouncement extends Model
         'author_id',
         'title',
         'description',
+        'is_pinned',
+    ];
+
+    protected $casts = [
+        'is_pinned' => 'boolean',
     ];
 
     /**

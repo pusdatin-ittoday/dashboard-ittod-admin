@@ -28,6 +28,7 @@ class Event extends Model
         'contact_person1',
         'contact_person2',
         'max_noncompetition_participant',
+        'max_member',
         'price',
         'requires_submission',
         'submission_fields',
@@ -43,6 +44,7 @@ class Event extends Model
         'requires_submission' => 'boolean',
         'price' => 'integer',
         'max_noncompetition_participant' => 'integer',
+        'max_member' => 'integer',
         'submission_fields' => 'array',
     ];
 
