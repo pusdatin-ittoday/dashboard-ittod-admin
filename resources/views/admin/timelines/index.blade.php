@@ -59,9 +59,9 @@
                     <button type="button" x-data x-on:click="$dispatch('open-modal', 'edit-panitia_lomba-description-{{ $singleEvent->id }}')" class="mt-4 text-sm font-semibold text-blue-600 hover:text-blue-800">Edit Deskripsi</button>
                 </div>
 
-                <!-- Guidebook & WhatsApp Section -->
+                <!-- Guidebook & WA/Discord Section -->
                 <div class="rounded border border-gray-200 p-4">
-                    <h3 class="text-lg font-bold text-gray-800 mb-2">Guidebook & WhatsApp</h3>
+                    <h3 class="text-lg font-bold text-gray-800 mb-2">Guidebook & WA/Discord</h3>
                     <div class="flex flex-col gap-4">
                         <div class="flex flex-wrap items-center gap-3">
                             <span class="text-sm font-semibold text-gray-700 w-24">Guidebook:</span>
@@ -70,10 +70,10 @@
                             </a>
                         </div>
                         <div class="flex flex-wrap items-center gap-3">
-                            <span class="text-sm font-semibold text-gray-700 w-24">Grup WA:</span>
+                            <span class="text-sm font-semibold text-gray-700 w-24">Grup WA/Discord:</span>
                             @if($singleEvent->whatsapp_group_link)
                                 <a href="{{ $singleEvent->whatsapp_group_link }}" target="_blank" class="inline-flex items-center justify-center rounded-md bg-green-600 px-4 py-2 text-sm font-semibold text-white hover:bg-green-700 shadow-sm transition-all duration-150">
-                                    Lihat Grup WA
+                                    Lihat Grup WA/Discord
                                 </a>
                             @else
                                 <span class="text-sm text-gray-500 italic">Belum diatur</span>
@@ -155,8 +155,8 @@
                         <input type="url" name="guide_book_url" value="{{ old('guide_book_url', $singleEvent->guide_book_url) }}" required class="mt-1 w-full rounded-md border-gray-300 text-sm shadow-sm focus:border-blue-500 focus:ring-blue-500">
                     </label>
                     <label class="block">
-                        <span class="text-sm font-semibold text-gray-700">Link Grup WhatsApp</span>
-                        <input type="url" name="whatsapp_group_link" value="{{ old('whatsapp_group_link', $singleEvent->whatsapp_group_link) }}" class="mt-1 w-full rounded-md border-gray-300 text-sm shadow-sm focus:border-blue-500 focus:ring-blue-500" placeholder="https://chat.whatsapp.com/...">
+                        <span class="text-sm font-semibold text-gray-700">Link Grup WA/Discord</span>
+                        <input type="url" name="whatsapp_group_link" value="{{ old('whatsapp_group_link', $singleEvent->whatsapp_group_link) }}" class="mt-1 w-full rounded-md border-gray-300 text-sm shadow-sm focus:border-blue-500 focus:ring-blue-500" placeholder="https://chat.whatsapp.com/... atau https://discord.gg/...">
                     </label>
                     @if(!$singleEvent->requires_submission)
                     <label class="block">
@@ -465,8 +465,8 @@
                     <textarea name="description" rows="3" class="mt-1 w-full rounded-md border-gray-300 text-sm shadow-sm focus:border-emerald-500 focus:ring-emerald-500">{{ old('description') }}</textarea>
                 </label>
                 <label class="block sm:col-span-2">
-                    <span class="text-sm font-semibold text-gray-700">Link Grup WhatsApp</span>
-                    <input type="url" name="whatsapp_group_link" value="{{ old('whatsapp_group_link') }}" class="mt-1 w-full rounded-md border-gray-300 text-sm shadow-sm focus:border-emerald-500 focus:ring-emerald-500" placeholder="https://chat.whatsapp.com/...">
+                    <span class="text-sm font-semibold text-gray-700">Link Grup WA/Discord</span>
+                    <input type="url" name="whatsapp_group_link" value="{{ old('whatsapp_group_link') }}" class="mt-1 w-full rounded-md border-gray-300 text-sm shadow-sm focus:border-emerald-500 focus:ring-emerald-500" placeholder="https://chat.whatsapp.com/... atau https://discord.gg/...">
                 </label>
                 <div x-show="type === 'competition'" x-cloak class="sm:col-span-2 grid gap-4 sm:grid-cols-2 mt-2">
                     <label class="block sm:col-span-2">
@@ -575,8 +575,8 @@
                         <textarea name="description" rows="3" class="mt-1 w-full rounded-md border-gray-300 text-sm shadow-sm focus:border-emerald-500 focus:ring-emerald-500">{{ old('description', $event->description) }}</textarea>
                     </label>
                     <label class="block sm:col-span-2">
-                        <span class="text-sm font-semibold text-gray-700">Link Grup WhatsApp</span>
-                        <input type="url" name="whatsapp_group_link" value="{{ old('whatsapp_group_link', $event->whatsapp_group_link) }}" class="mt-1 w-full rounded-md border-gray-300 text-sm shadow-sm focus:border-emerald-500 focus:ring-emerald-500" placeholder="https://chat.whatsapp.com/...">
+                        <span class="text-sm font-semibold text-gray-700">Link Grup WA/Discord</span>
+                        <input type="url" name="whatsapp_group_link" value="{{ old('whatsapp_group_link', $event->whatsapp_group_link) }}" class="mt-1 w-full rounded-md border-gray-300 text-sm shadow-sm focus:border-emerald-500 focus:ring-emerald-500" placeholder="https://chat.whatsapp.com/... atau https://discord.gg/...">
                     </label>
                     <div x-show="type === 'competition'" x-cloak class="sm:col-span-2 grid gap-4 sm:grid-cols-2 mt-2">
                         <label class="block sm:col-span-2">
@@ -655,8 +655,8 @@
                         <input type="url" name="guide_book_url" value="{{ old('guide_book_url', $event->guide_book_url) }}" required class="mt-1 w-full rounded-md border-gray-300 text-sm shadow-sm focus:border-blue-500 focus:ring-blue-500">
                     </label>
                     <label class="block">
-                        <span class="text-sm font-semibold text-gray-700">Link Grup WhatsApp</span>
-                        <input type="url" name="whatsapp_group_link" value="{{ old('whatsapp_group_link', $event->whatsapp_group_link) }}" class="mt-1 w-full rounded-md border-gray-300 text-sm shadow-sm focus:border-blue-500 focus:ring-blue-500" placeholder="https://chat.whatsapp.com/...">
+                        <span class="text-sm font-semibold text-gray-700">Link Grup WA/Discord</span>
+                        <input type="url" name="whatsapp_group_link" value="{{ old('whatsapp_group_link', $event->whatsapp_group_link) }}" class="mt-1 w-full rounded-md border-gray-300 text-sm shadow-sm focus:border-blue-500 focus:ring-blue-500" placeholder="https://chat.whatsapp.com/... atau https://discord.gg/...">
                     </label>
                     @if ($event->participation_type === 'team')
                     <label class="block">

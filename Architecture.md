@@ -184,7 +184,7 @@ Relasi:
 Field penting:
 
 - `logo_url`: URL gambar logo event (disimpan di S3/R2).
-- `whatsapp_group_link`: Tautan grup WhatsApp untuk peserta.
+- `whatsapp_group_link`: Tautan grup WA/Discord untuk peserta. Nama field tetap dipertahankan demi kompatibilitas database/API.
 - `contact_person1`: Nomor CP 1 (disimpan dalam format angka saja).
 - `contact_person2`: Nomor CP 2 (disimpan dalam format angka saja).
 - `participation_type`: Tipe pendaftaran event dengan nilai `individual` atau
@@ -407,6 +407,7 @@ Validasi role saat ini dilakukan terutama di controller:
 - `bootstrap/app.php` baru mendaftarkan middleware `data_frozen`. Role guard belum dibuat sebagai middleware reusable, sehingga pembatasan role masih tersebar di controller.
 - Pengumuman dapat ditujukan ke satu event melalui `event_id` atau ke seluruh peserta dengan `event_id = NULL`. Migrasi koreksi `2026_07_06_090000_repair_nullable_event_id_on_event_announcement_table.php` memastikan database lama benar-benar menerima pengumuman umum meskipun migrasi nullable sebelumnya pernah tercatat tanpa mengubah kolom fisik.
 - Menu Timeline menyediakan `Kelola Agenda` untuk setiap record pada tabel `event`, baik kompetisi maupun non-kompetisi. Superadmin dapat mengelola seluruh agenda, `panitia_lomba` dibatasi ke kompetisi yang ditugaskan melalui `event_staff`, dan `admin_biasa` dibatasi ke event non-kompetisi. Agenda disimpan di `event_timeline` dan langsung dikonsumsi API untuk panel agenda pada halaman detail web peserta.
+- Label admin untuk tautan komunitas peserta memakai istilah “WA/Discord” di tampilan superadmin, admin biasa, dan panitia lomba. Field teknis tetap `whatsapp_group_link` agar kompatibel dengan skema lama.
 - **Penyimpanan Berkas (Storage):** Secara default logo event dan berkas-berkas penting disimpan ke S3/Cloudflare R2 jika diatur (saat production). Namun untuk menghindari error 500 saat mode lokal, sistem mendeteksi `config('filesystems.default') === 'local'` dan akan fallback secara otomatis untuk menggunakan disk `public`.
 - Pada setup lokal, `php artisan storage:link` wajib dijalankan agar `logo_url` yang dikirim API (`/storage/events/logos/...`) dapat diakses landing page, halaman detail, dan dashboard. Tanpa symlink `public/storage`, Laravel membalas 403 meskipun file upload tersimpan dengan benar.
 - PHPUnit di environment ini belum bisa dijalankan penuh karena driver SQLite tidak tersedia.
