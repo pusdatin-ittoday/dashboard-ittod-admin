@@ -100,7 +100,7 @@
                 </div>
 
                 <!-- Contact Person Section -->
-                <div class="rounded border border-gray-200 p-4 sm:col-span-2">
+                <div class="rounded border border-gray-200 p-4 {{ $singleEvent->participation_type === 'team' ? '' : 'sm:col-span-2' }}">
                     <h3 class="text-lg font-bold text-gray-800 mb-2">Contact Person</h3>
                     <div class="flex flex-col gap-2">
                         <p class="text-sm text-gray-700"><span class="font-semibold">CP 1:</span> {{ $singleEvent->contact_person1 }}</p>
@@ -113,6 +113,20 @@
                         Edit Contact Person
                     </button>
                 </div>
+
+                @if($singleEvent->participation_type === 'team')
+                <!-- Team Settings Section -->
+                <div class="rounded border border-gray-200 p-4">
+                    <h3 class="text-lg font-bold text-gray-800 mb-2">Pengaturan Tim</h3>
+                    <div class="flex flex-col gap-2">
+                        <p class="text-sm text-gray-700"><span class="font-semibold">Maksimal Anggota:</span> {{ $singleEvent->max_member ?? 3 }} Orang</p>
+                    </div>
+
+                    <button type="button" x-data x-on:click="$dispatch('open-modal', 'edit-panitia_lomba-team-{{ $singleEvent->id }}')" class="mt-4 text-sm font-semibold text-blue-600 hover:text-blue-800">
+                        Edit Pengaturan Tim
+                    </button>
+                </div>
+                @endif
             </div>
 
 
@@ -199,6 +213,29 @@
                 </div>
             </form>
         </x-modal>
+
+        @if($singleEvent->participation_type === 'team')
+        <x-modal name="edit-panitia_lomba-team-{{ $singleEvent->id }}" maxWidth="lg" focusable>
+            <form method="POST" action="{{ route('admin.competitions.panitia_lomba-details', $singleEvent) }}" class="p-6">
+                @csrf
+                @method('PATCH')
+                <div class="border-b border-gray-200 pb-4">
+                    <h3 class="text-lg font-semibold text-gray-950">Edit Pengaturan Tim</h3>
+                    <p class="mt-1 text-sm text-gray-600">{{ $singleEvent->title }}</p>
+                </div>
+                <div class="mt-5 grid gap-4">
+                    <label class="block">
+                        <span class="text-sm font-semibold text-gray-700">Maksimal Anggota Tim (1 - 10) <span class="text-red-500">*</span></span>
+                        <input type="number" min="1" max="10" name="max_member" value="{{ old('max_member', $singleEvent->max_member ?? 3) }}" required class="mt-1 w-full rounded-md border-gray-300 text-sm shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                    </label>
+                </div>
+                <div class="mt-6 flex justify-end gap-3">
+                    <button type="button" x-on:click="$dispatch('close-modal', 'edit-panitia_lomba-team-{{ $singleEvent->id }}')" class="rounded-md border border-gray-300 px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50">Batal</button>
+                    <button type="submit" class="rounded-md bg-blue-700 px-4 py-2 text-sm font-bold text-white hover:bg-blue-800">Simpan Pengaturan</button>
+                </div>
+            </form>
+        </x-modal>
+        @endif
 
     @else
         @if ($canManageCompetitions)

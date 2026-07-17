@@ -80,7 +80,6 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/announcements', [AdminDashboardController::class, 'announcements'])->name('announcements.index');
         Route::post('/announcements', [AdminDashboardController::class, 'storeAnnouncement'])->name('announcements.store');
         Route::patch('/announcements/{announcement}', [AdminDashboardController::class, 'updateAnnouncement'])->name('announcements.update');
-        Route::patch('/announcements/{announcement}/pin', [AdminDashboardController::class, 'togglePinAnnouncement'])->name('announcements.pin');
         Route::delete('/announcements/{announcement}', [AdminDashboardController::class, 'destroyAnnouncement'])->name('announcements.destroy');
     });
 
