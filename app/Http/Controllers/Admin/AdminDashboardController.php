@@ -722,6 +722,21 @@ class AdminDashboardController extends Controller
         return back()->with('status', 'Pengumuman berhasil dihapus.');
     }
 
+    public function pinAnnouncement(EventAnnouncement $announcement): RedirectResponse
+    {
+        abort_unless($this->isAdminStaff(), 403);
+
+        if (auth()->user()->role === 'panitia_lomba') {
+            abort_unless(auth()->user()->events->contains('id', $announcement->event_id), 403);
+        }
+
+        $announcement->update([
+            'is_pinned' => !$announcement->is_pinned,
+        ]);
+
+        return back()->with('status', $announcement->is_pinned ? 'Pengumuman berhasil disematkan.' : 'Sematkan pengumuman berhasil dilepas.');
+    }
+
     private function mediaUrl(?string $path): ?string
     {
         if (! $path) {
