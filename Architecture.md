@@ -169,6 +169,10 @@ Relasi:
 - `teams()`
 - `events()`
 
+Field penting:
+
+- `last_read_announcements_at`: Waktu (timestamp) kapan terakhir kali pengguna (peserta) mengakses halaman pengumuman. Digunakan oleh *frontend* Node/React untuk memicu notifikasi visual (titik merah/red dot) jika terdapat pengumuman baru.
+
 ### `Event`
 
 Tabel: `event`
@@ -270,6 +274,7 @@ Fitur:
 - Superadmin, admin biasa, dan panitia_lomba dapat membuka halaman pengumuman.
 - Superadmin dan admin biasa dapat mengelola pengumuman untuk semua event, serta pengumuman "Umum" (Seluruh Peserta).
 - Panitia Lomba hanya dapat melihat dan mengelola pengumuman pada event yang ditugaskan (tidak bisa membuat pengumuman Umum).
+- Sistem mencatat waktu akses pengumuman peserta ke kolom `user.last_read_announcements_at` via endpoint khusus di web API, sehingga *frontend* dashboard peserta (React) dapat menampilkan titik merah indikator pengumuman baru yang usianya lebih segar dibanding waktu baca terakhir.
 
 ## Timeline Kompetisi
 
