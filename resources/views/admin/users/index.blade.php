@@ -111,6 +111,9 @@
                         <th class="px-4 py-3 text-left text-xs font-bold uppercase text-gray-600">Instansi</th>
                         <th class="px-4 py-3 text-left text-xs font-bold uppercase text-gray-600">Status Registrasi</th>
                         <th class="px-4 py-3 text-left text-xs font-bold uppercase text-gray-600">Verifikasi Login</th>
+                        @if(auth()->user()?->role === 'superadmin')
+                            <th class="px-4 py-3 text-right text-xs font-bold uppercase text-gray-600">Aksi</th>
+                        @endif
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-gray-200 bg-white">
@@ -151,10 +154,21 @@
                                     {{ $userIdentity->is_verified ? 'Terverifikasi' : 'Belum' }}
                                 </span>
                             </td>
+                            @if(auth()->user()?->role === 'superadmin')
+                                <td class="px-4 py-4 text-right">
+                                    <form method="POST" action="{{ route('admin.users.destroy', $userIdentity->id) }}" onsubmit="return confirm('Apakah Anda yakin ingin menghapus akun user ini secara permanen?');" class="inline">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="submit" class="inline-flex items-center justify-center rounded border border-rose-200 bg-rose-50 px-2.5 py-1 text-[11px] font-bold uppercase text-rose-700 hover:bg-rose-100 focus:outline-none focus:ring-2 focus:ring-rose-500 focus:ring-offset-2">
+                                            Hapus Akun
+                                        </button>
+                                    </form>
+                                </td>
+                            @endif
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="5" class="px-4 py-10 text-center text-sm text-gray-600">Belum ada akun peserta umum.</td>
+                            <td colspan="{{ auth()->user()?->role === 'superadmin' ? '6' : '5' }}" class="px-4 py-10 text-center text-sm text-gray-600">Belum ada akun peserta umum.</td>
                         </tr>
                     @endforelse
                 </tbody>

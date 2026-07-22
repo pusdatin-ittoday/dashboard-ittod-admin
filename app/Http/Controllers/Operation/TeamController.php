@@ -146,4 +146,49 @@ class TeamController extends Controller
 
         return back()->with('success', 'Status verifikasi dokumen anggota berhasil diperbarui!');
     }
+
+    // Menghapus tim secara permanen (Superadmin Only)
+    public function destroy(string $id) {
+        abort_unless(auth()->user()->role === 'superadmin', 403, 'Aksi ini hanya untuk Superadmin.');
+        
+        $team = Team::findOrFail($id);
+
+        \Illuminate\Support\Facades\DB::transaction(function () use ($team) {
+            \App\Models\CompetitionSubmission::where('team_id', $team->id)->delete();
+            TeamMember::where('team_id', $team->id)->delete();
+            $team->delete();
+        });
+
+        return redirect()
+            ->route('operation.teams.index')
+            ->with('success', 'Tim berhasil dihapus secara permanen!');
+    }
+
+    // Mengeluarkan anggota dari tim (Superadmin Only)
+    public function destroyMember(string $teamId, string $userId) {
+        abort_unless(auth()->user()->role === 'superadmin', 403, 'Aksi ini hanya untuk Superadmin.');
+        
+        $member = TeamMember::where('team_id', $teamId)
+            ->where('user_id', $userId)
+            ->firstOrFail();
+
+        $team = Team::findOrFail($teamId);
+
+        \Illuminate\Support\Facades\DB::transaction(function () use ($member, $team) {
+            $isLeader = $member->role === 'leader';
+            $member->delete();
+
+            $remainingMembers = TeamMember::where('team_id', $team->id)->get();
+
+            if ($remainingMembers->isEmpty()) {
+                \App\Models\CompetitionSubmission::where('team_id', $team->id)->delete();
+                $team->delete();
+            } elseif ($isLeader) {
+                $newLeader = $remainingMembers->first();
+                $newLeader->update(['role' => 'leader']);
+            }
+        });
+
+        return back()->with('success', 'Anggota berhasil dikeluarkan dari tim!');
+    }
 }

@@ -232,9 +232,20 @@
                                 </span>
                             </td>
                             <td class="px-6 py-4 text-right">
-                                <a href="{{ route('operation.teams.show', $team->id) }}" class="inline-flex items-center justify-center rounded border border-green-200 bg-green-50 px-2 py-1 text-[11px] font-bold uppercase text-green-700 transition hover:border-green-300 hover:bg-green-100 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2">
-                                    Periksa Berkas
-                                </a>
+                                <div class="flex items-center justify-end gap-2">
+                                    <a href="{{ route('operation.teams.show', $team->id) }}" class="inline-flex items-center justify-center rounded border border-green-200 bg-green-50 px-2 py-1 text-[11px] font-bold uppercase text-green-700 transition hover:border-green-300 hover:bg-green-100 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2">
+                                        Periksa Berkas
+                                    </a>
+                                    @if(auth()->user()->role === 'superadmin')
+                                        <form method="POST" action="{{ route('operation.teams.destroy', $team->id) }}" onsubmit="return confirm('Apakah Anda yakin ingin menghapus tim ini beserta anggotanya secara permanen?');" class="inline">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button type="submit" class="inline-flex items-center justify-center rounded border border-rose-200 bg-rose-50 px-2 py-1 text-[11px] font-bold uppercase text-rose-700 transition hover:border-rose-300 hover:bg-rose-100 focus:outline-none focus:ring-2 focus:ring-rose-500 focus:ring-offset-2">
+                                                Hapus
+                                            </button>
+                                        </form>
+                                    @endif
+                                </div>
                             </td>
                         </tr>
                     @empty

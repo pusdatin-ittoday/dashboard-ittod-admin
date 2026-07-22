@@ -869,4 +869,27 @@ class AdminDashboardController extends Controller
     {
         // No longer aborting for non-competition events so they can be managed uniformly
     }
+
+    public function destroyUser(UserIdentity $userIdentity): RedirectResponse
+    {
+        $this->ensureSuperadmin();
+
+        abort_if(auth()->id() === $userIdentity->id, 403, 'Akun yang sedang login tidak bisa dihapus.');
+
+        DB::transaction(function () use ($userIdentity) {
+            $user = $userIdentity->user;
+
+            if ($user) {
+                DB::table('team_member')->where('user_id', $user->id)->delete();
+                DB::table('event_participant')->where('user_id', $user->id)->delete();
+                DB::table('notification')->where('user_id', $user->id)->delete();
+                DB::table('event_staff')->where('user_id', $user->id)->delete();
+                $user->delete();
+            }
+
+            $userIdentity->delete();
+        });
+
+        return back()->with('status', 'Akun pengguna berhasil dihapus secara permanen.');
+    }
 }

@@ -46,9 +46,20 @@
             Kembali ke Verifikasi Berkas
         </a>
 
-        <span class="inline-flex rounded-md bg-indigo-50 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-indigo-700">
-            {{ $team->event->title ?? $team->competition_id }}
-        </span>
+        <div class="flex items-center gap-3">
+            <span class="inline-flex rounded-md bg-indigo-50 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-indigo-700">
+                {{ $team->event->title ?? $team->competition_id }}
+            </span>
+            @if(auth()->user()->role === 'superadmin')
+                <form method="POST" action="{{ route('operation.teams.destroy', $team->id) }}" onsubmit="return confirm('Apakah Anda yakin ingin menghapus tim ini beserta anggotanya secara permanen?');" class="inline">
+                    @csrf
+                    @method('DELETE')
+                    <button type="submit" class="inline-flex items-center justify-center rounded-md border border-rose-200 bg-rose-50 px-3 py-1.5 text-xs font-bold uppercase text-rose-700 hover:bg-rose-100">
+                        Hapus Tim
+                    </button>
+                </form>
+            @endif
+        </div>
     </div>
 
     <div class="grid grid-cols-1 gap-6 lg:grid-cols-3">
@@ -127,7 +138,18 @@
                                     @endif
                                     <h3 class="text-base font-semibold text-gray-950">{{ $participant->full_name }}</h3>
                                 </div>
-                                <span class="text-sm text-gray-500">{{ $participant->email }}</span>
+                                <div class="flex items-center gap-3">
+                                    <span class="text-sm text-gray-500">{{ $participant->email }}</span>
+                                    @if(auth()->user()->role === 'superadmin')
+                                        <form method="POST" action="{{ route('operation.teams.destroyMember', ['teamId' => $team->id, 'userId' => $member->user_id]) }}" onsubmit="return confirm('Apakah Anda yakin ingin mengeluarkan anggota ini dari tim?');" class="inline">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button type="submit" class="inline-flex items-center justify-center rounded border border-rose-200 bg-rose-50 px-2 py-1 text-[11px] font-bold uppercase text-rose-700 hover:bg-rose-100">
+                                                Keluarkan
+                                            </button>
+                                        </form>
+                                    @endif
+                                </div>
                             </div>
 
                             <details class="group border-b border-gray-200 bg-gray-50/60">

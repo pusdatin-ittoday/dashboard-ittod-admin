@@ -27,6 +27,8 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/teams/{id}', [TeamController::class, 'show'])->name('operation.teams.show');
         Route::post('/teams/{id}/verify', [TeamController::class, 'updateStatus'])->name('operation.teams.verify');
         Route::post('/teams/{teamId}/members/{userId}/verify', [TeamController::class, 'updateMemberStatus'])->name('operation.teams.verifyMember');
+        Route::delete('/teams/{id}', [TeamController::class, 'destroy'])->name('operation.teams.destroy');
+        Route::delete('/teams/{teamId}/members/{userId}', [TeamController::class, 'destroyMember'])->name('operation.teams.destroyMember');
 
         Route::post('/events', [TimelineController::class, 'storeEvent'])->name('operation.events.store');
 
@@ -53,6 +55,7 @@ Route::middleware(['auth'])->group(function () {
         Route::patch('/staff/{staff}', [AdminDashboardController::class, 'updateStaff'])->name('staff.update');
         Route::delete('/staff/{staff}', [AdminDashboardController::class, 'destroyStaff'])->name('staff.destroy');
         Route::get('/users', [AdminDashboardController::class, 'users'])->name('users.index');
+        Route::delete('/users/{userIdentity}', [AdminDashboardController::class, 'destroyUser'])->name('users.destroy');
         Route::get('/transactions', [AdminDashboardController::class, 'transactions'])->name('transactions.index');
         Route::patch('/transactions/{team}/accept', [AdminDashboardController::class, 'acceptTransaction'])->name('transactions.accept');
         Route::patch('/transactions/{team}/reject', [AdminDashboardController::class, 'rejectTransaction'])->name('transactions.reject');
