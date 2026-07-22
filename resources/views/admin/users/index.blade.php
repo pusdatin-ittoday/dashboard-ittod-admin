@@ -155,7 +155,7 @@
                                 </span>
                             </td>
                             @if(auth()->user()?->role === 'superadmin')
-                                <td class="px-4 py-4 text-right">
+                                <td class="px-4 py-4 text-right whitespace-nowrap">
                                     <button
                                         type="button"
                                         x-data
@@ -166,7 +166,7 @@
                                             method: 'DELETE',
                                             confirmText: 'Ya, Hapus Akun'
                                         })"
-                                        class="inline-flex items-center justify-center rounded border border-rose-200 bg-rose-50 px-2.5 py-1 text-[11px] font-bold uppercase text-rose-700 hover:bg-rose-100 focus:outline-none focus:ring-2 focus:ring-rose-500 focus:ring-offset-2"
+                                        class="inline-flex items-center justify-center whitespace-nowrap rounded border border-rose-200 bg-rose-50 px-3 py-1.5 text-xs font-bold uppercase text-rose-700 hover:bg-rose-100 focus:outline-none focus:ring-2 focus:ring-rose-500 focus:ring-offset-2"
                                     >
                                         Hapus Akun
                                     </button>

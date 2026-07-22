@@ -231,9 +231,9 @@
                                     {{ $statusLabel }}
                                 </span>
                             </td>
-                            <td class="px-6 py-4 text-right">
+                            <td class="px-6 py-4 text-right whitespace-nowrap">
                                 <div class="flex items-center justify-end gap-2">
-                                    <a href="{{ route('operation.teams.show', $team->id) }}" class="inline-flex items-center justify-center rounded border border-green-200 bg-green-50 px-2 py-1 text-[11px] font-bold uppercase text-green-700 transition hover:border-green-300 hover:bg-green-100 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2">
+                                    <a href="{{ route('operation.teams.show', $team->id) }}" class="inline-flex items-center justify-center whitespace-nowrap rounded border border-green-200 bg-green-50 px-3 py-1.5 text-xs font-bold uppercase text-green-700 transition hover:border-green-300 hover:bg-green-100 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2">
                                         Periksa Berkas
                                     </a>
                                     @if(auth()->user()->role === 'superadmin')
@@ -247,7 +247,7 @@
                                                  method: 'DELETE',
                                                  confirmText: 'Ya, Hapus Tim'
                                              })"
-                                             class="inline-flex items-center justify-center rounded border border-rose-200 bg-rose-50 px-2 py-1 text-[11px] font-bold uppercase text-rose-700 transition hover:border-rose-300 hover:bg-rose-100 focus:outline-none focus:ring-2 focus:ring-rose-500 focus:ring-offset-2"
+                                             class="inline-flex items-center justify-center whitespace-nowrap rounded border border-rose-200 bg-rose-50 px-3 py-1.5 text-xs font-bold uppercase text-rose-700 transition hover:border-rose-300 hover:bg-rose-100 focus:outline-none focus:ring-2 focus:ring-rose-500 focus:ring-offset-2"
                                          >
                                              Hapus
                                          </button>

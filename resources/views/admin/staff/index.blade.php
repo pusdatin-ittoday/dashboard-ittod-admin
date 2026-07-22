@@ -125,13 +125,13 @@
                                 </span>
                             </td>
                             @if ($canManageStaff)
-                                <td class="px-4 py-4 text-right">
+                                <td class="px-4 py-4 text-right whitespace-nowrap">
                                     <div class="flex items-center justify-end gap-2">
                                         <button
                                             type="button"
                                             x-on:click="fetchStaff(@js(route('admin.staff.show', $staff)))"
                                             x-bind:disabled="isFetchingStaff"
-                                            class="rounded-md border border-gray-300 px-3 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50"
+                                            class="inline-flex items-center justify-center whitespace-nowrap rounded-md border border-gray-300 px-3 py-1.5 text-xs font-semibold text-gray-700 hover:bg-gray-50"
                                         >
                                             <span x-text="isFetchingStaff ? 'Loading' : 'Edit'">Edit</span>
                                         </button>
@@ -146,7 +146,7 @@
                                                 method: 'DELETE',
                                                 confirmText: 'Ya, Hapus Staff'
                                             })"
-                                            class="rounded-md border border-red-200 px-3 py-2 text-sm font-semibold text-red-700 hover:bg-red-50 disabled:cursor-not-allowed disabled:border-gray-200 disabled:text-gray-400 disabled:hover:bg-white"
+                                            class="inline-flex items-center justify-center whitespace-nowrap rounded-md border border-red-200 px-3 py-1.5 text-xs font-semibold text-red-700 hover:bg-red-50 disabled:cursor-not-allowed disabled:border-gray-200 disabled:text-gray-400 disabled:hover:bg-white"
                                         >
                                             Hapus
                                         </button>
