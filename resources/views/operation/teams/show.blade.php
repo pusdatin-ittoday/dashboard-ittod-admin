@@ -51,13 +51,20 @@
                 {{ $team->event->title ?? $team->competition_id }}
             </span>
             @if(auth()->user()->role === 'superadmin')
-                <form method="POST" action="{{ route('operation.teams.destroy', $team->id) }}" onsubmit="return confirm('Apakah Anda yakin ingin menghapus tim ini beserta anggotanya secara permanen?');" class="inline">
-                    @csrf
-                    @method('DELETE')
-                    <button type="submit" class="inline-flex items-center justify-center rounded-md border border-rose-200 bg-rose-50 px-3 py-1.5 text-xs font-bold uppercase text-rose-700 hover:bg-rose-100">
-                        Hapus Tim
-                    </button>
-                </form>
+                <button
+                    type="button"
+                    x-data
+                    x-on:click="$dispatch('confirm-danger', {
+                        title: 'Hapus Tim Secara Permanen',
+                        message: 'Apakah Anda yakin ingin menghapus tim {{ addslashes($team->team_name) }} beserta berkas dan seluruh anggotanya? Data tidak dapat dikembalikan.',
+                        action: '{{ route('operation.teams.destroy', $team->id) }}',
+                        method: 'DELETE',
+                        confirmText: 'Ya, Hapus Tim'
+                    })"
+                    class="inline-flex items-center justify-center rounded-md border border-rose-200 bg-rose-50 px-3 py-1.5 text-xs font-bold uppercase text-rose-700 hover:bg-rose-100 focus:outline-none focus:ring-2 focus:ring-rose-500 focus:ring-offset-2"
+                >
+                    Hapus Tim
+                </button>
             @endif
         </div>
     </div>
@@ -141,13 +148,20 @@
                                 <div class="flex items-center gap-3">
                                     <span class="text-sm text-gray-500">{{ $participant->email }}</span>
                                     @if(auth()->user()->role === 'superadmin')
-                                        <form method="POST" action="{{ route('operation.teams.destroyMember', ['teamId' => $team->id, 'userId' => $member->user_id]) }}" onsubmit="return confirm('Apakah Anda yakin ingin mengeluarkan anggota ini dari tim?');" class="inline">
-                                            @csrf
-                                            @method('DELETE')
-                                            <button type="submit" class="inline-flex items-center justify-center rounded border border-rose-200 bg-rose-50 px-2 py-1 text-[11px] font-bold uppercase text-rose-700 hover:bg-rose-100">
-                                                Keluarkan
-                                            </button>
-                                        </form>
+                                        <button
+                                            type="button"
+                                            x-data
+                                            x-on:click="$dispatch('confirm-danger', {
+                                                title: 'Keluarkan Anggota Tim',
+                                                message: 'Apakah Anda yakin ingin mengeluarkan {{ addslashes($participant->full_name) }} dari tim {{ addslashes($team->team_name) }}?',
+                                                action: '{{ route('operation.teams.destroyMember', ['teamId' => $team->id, 'userId' => $member->user_id]) }}',
+                                                method: 'DELETE',
+                                                confirmText: 'Ya, Keluarkan'
+                                            })"
+                                            class="inline-flex items-center justify-center rounded border border-rose-200 bg-rose-50 px-2 py-1 text-[11px] font-bold uppercase text-rose-700 hover:bg-rose-100 focus:outline-none focus:ring-2 focus:ring-rose-500 focus:ring-offset-2"
+                                        >
+                                            Keluarkan
+                                        </button>
                                     @endif
                                 </div>
                             </div>

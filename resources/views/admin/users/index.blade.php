@@ -156,13 +156,20 @@
                             </td>
                             @if(auth()->user()?->role === 'superadmin')
                                 <td class="px-4 py-4 text-right">
-                                    <form method="POST" action="{{ route('admin.users.destroy', $userIdentity->id) }}" onsubmit="return confirm('Apakah Anda yakin ingin menghapus akun user ini secara permanen?');" class="inline">
-                                        @csrf
-                                        @method('DELETE')
-                                        <button type="submit" class="inline-flex items-center justify-center rounded border border-rose-200 bg-rose-50 px-2.5 py-1 text-[11px] font-bold uppercase text-rose-700 hover:bg-rose-100 focus:outline-none focus:ring-2 focus:ring-rose-500 focus:ring-offset-2">
-                                            Hapus Akun
-                                        </button>
-                                    </form>
+                                    <button
+                                        type="button"
+                                        x-data
+                                        x-on:click="$dispatch('confirm-danger', {
+                                            title: 'Hapus Akun Pengguna',
+                                            message: 'Apakah Anda yakin ingin menghapus akun {{ addslashes($user?->full_name ?? $userIdentity->email) }} ({{ $userIdentity->email }}) secara permanen? Seluruh riwayat pendaftaran dan keanggotaan akan dihapus.',
+                                            action: '{{ route('admin.users.destroy', $userIdentity->id) }}',
+                                            method: 'DELETE',
+                                            confirmText: 'Ya, Hapus Akun'
+                                        })"
+                                        class="inline-flex items-center justify-center rounded border border-rose-200 bg-rose-50 px-2.5 py-1 text-[11px] font-bold uppercase text-rose-700 hover:bg-rose-100 focus:outline-none focus:ring-2 focus:ring-rose-500 focus:ring-offset-2"
+                                    >
+                                        Hapus Akun
+                                    </button>
                                 </td>
                             @endif
                         </tr>

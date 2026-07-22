@@ -136,17 +136,20 @@
                                             <span x-text="isFetchingStaff ? 'Loading' : 'Edit'">Edit</span>
                                         </button>
 
-                                        <form method="POST" action="{{ route('admin.staff.destroy', $staff) }}" onsubmit="return confirm('Hapus akun staff ini?')">
-                                            @csrf
-                                            @method('DELETE')
-                                            <button
-                                                type="submit"
-                                                @disabled(auth()->id() === $staff->id)
-                                                class="rounded-md border border-red-200 px-3 py-2 text-sm font-semibold text-red-700 hover:bg-red-50 disabled:cursor-not-allowed disabled:border-gray-200 disabled:text-gray-400 disabled:hover:bg-white"
-                                            >
-                                                Hapus
-                                            </button>
-                                        </form>
+                                        <button
+                                            type="button"
+                                            @disabled(auth()->id() === $staff->id)
+                                            x-on:click="$dispatch('confirm-danger', {
+                                                title: 'Hapus Akun Staff Admin',
+                                                message: 'Apakah Anda yakin ingin menghapus akun staff {{ addslashes($staff->user?->full_name ?? $staff->email) }} ({{ $staff->email }}) secara permanen? Akses admin untuk pengguna ini akan segera dicabut.',
+                                                action: '{{ route('admin.staff.destroy', $staff) }}',
+                                                method: 'DELETE',
+                                                confirmText: 'Ya, Hapus Staff'
+                                            })"
+                                            class="rounded-md border border-red-200 px-3 py-2 text-sm font-semibold text-red-700 hover:bg-red-50 disabled:cursor-not-allowed disabled:border-gray-200 disabled:text-gray-400 disabled:hover:bg-white"
+                                        >
+                                            Hapus
+                                        </button>
                                     </div>
                                 </td>
                             @endif
