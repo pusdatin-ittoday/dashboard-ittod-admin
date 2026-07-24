@@ -11,9 +11,11 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('user', function (Blueprint $table) {
-            $table->dateTime('last_read_announcements_at', 3)->nullable()->after('is_registration_complete');
-        });
+        if (!Schema::hasColumn('user', 'last_read_announcements_at')) {
+            Schema::table('user', function (Blueprint $table) {
+                $table->dateTime('last_read_announcements_at', 3)->nullable()->after('is_registration_complete');
+            });
+        }
     }
 
     /**
@@ -21,8 +23,10 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('user', function (Blueprint $table) {
-            $table->dropColumn('last_read_announcements_at');
-        });
+        if (Schema::hasColumn('user', 'last_read_announcements_at')) {
+            Schema::table('user', function (Blueprint $table) {
+                $table->dropColumn('last_read_announcements_at');
+            });
+        }
     }
 };

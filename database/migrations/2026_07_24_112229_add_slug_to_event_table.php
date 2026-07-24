@@ -11,9 +11,11 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('event', function (Blueprint $table) {
-            $table->string('slug', 255)->nullable()->unique('event_slug_unique')->after('id');
-        });
+        if (!Schema::hasColumn('event', 'slug')) {
+            Schema::table('event', function (Blueprint $table) {
+                $table->string('slug', 255)->nullable()->unique('event_slug_unique')->after('id');
+            });
+        }
     }
 
     /**
@@ -21,8 +23,10 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('event', function (Blueprint $table) {
-            $table->dropColumn('slug');
-        });
+        if (Schema::hasColumn('event', 'slug')) {
+            Schema::table('event', function (Blueprint $table) {
+                $table->dropColumn('slug');
+            });
+        }
     }
 };
