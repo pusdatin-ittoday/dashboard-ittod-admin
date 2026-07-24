@@ -63,6 +63,7 @@ class TimelineController extends Controller
 
         Event::create([
             'id' => (string) Str::uuid(),
+            'slug' => Str::slug($validated['title']),
             'title' => $validated['title'],
             'type' => 'non_competition',
             'description' => $validated['description'],

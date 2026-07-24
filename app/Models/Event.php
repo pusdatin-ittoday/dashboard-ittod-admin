@@ -20,6 +20,7 @@ class Event extends Model
 
     protected $fillable = [
         'id',
+        'slug',
         'title',
         'description',
         'guide_book_url',

@@ -513,6 +513,7 @@ class AdminDashboardController extends Controller
         Event::create([
             ...$validated,
             'id' => (string) Str::uuid(),
+            'slug' => Str::slug($validated['title']),
             'is_active' => true,
             'logo_url' => $logoUrl,
         ]);
