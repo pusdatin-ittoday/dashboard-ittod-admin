@@ -154,7 +154,7 @@ class GoogleSheetService
                 'event.title as event_title',
                 'team.team_name',
                 'team_member.role as team_role',
-                'event_participant.id as participant_id'
+                'event_participant.event_id as participant_id'
             ]);
         } else {
             $query->select([
