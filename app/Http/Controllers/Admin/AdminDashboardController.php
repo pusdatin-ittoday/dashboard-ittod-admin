@@ -884,7 +884,6 @@ class AdminDashboardController extends Controller
             if ($user) {
                 DB::table('team_member')->where('user_id', $user->id)->delete();
                 DB::table('event_participant')->where('user_id', $user->id)->delete();
-                DB::table('notification')->where('user_id', $user->id)->delete();
                 DB::table('event_staff')->where('user_id', $user->id)->delete();
                 $user->delete();
             }
