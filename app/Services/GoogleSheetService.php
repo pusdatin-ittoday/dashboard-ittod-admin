@@ -174,9 +174,9 @@ class GoogleSheetService
             }
         }
 
-        $this->writeToSheet($this->masterSpreadsheetId, $sheetTitle, $values);
+        $gid = $this->writeToSheet($this->masterSpreadsheetId, $sheetTitle, $values);
 
-        return "https://docs.google.com/spreadsheets/d/{$this->masterSpreadsheetId}";
+        return "https://docs.google.com/spreadsheets/d/{$this->masterSpreadsheetId}/edit#gid={$gid}";
     }
 
     /**
@@ -225,28 +225,34 @@ class GoogleSheetService
         }
         fclose($handle);
 
-        $this->writeToSheet($this->masterSpreadsheetId, $sheetTitle, $values);
+        $gid = $this->writeToSheet($this->masterSpreadsheetId, $sheetTitle, $values);
 
-        return "https://docs.google.com/spreadsheets/d/{$this->masterSpreadsheetId}";
+        return "https://docs.google.com/spreadsheets/d/{$this->masterSpreadsheetId}/edit#gid={$gid}";
     }
 
     /**
      * Write rows to a specific tab in a spreadsheet.
      * Creates the tab if it doesn't exist, clears existing data, then writes.
+     * Returns the numeric gid of the tab for use in direct URL links.
      *
      * @param string $spreadsheetId
      * @param string $sheetTitle
      * @param array  $values
+     * @return int gid of the target sheet tab
      */
-    private function writeToSheet(string $spreadsheetId, string $sheetTitle, array $values): void
+    private function writeToSheet(string $spreadsheetId, string $sheetTitle, array $values): int
     {
-        // Ensure the tab exists
+        $gid = 0;
+
+        // Ensure the tab exists and capture its gid
         try {
             $spreadsheetInfo = $this->sheetService->spreadsheets->get($spreadsheetId);
             $sheetExists = false;
+
             foreach ($spreadsheetInfo->getSheets() as $s) {
                 if ($s->getProperties()->getTitle() === $sheetTitle) {
                     $sheetExists = true;
+                    $gid = (int) $s->getProperties()->getSheetId();
                     break;
                 }
             }
@@ -259,11 +265,17 @@ class GoogleSheetService
                         ]
                     ]
                 ]);
-                $this->sheetService->spreadsheets->batchUpdate($spreadsheetId, $body);
+                $response = $this->sheetService->spreadsheets->batchUpdate($spreadsheetId, $body);
+                // Extract gid from the addSheet reply
+                $replies = $response->getReplies();
+                if (!empty($replies) && $replies[0]->getAddSheet()) {
+                    $gid = (int) $replies[0]->getAddSheet()->getProperties()->getSheetId();
+                }
             }
         } catch (Exception $e) {
-            // If we can't manage tabs, fallback to Sheet1
+            // Fallback to Sheet1 (gid 0)
             $sheetTitle = 'Sheet1';
+            $gid = 0;
         }
 
         // Clear existing data
@@ -275,6 +287,7 @@ class GoogleSheetService
             );
         } catch (Exception $e) {
             $sheetTitle = 'Sheet1';
+            $gid = 0;
             $this->sheetService->spreadsheets_values->clear(
                 $spreadsheetId,
                 $sheetTitle,
@@ -289,5 +302,7 @@ class GoogleSheetService
             new ValueRange(['values' => $values]),
             ['valueInputOption' => 'RAW']
         );
+
+        return $gid;
     }
 }
