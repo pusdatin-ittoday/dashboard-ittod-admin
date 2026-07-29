@@ -17,7 +17,8 @@ class SubmissionExport
         
         $headers = [
             'Nama Tim/Peserta',
-            'Waktu Pengumpulan',
+            'Nama Kompetisi',
+            'Tanggal Submit',
         ];
         
         $submissionKeys = [];
@@ -54,6 +55,7 @@ class SubmissionExport
             
             $row = [
                 $displayName,
+                $event->title,
                 $sub->created_at ? $sub->created_at->format('Y-m-d H:i:s') : '-',
             ];
             
