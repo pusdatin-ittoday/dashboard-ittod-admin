@@ -5,9 +5,7 @@ namespace App\Services;
 use Google\Client;
 use Google\Service\Drive;
 use Google\Service\Sheets;
-use Google\Service\Sheets\Spreadsheet;
 use Google\Service\Sheets\ValueRange;
-use App\Models\Setting;
 use App\Models\Event;
 use Illuminate\Support\Facades\DB;
 use Exception;
@@ -16,7 +14,7 @@ class GoogleSheetService
 {
     protected $client;
     protected $sheetService;
-    protected $driveService;
+    protected string $masterSpreadsheetId;
 
     public function __construct()
     {
@@ -41,84 +39,33 @@ class GoogleSheetService
 
         $this->client->addScope([
             Sheets::SPREADSHEETS,
-            Drive::DRIVE
         ]);
 
         $this->sheetService = new Sheets($this->client);
-        $this->driveService = new Drive($this->client);
+
+        $this->masterSpreadsheetId = env('GOOGLE_SHEETS_SPREADSHEET_ID');
+        if (!$this->masterSpreadsheetId) {
+            throw new Exception("GOOGLE_SHEETS_SPREADSHEET_ID is not set in environment variables.");
+        }
     }
 
     /**
-     * Export users to a Google Spreadsheet.
+     * Export users to a tab in the master Google Spreadsheet.
      *
      * @param string|null $eventId
      * @return string URL of the Google Spreadsheet
      */
     public function exportUsers(?string $eventId = null): string
     {
-        $presetSpreadsheets = [
-            'CodeToday' => '1pX9k0PQF6z94aAMNFgM9FxsY-bLXF9VD-RCgA7K301M',
-            'ITBrains'  => '1pX9k0PQF6z94aAMNFgM9FxsY-bLXF9VD-RCgA7K301M',
-            'GameToday' => '1rYYSzL9tPzFVHKv4df9Wv0rGYLxOHTSO1LTT1GgrpZw',
-            'HackToday' => '1aOLg-fSy6NNZ02OuXR3_mIK_m7a5e4Dl2MekM1yvLtQ',
-            'MineToday' => '1OtaGgBNtQHoB5E71BNpuwcVE9ZL1jRUeQVPBxConcww',
-            'UXToday'   => '14uVu1C0I28M1wYTDfeGtPaKOonPg5PzfAMUf60gYhzU',
-        ];
-
-        $spreadsheetId = null;
-        if ($eventId && isset($presetSpreadsheets[$eventId])) {
-            $spreadsheetId = $presetSpreadsheets[$eventId];
-        }
-
-        $settingKey = $eventId ? 'google_sheet_users_' . $eventId : 'google_sheet_users_global';
-        $isNewSpreadsheet = false;
-
-        if (!$spreadsheetId) {
-            $spreadsheetId = !$eventId ? env('GOOGLE_SHEETS_SPREADSHEET_ID') : null;
-        }
-
-        if (!$spreadsheetId) {
-            $spreadsheetId = Setting::get($settingKey);
-        }
-
-        // Define sheet title
         $sheetTitle = 'Data User';
         if ($eventId) {
             $event = Event::find($eventId);
             if ($event) {
-                // Limit title to 30 characters and remove special chars to avoid Google Sheet name issues
                 $sheetTitle = substr('User - ' . preg_replace('/[^A-Za-z0-9 _-]/', '', $event->title), 0, 30);
             }
         }
 
-        if (!$spreadsheetId) {
-            $isNewSpreadsheet = true;
-            // Create a new spreadsheet
-            $spreadsheet = new Spreadsheet([
-                'properties' => [
-                    'title' => 'Data User IT Today'
-                ]
-            ]);
-            $created = $this->sheetService->spreadsheets->create($spreadsheet);
-            $spreadsheetId = $created->spreadsheetId;
-
-            // Save to settings table
-            Setting::set($settingKey, $spreadsheetId);
-
-            // Make the spreadsheet readable by anyone with the link
-            try {
-                $permission = new \Google\Service\Drive\Permission([
-                    'type' => 'anyone',
-                    'role' => 'reader',
-                ]);
-                $this->driveService->permissions->create($spreadsheetId, $permission);
-            } catch (Exception $e) {
-                // Log and continue, as the export itself still worked
-                logger()->error('Failed to set spreadsheet permission: ' . $e->getMessage());
-            }
-        }
-
-        // Fetch user data using same logic as UserExport
+        // Fetch user data
         $query = DB::table('user_identity')
             ->join('user', 'user_identity.id', '=', 'user.id')
             ->where('user_identity.role', 'user');
@@ -175,36 +122,18 @@ class GoogleSheetService
         $rows = $query->get();
 
         if ($eventId !== null) {
-            $values = [
-                [
-                    'Nama Lengkap',
-                    'Email',
-                    'No. HP',
-                    'ID Discord',
-                    'Pendidikan',
-                    'Nama Sekolah / Instansi',
-                    'Status Registrasi',
-                    'Status Verifikasi Login',
-                    'Tanggal Daftar',
-                    'Nama Kompetisi',
-                    'Nama Tim',
-                    'Posisi',
-                ]
-            ];
+            $values = [[
+                'Nama Lengkap', 'Email', 'No. HP', 'ID Discord',
+                'Pendidikan', 'Nama Sekolah / Instansi',
+                'Status Registrasi', 'Status Verifikasi Login', 'Tanggal Daftar',
+                'Nama Kompetisi', 'Nama Tim', 'Posisi',
+            ]];
         } else {
-            $values = [
-                [
-                    'Nama Lengkap',
-                    'Email',
-                    'No. HP',
-                    'ID Discord',
-                    'Pendidikan',
-                    'Nama Sekolah / Instansi',
-                    'Status Registrasi',
-                    'Status Verifikasi Login',
-                    'Tanggal Daftar',
-                ]
-            ];
+            $values = [[
+                'Nama Lengkap', 'Email', 'No. HP', 'ID Discord',
+                'Pendidikan', 'Nama Sekolah / Instansi',
+                'Status Registrasi', 'Status Verifikasi Login', 'Tanggal Daftar',
+            ]];
         }
 
         foreach ($rows as $row) {
@@ -213,7 +142,7 @@ class GoogleSheetService
                 if ($row->team_role) {
                     $posisi = $row->team_role === 'leader' ? 'Ketua' : 'Anggota';
                 } elseif ($row->participant_id) {
-                    $posisi = 'Peserta Seminar';
+                    $posisi = 'Peserta';
                 }
 
                 $values[] = [
@@ -245,73 +174,13 @@ class GoogleSheetService
             }
         }
 
-        // Check if the sheet (tab) exists, or create it if it doesn't
-        try {
-            $spreadsheetInfo = $this->sheetService->spreadsheets->get($spreadsheetId);
-            $sheets = $spreadsheetInfo->getSheets();
-            $sheetExists = false;
-            foreach ($sheets as $s) {
-                if ($s->getProperties()->getTitle() === $sheetTitle) {
-                    $sheetExists = true;
-                    break;
-                }
-            }
+        $this->writeToSheet($this->masterSpreadsheetId, $sheetTitle, $values);
 
-            if (!$sheetExists) {
-                // Add the new sheet
-                $body = new \Google\Service\Sheets\BatchUpdateSpreadsheetRequest([
-                    'requests' => [
-                        'addSheet' => [
-                            'properties' => [
-                                'title' => $sheetTitle
-                            ]
-                        ]
-                    ]
-                ]);
-                $this->sheetService->spreadsheets->batchUpdate($spreadsheetId, $body);
-            }
-        } catch (Exception $e) {
-            // Fallback to 'Sheet1' if getting/creating custom sheets fails
-            $sheetTitle = 'Sheet1';
-        }
-
-        // Clear existing data in the specific sheet
-        try {
-            $this->sheetService->spreadsheets_values->clear(
-                $spreadsheetId,
-                $sheetTitle,
-                new \Google\Service\Sheets\ClearValuesRequest()
-            );
-        } catch (Exception $e) {
-            // Fallback to Sheet1 if clear fails (e.g., sheet title issues)
-            $sheetTitle = 'Sheet1';
-            $this->sheetService->spreadsheets_values->clear(
-                $spreadsheetId,
-                $sheetTitle,
-                new \Google\Service\Sheets\ClearValuesRequest()
-            );
-        }
-
-        // Write new data
-        $body = new ValueRange([
-            'values' => $values
-        ]);
-        $params = [
-            'valueInputOption' => 'RAW'
-        ];
-
-        $this->sheetService->spreadsheets_values->update(
-            $spreadsheetId,
-            $sheetTitle . '!A1',
-            $body,
-            $params
-        );
-
-        return "https://docs.google.com/spreadsheets/d/{$spreadsheetId}";
+        return "https://docs.google.com/spreadsheets/d/{$this->masterSpreadsheetId}";
     }
 
     /**
-     * Export team or participant recaps to a Google Spreadsheet.
+     * Export team or participant recaps to a tab in the master Google Spreadsheet.
      *
      * @param string $type ('teams_global', 'participants_global', 'teams_event', 'participants_event')
      * @param string|null $eventId
@@ -319,65 +188,13 @@ class GoogleSheetService
      */
     public function exportRecap(string $type, ?string $eventId = null): string
     {
-        $presetSpreadsheets = [
-            'CodeToday' => '1pX9k0PQF6z94aAMNFgM9FxsY-bLXF9VD-RCgA7K301M',
-            'ITBrains'  => '1pX9k0PQF6z94aAMNFgM9FxsY-bLXF9VD-RCgA7K301M',
-            'GameToday' => '1rYYSzL9tPzFVHKv4df9Wv0rGYLxOHTSO1LTT1GgrpZw',
-            'HackToday' => '1aOLg-fSy6NNZ02OuXR3_mIK_m7a5e4Dl2MekM1yvLtQ',
-            'MineToday' => '1OtaGgBNtQHoB5E71BNpuwcVE9ZL1jRUeQVPBxConcww',
-            'UXToday'   => '14uVu1C0I28M1wYTDfeGtPaKOonPg5PzfAMUf60gYhzU',
-        ];
-
-        $spreadsheetId = null;
-        if ($eventId && isset($presetSpreadsheets[$eventId])) {
-            $spreadsheetId = $presetSpreadsheets[$eventId];
-        }
-
-        $settingKey = $eventId 
-            ? 'google_sheet_recap_' . $type . '_' . $eventId 
-            : 'google_sheet_recap_' . $type . '_global';
-
-        if (!$spreadsheetId) {
-            $spreadsheetId = !$eventId ? env('GOOGLE_SHEETS_SPREADSHEET_ID') : null;
-        }
-
-        if (!$spreadsheetId) {
-            $spreadsheetId = Setting::get($settingKey);
-        }
-
-        if (!$spreadsheetId) {
-            // Create a new spreadsheet
-            $spreadsheet = new Spreadsheet([
-                'properties' => [
-                    'title' => 'Data IT Today'
-                ]
-            ]);
-            $created = $this->sheetService->spreadsheets->create($spreadsheet);
-            $spreadsheetId = $created->spreadsheetId;
-
-            // Save to settings table
-            Setting::set($settingKey, $spreadsheetId);
-
-            // Make the spreadsheet readable by anyone with the link
-            try {
-                $permission = new \Google\Service\Drive\Permission([
-                    'type' => 'anyone',
-                    'role' => 'reader',
-                ]);
-                $this->driveService->permissions->create($spreadsheetId, $permission);
-            } catch (Exception $e) {
-                logger()->error('Failed to set spreadsheet permission: ' . $e->getMessage());
-            }
-        }
-
-        // Determine sheet title and write callback
         if ($type === 'teams_global') {
             $sheetTitle = 'Semua Tim';
             $writeCallback = function($handle) {
                 \App\Exports\TeamRecapExport::write($handle, null);
             };
         } elseif ($type === 'participants_global') {
-            $sheetTitle = 'Semua Peserta Seminar';
+            $sheetTitle = 'Semua Peserta';
             $writeCallback = function($handle) {
                 \App\Exports\ParticipantRecapExport::write($handle, null);
             };
@@ -397,7 +214,7 @@ class GoogleSheetService
             throw new Exception("Invalid export type");
         }
 
-        // Capture CSV output to memory handle
+        // Capture CSV output to memory handle and parse into rows
         $handle = fopen('php://temp', 'r+');
         $writeCallback($handle);
         rewind($handle);
@@ -408,12 +225,26 @@ class GoogleSheetService
         }
         fclose($handle);
 
-        // Check if the sheet (tab) exists, or create it if it doesn't
+        $this->writeToSheet($this->masterSpreadsheetId, $sheetTitle, $values);
+
+        return "https://docs.google.com/spreadsheets/d/{$this->masterSpreadsheetId}";
+    }
+
+    /**
+     * Write rows to a specific tab in a spreadsheet.
+     * Creates the tab if it doesn't exist, clears existing data, then writes.
+     *
+     * @param string $spreadsheetId
+     * @param string $sheetTitle
+     * @param array  $values
+     */
+    private function writeToSheet(string $spreadsheetId, string $sheetTitle, array $values): void
+    {
+        // Ensure the tab exists
         try {
             $spreadsheetInfo = $this->sheetService->spreadsheets->get($spreadsheetId);
-            $sheets = $spreadsheetInfo->getSheets();
             $sheetExists = false;
-            foreach ($sheets as $s) {
+            foreach ($spreadsheetInfo->getSheets() as $s) {
                 if ($s->getProperties()->getTitle() === $sheetTitle) {
                     $sheetExists = true;
                     break;
@@ -424,19 +255,18 @@ class GoogleSheetService
                 $body = new \Google\Service\Sheets\BatchUpdateSpreadsheetRequest([
                     'requests' => [
                         'addSheet' => [
-                            'properties' => [
-                                'title' => $sheetTitle
-                            ]
+                            'properties' => ['title' => $sheetTitle]
                         ]
                     ]
                 ]);
                 $this->sheetService->spreadsheets->batchUpdate($spreadsheetId, $body);
             }
         } catch (Exception $e) {
+            // If we can't manage tabs, fallback to Sheet1
             $sheetTitle = 'Sheet1';
         }
 
-        // Clear existing data in the specific sheet
+        // Clear existing data
         try {
             $this->sheetService->spreadsheets_values->clear(
                 $spreadsheetId,
@@ -453,21 +283,11 @@ class GoogleSheetService
         }
 
         // Write new data
-        $body = new ValueRange([
-            'values' => $values
-        ]);
-        $params = [
-            'valueInputOption' => 'RAW'
-        ];
-
         $this->sheetService->spreadsheets_values->update(
             $spreadsheetId,
             $sheetTitle . '!A1',
-            $body,
-            $params
+            new ValueRange(['values' => $values]),
+            ['valueInputOption' => 'RAW']
         );
-
-        return "https://docs.google.com/spreadsheets/d/{$spreadsheetId}";
     }
 }
-
