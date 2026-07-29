@@ -871,8 +871,9 @@ class AdminDashboardController extends Controller
         // No longer aborting for non-competition events so they can be managed uniformly
     }
 
-    public function destroyUser(UserIdentity $userIdentity): RedirectResponse
+    public function destroyUser(string $id): RedirectResponse
     {
+        $userIdentity = UserIdentity::findOrFail($id);
         $this->ensureSuperadmin();
 
         abort_if(auth()->id() === $userIdentity->id, 403, 'Akun yang sedang login tidak bisa dihapus.');
