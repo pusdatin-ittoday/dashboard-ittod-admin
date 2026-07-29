@@ -878,18 +878,30 @@ class AdminDashboardController extends Controller
 
         abort_if(auth()->id() === $userIdentity->id, 403, 'Akun yang sedang login tidak bisa dihapus.');
 
-        DB::transaction(function () use ($userIdentity) {
-            $user = $userIdentity->user;
+        try {
+            DB::transaction(function () use ($userIdentity) {
+                $user = clone $userIdentity->user;
 
-            if ($user) {
-                DB::table('team_member')->where('user_id', $user->id)->delete();
-                DB::table('event_participant')->where('user_id', $user->id)->delete();
-                DB::table('event_staff')->where('user_id', $user->id)->delete();
-                $user->delete();
-            }
-
-            $userIdentity->delete();
-        });
+                if ($user) {
+                    DB::table('team_member')->where('user_id', $user->id)->delete();
+                    DB::table('event_participant')->where('user_id', $user->id)->delete();
+                    DB::table('event_staff')->where('user_id', $user->id)->delete();
+                    
+                    // user_identity memiliki foreign key yang mengarah ke user dengan onDelete('restrict')
+                    // sehingga kita harus menghapus user_identity terlebih dahulu.
+                    $userIdentity->delete();
+                    
+                    // Terakhir, kita baru bisa menghapus user.
+                    // Jika ada foreign key lain (seperti media atau event_announcement) yang restrict,
+                    // ini akan melemparkan QueryException.
+                    $user->delete();
+                } else {
+                    $userIdentity->delete();
+                }
+            });
+        } catch (\Illuminate\Database\QueryException $e) {
+            return back()->with('error', 'Akun tidak dapat dihapus karena masih terkait dengan data penting lainnya (misal: riwayat upload file, ketua tim, atau pengumuman).');
+        }
 
         return back()->with('status', 'Akun pengguna berhasil dihapus secara permanen.');
     }
