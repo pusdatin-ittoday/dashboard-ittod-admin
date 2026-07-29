@@ -11,14 +11,62 @@
                     <span>Submissions</span>
                 </div>
             </div>
-            
-            @if ($canManageTimelines)
-                <button type="button" x-data x-on:click="$dispatch('open-modal', 'edit-panitia_lomba-submission-{{ $singleEvent->id }}')" class="inline-flex items-center justify-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50 transition-all duration-150 shadow-sm">
-                    <svg class="mr-2 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
-                    Kelola Format
+            <div class="flex flex-col sm:flex-row items-center gap-3">
+                <a href="{{ route('export.submissions', $singleEvent->id) }}" class="inline-flex items-center justify-center rounded-md bg-indigo-600 px-4 py-2 text-sm font-bold uppercase text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
+                    Export CSV
+                </a>
+                
+                <button 
+                    type="button"
+                    x-data="{ 
+                        isExporting: false, 
+                        async exportToSheets() {
+                            this.isExporting = true;
+                            try {
+                                const response = await fetch('{{ route('export.submissions.sheets', $singleEvent->id) }}', {
+                                    method: 'POST',
+                                    headers: {
+                                        'Content-Type': 'application/json',
+                                        'Accept': 'application/json',
+                                        'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                                    }
+                                });
+                                const data = await response.json();
+                                if (data.success) {
+                                    const newWindow = window.open(data.url, '_blank');
+                                    if (!newWindow || newWindow.closed || typeof newWindow.closed === 'undefined') {
+                                        alert('Ekspor berhasil! Namun tab baru terblokir oleh browser. Silakan buka manual: ' + data.url);
+                                    }
+                                } else {
+                                    alert('Gagal mengekspor: ' + (data.message || 'Terjadi kesalahan.'));
+                                }
+                            } catch (error) {
+                                console.error(error);
+                                alert('Terjadi kesalahan jaringan.');
+                            } finally {
+                                this.isExporting = false;
+                            }
+                        }
+                    }"
+                    @click="exportToSheets()" 
+                    :disabled="isExporting"
+                    class="inline-flex items-center justify-center rounded-md bg-emerald-600 px-4 py-2 text-sm font-bold uppercase text-white shadow-sm hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                    <template x-if="isExporting">
+                        <span>Exporting...</span>
+                    </template>
+                    <template x-if="!isExporting">
+                        <span>Export Sheets</span>
+                    </template>
                 </button>
-            @endif
-        </div>
+
+                @if ($canManageTimelines)
+                    <button type="button" x-data x-on:click="$dispatch('open-modal', 'edit-panitia_lomba-submission-{{ $singleEvent->id }}')" class="inline-flex items-center justify-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50 transition-all duration-150 shadow-sm">
+                        <svg class="mr-2 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                        Kelola Format
+                    </button>
+                @endif
+            </div>
     </x-slot>
 
     <div class="py-12">

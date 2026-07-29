@@ -15,6 +15,20 @@
                     <h2 class="text-lg font-semibold text-gray-950">Antrean Peserta</h2>
                 </div>
                 <form method="GET" action="{{ route('admin.event-participants.index') }}" class="flex flex-col sm:flex-row gap-3">
+                    <div class="relative">
+                        <span class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3 text-gray-400">
+                            <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m21 21-4.35-4.35m1.35-5.65a7 7 0 1 1-14 0 7 7 0 0 1 14 0z"></path>
+                            </svg>
+                        </span>
+                        <input
+                            type="search"
+                            name="search"
+                            value="{{ request('search') }}"
+                            placeholder="Cari nama/email/no. telp..."
+                            class="block w-full sm:w-auto pl-10 rounded-md border-gray-300 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                        >
+                    </div>
                     <div>
                         <label class="sr-only">Filter Event</label>
                         <select name="event_id" onchange="this.form.submit()" class="block w-full sm:w-auto rounded-md border-gray-300 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
@@ -34,6 +48,7 @@
                             <option value="rejected" @selected($filterStatus === 'rejected')>Rejected</option>
                         </select>
                     </div>
+                    <button type="submit" class="hidden">Submit</button>
                 </form>
             </div>
         </div>

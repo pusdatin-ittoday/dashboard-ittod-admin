@@ -3,7 +3,6 @@
     subtitle="Admin dapat melihat daftar seluruh peserta umum (users)."
 >
 <div x-data="{ 
-    search: '', 
     isExporting: false, 
     async exportToSheets() {
         this.isExporting = true;
@@ -87,7 +86,10 @@
         </div>
 
         <div class="border-b border-gray-200 px-4 py-4">
-            <label class="relative block">
+            <form method="GET" action="{{ route('admin.users.index') }}" class="relative block">
+                @if(request('event_id'))
+                    <input type="hidden" name="event_id" value="{{ request('event_id') }}">
+                @endif
                 <span class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3 text-gray-400">
                     <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m21 21-4.35-4.35m1.35-5.65a7 7 0 1 1-14 0 7 7 0 0 1 14 0z"></path>
@@ -95,11 +97,12 @@
                 </span>
                 <input
                     type="search"
-                    x-model="search"
-                    placeholder="Pencarian dilakukan pada halaman ini saja..."
+                    name="search"
+                    value="{{ request('search') }}"
+                    placeholder="Pencarian peserta (tekan Enter)..."
                     class="w-full rounded-md border-gray-300 pl-10 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
                 >
-            </label>
+            </form>
         </div>
 
         <div class="overflow-x-auto">
@@ -119,11 +122,7 @@
                 <tbody class="divide-y divide-gray-200 bg-white">
                     @forelse ($users as $userIdentity)
                         @php $user = $userIdentity->user; @endphp
-                        <tr
-                            x-show="$el.dataset.search.includes(search.toLowerCase())"
-                            data-search="{{ Str::lower(($user?->full_name ?? $userIdentity->email) . ' ' . $userIdentity->email . ' ' . ($user?->phone_number ?? '') . ' ' . ($user?->nama_sekolah ?? '')) }}"
-                            class="hover:bg-gray-50"
-                        >
+                        <tr class="hover:bg-gray-50">
                             <td class="px-4 py-4">
                                 <div class="flex flex-wrap items-center gap-2">
                                     <p class="font-semibold text-gray-950">{{ $user?->full_name ?? $userIdentity->email }}</p>

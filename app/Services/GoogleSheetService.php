@@ -210,6 +210,12 @@ class GoogleSheetService
             $writeCallback = function($handle) use ($eventId) {
                 \App\Exports\ParticipantRecapExport::write($handle, $eventId);
             };
+        } elseif ($type === 'submissions_event') {
+            $event = Event::findOrFail($eventId);
+            $sheetTitle = substr('Submisi - ' . preg_replace('/[^A-Za-z0-9 _-]/', '', $event->title), 0, 30);
+            $writeCallback = function($handle) use ($eventId) {
+                \App\Exports\SubmissionExport::write($handle, $eventId);
+            };
         } else {
             throw new Exception("Invalid export type");
         }

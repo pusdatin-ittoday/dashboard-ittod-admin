@@ -169,10 +169,54 @@ class ExportController extends Controller
                 } else {
                     $url = $service->exportRecap('participants_event', $event->id);
                 }
+            } elseif ($exportType === 'submissions_event') {
+                $event = Event::findOrFail($eventId);
+                if ($userRole === 'panitia_lomba') {
+                    abort_unless(auth()->user()->events->contains('id', $event->id), 403);
+                }
+                $url = $service->exportRecap('submissions_event', $event->id);
             } else {
                 abort(400, 'Invalid export type.');
             }
 
+            return response()->json([
+                'success' => true,
+                'url'     => $url,
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    public function exportSubmissions(Request $request, Event $event): StreamedResponse
+    {
+        abort_unless(in_array(auth()->user()->role, ['superadmin', 'panitia_lomba', 'admin_biasa']), 403);
+        if (auth()->user()->role === 'panitia_lomba') {
+            abort_unless(auth()->user()->events->contains('id', $event->id), 403);
+        }
+
+        $filename = 'rekap-submisi-' . Str::slug($event->title) . '-' . now()->format('Y-m-d') . '.csv';
+
+        return response()->stream(function () use ($event) {
+            $handle = fopen('php://output', 'w');
+            fwrite($handle, "\xEF\xBB\xBF");
+            \App\Exports\SubmissionExport::write($handle, $event->id);
+            fclose($handle);
+        }, 200, $this->buildCsvHeaders($filename));
+    }
+
+    public function exportSubmissionsGoogleSheets(Request $request, Event $event, GoogleSheetService $service)
+    {
+        abort_unless(in_array(auth()->user()->role, ['superadmin', 'panitia_lomba', 'admin_biasa']), 403);
+        if (auth()->user()->role === 'panitia_lomba') {
+            abort_unless(auth()->user()->events->contains('id', $event->id), 403);
+        }
+
+        try {
+            $url = $service->exportRecap('submissions_event', $event->id);
             return response()->json([
                 'success' => true,
                 'url'     => $url,

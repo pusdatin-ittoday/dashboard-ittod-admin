@@ -244,12 +244,25 @@ class AdminDashboardController extends Controller
             });
         }
 
+        $search = $request->input('search');
+        if ($search) {
+            $query->where(function ($q) use ($search) {
+                $q->where('email', 'like', "%{$search}%")
+                  ->orWhereHas('user', function ($uq) use ($search) {
+                      $uq->where('full_name', 'like', "%{$search}%")
+                         ->orWhere('phone_number', 'like', "%{$search}%")
+                         ->orWhere('nama_sekolah', 'like', "%{$search}%");
+                  });
+            });
+        }
+
         $users = $query->orderBy('email')->paginate(50)->withQueryString();
 
         return view('admin.users.index', [
             'users' => $users,
             'events' => $events,
             'filterEventId' => $filterEventId,
+            'search' => $search,
         ]);
     }
 
@@ -269,6 +282,18 @@ class AdminDashboardController extends Controller
             $query->where('is_verified', 'rejected');
         }
 
+        $search = $request->input('search');
+        if ($search) {
+            $query->where(function ($q) use ($search) {
+                $q->where('team_name', 'like', "%{$search}%")
+                  ->orWhere('team_code', 'like', "%{$search}%")
+                  ->orWhereHas('members.user', function ($uq) use ($search) {
+                      $uq->where('full_name', 'like', "%{$search}%")
+                         ->orWhere('email', 'like', "%{$search}%");
+                  });
+            });
+        }
+
         $teams = $query->latest('created_at')->paginate(50)->withQueryString();
 
         $teams->getCollection()->transform(function (Team $team) {
@@ -281,7 +306,7 @@ class AdminDashboardController extends Controller
         $acceptedCount = (clone $statsQuery)->where('is_verified', 'approved')->count();
         $rejectedCount = (clone $statsQuery)->where('is_verified', 'rejected')->count();
 
-        return view('admin.transactions.index', compact('teams', 'pendingCount', 'acceptedCount', 'rejectedCount', 'filterStatus'));
+        return view('admin.transactions.index', compact('teams', 'pendingCount', 'acceptedCount', 'rejectedCount', 'filterStatus', 'search'));
     }
 
     public function acceptTransaction(Team $team): RedirectResponse

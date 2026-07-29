@@ -38,39 +38,17 @@ class TeamRecapExport
             }
         }
 
-        // 1. Gather dynamic submission keys
-        $submissionKeys = [];
-        $querySubmissions = \App\Models\CompetitionSubmission::whereNotNull('submission_object');
-        if ($eventId) {
-            $querySubmissions->where('competition_id', $eventId);
-        }
-        
-        $submissions = $querySubmissions->get(['submission_object']);
-        foreach ($submissions as $sub) {
-            if (is_array($sub->submission_object)) {
-                foreach (array_keys($sub->submission_object) as $key) {
-                    $submissionKeys[$key] = true;
-                }
-            }
-        }
-        $submissionKeys = array_keys($submissionKeys);
-        
-        // 2. Append submission keys to headers
-        $headers = array_merge($headers, $submissionKeys);
-
         fputcsv($handle, $headers);
 
         Team::with([
             'event',
             'members.user.identity',
-            'submissions'
         ])
             ->when($eventId, fn ($q) => $q->where('competition_id', $eventId))
             ->orderBy('created_at')
-            ->chunk(100, function ($teams) use ($handle, $isIndividualEvent, $submissionKeys) {
+            ->chunk(100, function ($teams) use ($handle, $isIndividualEvent) {
                 foreach ($teams as $team) {
                     $isIndividual = $team->event?->participation_type === 'individual';
-                    $submissionObj = $team->submissions->first()?->submission_object ?? [];
                     
                     foreach ($team->members as $member) {
                         $user = $member->user;
@@ -101,16 +79,6 @@ class TeamRecapExport
                             $row[] = $user?->is_registration_complete ? 'Lengkap' : 'Belum Lengkap';
                         }
                         
-                        // Append submission fields
-                        foreach ($submissionKeys as $key) {
-                            $val = $submissionObj[$key] ?? '-';
-                            if (is_array($val) || is_object($val)) {
-                                $row[] = json_encode($val);
-                            } else {
-                                $row[] = (string) $val;
-                            }
-                        }
-
                         fputcsv($handle, $row);
                     }
                 }

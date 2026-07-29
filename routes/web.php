@@ -103,6 +103,9 @@ Route::middleware('auth')->prefix('export')->name('export.')->group(function () 
     Route::get('/users/global', [ExportController::class, 'exportUsersGlobal'])->name('users.global');
     Route::post('/users/google-sheets', [ExportController::class, 'exportUsersGoogleSheets'])->name('users.sheets');
     Route::post('/recap/google-sheets', [ExportController::class, 'exportRecapGoogleSheets'])->name('recap.sheets');
+
+    Route::get('/competitions/{event}/submissions', [ExportController::class, 'exportSubmissions'])->name('submissions');
+    Route::post('/competitions/{event}/submissions/google-sheets', [ExportController::class, 'exportSubmissionsGoogleSheets'])->name('submissions.sheets');
 });
 
 require __DIR__.'/auth.php';

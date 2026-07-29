@@ -43,6 +43,15 @@ class EventParticipantController extends Controller
         }
         // if 'all', do not filter by status
 
+        $search = $request->input('search');
+        if ($search) {
+            $query->where(function ($q) use ($search) {
+                $q->where('user.full_name', 'like', "%{$search}%")
+                  ->orWhere('user.email', 'like', "%{$search}%")
+                  ->orWhere('user.phone_number', 'like', "%{$search}%");
+            });
+        }
+
         $participants = $query->orderByDesc('event_participant.date_added')->paginate(50)->withQueryString();
 
         $statsQuery = DB::table('event_participant')
@@ -53,7 +62,7 @@ class EventParticipantController extends Controller
         $acceptedCount = (clone $statsQuery)->where('payment_verification', 'accepted')->count();
         $rejectedCount = (clone $statsQuery)->where('payment_verification', 'rejected')->count();
 
-        return view('admin.event-participants.index', compact('participants', 'events', 'pendingCount', 'acceptedCount', 'rejectedCount', 'filterStatus'));
+        return view('admin.event-participants.index', compact('participants', 'events', 'pendingCount', 'acceptedCount', 'rejectedCount', 'filterStatus', 'search'));
     }
 
     public function verify(Request $request)
