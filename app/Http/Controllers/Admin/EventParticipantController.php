@@ -52,7 +52,11 @@ class EventParticipantController extends Controller
             });
         }
 
-        $participants = $query->orderByDesc('event_participant.date_added')->paginate(50)->withQueryString();
+        $participants = $query
+            ->orderByRaw("CASE WHEN event_participant.payment_verification = 'pending' THEN 0 ELSE 1 END")
+            ->orderByDesc('event_participant.date_added')
+            ->paginate(50)
+            ->withQueryString();
 
         $statsQuery = DB::table('event_participant')
             ->join('event', 'event_participant.event_id', '=', 'event.id')

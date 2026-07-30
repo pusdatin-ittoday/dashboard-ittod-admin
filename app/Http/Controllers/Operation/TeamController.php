@@ -35,7 +35,10 @@ class TeamController extends Controller
             $query->whereIn('competition_id', auth()->user()->events->pluck('id'));
         }
         
-        $teams = $query->get();
+        $teams = $query
+            ->orderByRaw("CASE WHEN is_document_verified = 'pending' THEN 0 ELSE 1 END")
+            ->orderByDesc('created_at')
+            ->get();
 
         // Get events list for dropdown filter
         if (auth()->user()->role === 'panitia_lomba') {
