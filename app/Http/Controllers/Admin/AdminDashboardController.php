@@ -272,11 +272,13 @@ class AdminDashboardController extends Controller
         $query = Team::with(['event', 'paymentProof', 'members.user'])
             ->where('is_document_verified', 'approved');
 
-        $filterStatus = $request->input('status', 'pending');
+        $filterStatus = $request->input('status', 'default');
         
-        if ($filterStatus === 'pending') {
+        if ($filterStatus === 'default') {
+            $query->whereIn('is_verified', ['pending', 'rejected']);
+        } elseif ($filterStatus === 'pending') {
             $query->where('is_verified', 'pending');
-        } elseif ($filterStatus === 'approved') {
+        } elseif ($filterStatus === 'accepted') {
             $query->where('is_verified', 'approved');
         } elseif ($filterStatus === 'rejected') {
             $query->where('is_verified', 'rejected');
