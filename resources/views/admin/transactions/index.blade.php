@@ -79,7 +79,8 @@
                         <th class="px-6 py-3 text-left text-xs font-semibold uppercase text-gray-500">Pendaftaran</th>
                         <th class="px-6 py-3 text-left text-xs font-semibold uppercase text-gray-500">Kompetisi</th>
                         <th class="px-6 py-3 text-left text-xs font-semibold uppercase text-gray-500">Bukti Transfer</th>
-                        <th class="px-6 py-3 text-left text-xs font-semibold uppercase text-gray-500">Waktu Submit</th>
+                        <th class="px-6 py-3 text-left text-xs font-semibold uppercase text-gray-500">Waktu Pendaftaran</th>
+                        <th class="px-6 py-3 text-left text-xs font-semibold uppercase text-gray-500">Waktu Submit Bukti</th>
                         <th class="px-6 py-3 text-left text-xs font-semibold uppercase text-gray-500">Status</th>
                         <th class="px-6 py-3 text-right text-xs font-semibold uppercase text-gray-500">Aksi</th>
                     </tr>
@@ -122,6 +123,9 @@
                                 @else
                                     <span class="text-gray-500">Belum ada bukti transfer</span>
                                 @endif
+                            </td>
+                            <td class="px-6 py-4 text-sm text-gray-700">
+                                {{ $team->created_at?->format('d M Y H:i') ?? '-' }}
                             </td>
                             <td class="px-6 py-4 text-sm text-gray-700">
                                 {{ $team->paymentProof?->created_at?->format('d M Y H:i') ?? '-' }}
