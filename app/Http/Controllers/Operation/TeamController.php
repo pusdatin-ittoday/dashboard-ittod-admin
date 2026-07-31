@@ -98,7 +98,7 @@ class TeamController extends Controller
             'verification_error' => $request->is_document_verified === 'rejected' ? $request->verification_error : null
         ];
 
-        if ($request->is_document_verified === 'approved') {
+        if ($request->is_document_verified === 'approved' && $team->is_verified !== 'approved') {
             $teamUpdates['is_verified'] = 'pending';
         }
 
