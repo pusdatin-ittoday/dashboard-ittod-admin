@@ -28,11 +28,15 @@ class Team extends Model
         'is_verified',
         'verification_error',
         'payment_proof_id',
+        'is_finalist',
+        'rank',
     ];
 
     protected $casts = [
         // removed is_verified integer cast
-        'max_member' => 'integer',
+        'max_member'   => 'integer',
+        'is_finalist'  => 'boolean',
+        'rank'         => 'integer',
     ];
 
     /**

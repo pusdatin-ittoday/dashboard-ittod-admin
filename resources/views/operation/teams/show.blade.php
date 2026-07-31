@@ -468,6 +468,84 @@
                     </button>
                 </form>
             </section>
+
+            {{-- ═══ FINALIS & JUARA ═══ --}}
+            <section
+                class="rounded-lg border border-amber-200 bg-white p-6 shadow-sm"
+                x-data="{
+                    isFinalist: @js((bool) $team->is_finalist),
+                    rank: @js($team->rank),
+                }"
+            >
+                <div class="flex items-center justify-between">
+                    <h2 class="text-lg font-semibold text-gray-950">🏆 Finalis &amp; Juara</h2>
+                    @if($team->is_finalist)
+                        @if($team->rank)
+                            <span class="rounded-full bg-yellow-100 px-3 py-1 text-xs font-bold text-yellow-800 ring-1 ring-yellow-300">
+                                🥇 Juara ke-{{ $team->rank }}
+                            </span>
+                        @else
+                            <span class="rounded-full bg-amber-100 px-3 py-1 text-xs font-bold text-amber-800 ring-1 ring-amber-300">
+                                ⭐ Finalis
+                            </span>
+                        @endif
+                    @else
+                        <span class="rounded-full bg-gray-100 px-3 py-1 text-xs font-semibold text-gray-500">
+                            Bukan Finalis
+                        </span>
+                    @endif
+                </div>
+
+                <p class="mt-2 text-sm text-gray-500">
+                    Tandai tim ini sebagai finalis kompetisi. Jika juara, isi peringkatnya (1, 2, 3, dst). Data ini akan tampil otomatis di website publik setelah waktu pengumuman.
+                </p>
+
+                <form action="{{ route('operation.teams.finalist', $team->id) }}" method="POST" class="mt-5 space-y-4">
+                    @csrf
+
+                    {{-- Toggle Finalis --}}
+                    <div>
+                        <p class="text-xs font-semibold uppercase tracking-wide text-gray-500">Status Finalis</p>
+                        <div class="mt-3 grid grid-cols-2 gap-3">
+                            <label class="cursor-pointer rounded-lg border border-gray-200 px-3 py-3 text-center hover:bg-amber-50" x-bind:class="isFinalist ? 'border-amber-400 bg-amber-50' : ''">
+                                <input type="radio" name="is_finalist" value="1" x-model.number="isFinalist" x-bind:checked="isFinalist" class="text-amber-600 focus:ring-amber-500">
+                                <span class="mt-2 block text-sm font-semibold text-amber-700">⭐ Finalis</span>
+                            </label>
+                            <label class="cursor-pointer rounded-lg border border-gray-200 px-3 py-3 text-center hover:bg-gray-50" x-bind:class="!isFinalist ? 'border-gray-400 bg-gray-50' : ''">
+                                <input type="radio" name="is_finalist" value="0" x-model.number="isFinalist" x-bind:checked="!isFinalist" class="text-gray-500 focus:ring-gray-400">
+                                <span class="mt-2 block text-sm font-semibold text-gray-600">Bukan Finalis</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    {{-- Rank --}}
+                    <div x-show="isFinalist" x-transition>
+                        <label for="rank" class="block text-xs font-semibold uppercase tracking-wide text-gray-500">
+                            Peringkat Juara <span class="font-normal normal-case text-gray-400">(kosongkan jika hanya finalis)</span>
+                        </label>
+                        <div class="mt-2 grid grid-cols-4 gap-2">
+                            @foreach([['', 'Finalis'], ['1', '🥇 1'], ['2', '🥈 2'], ['3', '🥉 3']] as [$val, $label])
+                                <label class="cursor-pointer rounded-lg border px-2 py-2.5 text-center text-sm font-bold hover:bg-amber-50"
+                                    x-bind:class="rank == @js($val === '' ? null : (int)$val) ? 'border-amber-400 bg-amber-50 text-amber-800' : 'border-gray-200 text-gray-600'">
+                                    <input type="radio" name="rank" value="{{ $val }}"
+                                        class="sr-only"
+                                        x-on:change="rank = @js($val === '' ? null : (int)$val)"
+                                        {{ $team->rank == ($val ?: null) && ($val !== '' || !$team->rank) ? 'checked' : '' }}>
+                                    {{ $label }}
+                                </label>
+                            @endforeach
+                        </div>
+                        @error('rank')
+                            <p class="mt-2 text-sm font-semibold text-rose-700">{{ $message }}</p>
+                        @enderror
+                    </div>
+
+                    <button type="submit" class="w-full rounded-md bg-amber-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-amber-700">
+                        Simpan Status Finalis
+                    </button>
+                </form>
+            </section>
         </aside>
     </div>
 </x-admin.layout>
+

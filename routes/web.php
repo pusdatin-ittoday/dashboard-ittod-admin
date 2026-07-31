@@ -27,6 +27,7 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/teams/{id}', [TeamController::class, 'show'])->name('operation.teams.show');
         Route::post('/teams/{id}/verify', [TeamController::class, 'updateStatus'])->name('operation.teams.verify');
         Route::post('/teams/{teamId}/members/{userId}/verify', [TeamController::class, 'updateMemberStatus'])->name('operation.teams.verifyMember');
+        Route::post('/teams/{id}/finalist', [TeamController::class, 'updateFinalist'])->name('operation.teams.finalist');
         Route::delete('/teams/{id}', [TeamController::class, 'destroy'])->name('operation.teams.destroy');
         Route::delete('/teams/{teamId}/members/{userId}', [TeamController::class, 'destroyMember'])->name('operation.teams.destroyMember');
 
