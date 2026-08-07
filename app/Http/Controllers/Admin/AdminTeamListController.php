@@ -120,7 +120,7 @@ class AdminTeamListController extends Controller
             'total_members' => $allTeams->sum(fn($t) => $t->members->count()),
         ];
 
-        $teams = $query->latest('created_at')->paginate(15)->withQueryString();
+        $teams = $query->latest('created_at')->paginate(15)->fragment('teams-table')->withQueryString();
 
         if ($request->ajax() || $request->has('ajax')) {
             return response()->json([

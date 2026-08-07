@@ -173,11 +173,15 @@
 
         <!-- Read-Only Teams Table Section with Instant Scroll-Preserving Pagination -->
         <section
+            id="teams-table"
             x-data="{
                 loading: false,
                 async fetchPage(url) {
                     if (this.loading || !url) return;
                     this.loading = true;
+
+                    // Preserve current exact vertical scroll position
+                    const currentScrollY = window.scrollY || window.pageYOffset;
 
                     const targetUrl = new URL(url, window.location.origin);
                     targetUrl.searchParams.set('ajax', '1');
@@ -188,7 +192,7 @@
                         });
 
                         if (!response.ok) {
-                            window.location.href = url;
+                            window.location.href = url.includes('#') ? url : url + '#teams-table';
                             return;
                         }
 
@@ -208,9 +212,14 @@
                         }
 
                         window.history.pushState({}, '', url);
+
+                        // Ensure scroll height remains 100% frozen in place
+                        requestAnimationFrame(() => {
+                            window.scrollTo({ top: currentScrollY, behavior: 'instant' });
+                        });
                     } catch (e) {
                         console.error('Error fetching page:', e);
-                        window.location.href = url;
+                        window.location.href = url.includes('#') ? url : url + '#teams-table';
                     } finally {
                         this.loading = false;
                     }
