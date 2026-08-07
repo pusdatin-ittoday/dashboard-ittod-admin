@@ -7,7 +7,12 @@
                     &laquo; Prev
                 </span>
             @else
-                <a href="{{ $paginator->previousPageUrl() }}" rel="prev" class="inline-flex items-center rounded-md border border-gray-300 bg-white px-3 py-1.5 text-xs font-bold text-gray-700 hover:bg-indigo-50 hover:text-indigo-700 hover:border-indigo-300 shadow-2xs transition-colors">
+                <a
+                    href="{{ $paginator->previousPageUrl() }}"
+                    rel="prev"
+                    @click.prevent="$dispatch('goto-page', '{{ $paginator->previousPageUrl() }}')"
+                    class="inline-flex items-center rounded-md border border-gray-300 bg-white px-3 py-1.5 text-xs font-bold text-gray-700 hover:bg-indigo-50 hover:text-indigo-700 hover:border-indigo-300 shadow-2xs transition-colors cursor-pointer"
+                >
                     &laquo; Prev
                 </a>
             @endif
@@ -29,7 +34,11 @@
                                 {{ $page }}
                             </span>
                         @else
-                            <a href="{{ $url }}" class="inline-flex items-center rounded-md border border-gray-300 bg-white px-3.5 py-1.5 text-xs font-bold text-gray-700 hover:bg-indigo-50 hover:text-indigo-700 hover:border-indigo-300 shadow-2xs transition-colors">
+                            <a
+                                href="{{ $url }}"
+                                @click.prevent="$dispatch('goto-page', '{{ $url }}')"
+                                class="inline-flex items-center rounded-md border border-gray-300 bg-white px-3.5 py-1.5 text-xs font-bold text-gray-700 hover:bg-indigo-50 hover:text-indigo-700 hover:border-indigo-300 shadow-2xs transition-colors cursor-pointer"
+                            >
                                 {{ $page }}
                             </a>
                         @endif
@@ -39,7 +48,12 @@
 
             {{-- Next Page Link --}}
             @if ($paginator->hasMorePages())
-                <a href="{{ $paginator->nextPageUrl() }}" rel="next" class="inline-flex items-center rounded-md border border-gray-300 bg-white px-3 py-1.5 text-xs font-bold text-gray-700 hover:bg-indigo-50 hover:text-indigo-700 hover:border-indigo-300 shadow-2xs transition-colors">
+                <a
+                    href="{{ $paginator->nextPageUrl() }}"
+                    rel="next"
+                    @click.prevent="$dispatch('goto-page', '{{ $paginator->nextPageUrl() }}')"
+                    class="inline-flex items-center rounded-md border border-gray-300 bg-white px-3 py-1.5 text-xs font-bold text-gray-700 hover:bg-indigo-50 hover:text-indigo-700 hover:border-indigo-300 shadow-2xs transition-colors cursor-pointer"
+                >
                     Next &raquo;
                 </a>
             @else

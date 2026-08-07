@@ -171,13 +171,64 @@
             </form>
         </section>
 
-        <!-- Read-Only Teams Table Section with Standard Laravel Pagination -->
-        <section class="overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm">
+        <!-- Read-Only Teams Table Section with Instant Scroll-Preserving Pagination -->
+        <section
+            x-data="{
+                loading: false,
+                async fetchPage(url) {
+                    if (this.loading || !url) return;
+                    this.loading = true;
+
+                    const targetUrl = new URL(url, window.location.origin);
+                    targetUrl.searchParams.set('ajax', '1');
+
+                    try {
+                        const response = await fetch(targetUrl.toString(), {
+                            headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                        });
+                        const data = await response.json();
+
+                        if (data.rows_html) {
+                            document.getElementById('teams-table-body').innerHTML = data.rows_html;
+                        }
+                        if (data.modals_html) {
+                            document.getElementById('teams-modals-container').innerHTML = data.modals_html;
+                        }
+                        if (data.pagination_html) {
+                            document.getElementById('teams-pagination-container').innerHTML = data.pagination_html;
+                        }
+                        if (data.showing_info) {
+                            document.getElementById('teams-showing-info').innerText = data.showing_info;
+                        }
+
+                        window.history.pushState({}, '', url);
+                    } catch (e) {
+                        console.error('Error fetching page:', e);
+                        window.location.href = url;
+                    } finally {
+                        this.loading = false;
+                    }
+                }
+            }"
+            x-on:goto-page.window="fetchPage($event.detail)"
+            class="relative overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm"
+        >
             <div class="border-b border-gray-200 px-6 py-4 flex items-center justify-between">
                 <h3 class="text-base font-bold text-gray-900">Daftar Tim Terdaftar</h3>
-                <span class="text-xs font-semibold text-gray-500">
+                <span id="teams-showing-info" class="text-xs font-semibold text-gray-500">
                     Menampilkan {{ $teams->firstItem() ?? 0 }} - {{ $teams->lastItem() ?? 0 }} dari {{ $teams->total() }} tim
                 </span>
+            </div>
+
+            <!-- Loading Overlay during page swap -->
+            <div x-show="loading" class="absolute inset-0 bg-white/50 backdrop-blur-[1px] flex items-center justify-center z-20">
+                <div class="bg-indigo-600 text-white text-xs font-bold px-4 py-2 rounded-lg shadow-lg flex items-center gap-2">
+                    <svg class="animate-spin h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    <span>Memuat Halaman...</span>
+                </div>
             </div>
 
             <div class="w-full overflow-x-auto">
@@ -201,11 +252,9 @@
             </div>
 
             <!-- Centered Light-Themed Pagination Navigation -->
-            @if($teams->hasPages())
-                <div class="px-6 py-4 border-t border-gray-200 bg-gray-50 flex items-center justify-center">
-                    {{ $teams->links('components.admin.pagination') }}
-                </div>
-            @endif
+            <div id="teams-pagination-container" class="px-6 py-4 border-t border-gray-200 bg-gray-50 flex items-center justify-center">
+                {{ $teams->links('components.admin.pagination') }}
+            </div>
         </section>
 
         <!-- Admin Themed Image Preview Lightbox Modal with Smooth Transition -->
