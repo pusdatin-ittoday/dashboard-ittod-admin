@@ -73,7 +73,7 @@
                 <x-dropdown align="right" width="48">
                     <x-slot name="trigger">
                         <button class="inline-flex items-center px-3 py-2 border border-gray-200 text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none transition ease-in-out duration-150 shadow-sm">
-                            <span class="whitespace-nowrap">{{ Auth::user()->user?->full_name ?? Auth::user()->email }}</span>
+                            <span class="whitespace-nowrap">{{ Auth::user()?->user?->full_name ?? Auth::user()?->email }}</span>
 
                             <div class="ms-1.5">
                                 <svg class="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
@@ -86,7 +86,7 @@
                     <x-slot name="content">
                         <!-- Role Badge -->
                         <div class="px-4 py-2 border-b border-gray-100 text-xs text-gray-500 font-semibold uppercase tracking-wider">
-                            Role: {{ Auth::user()->role }}
+                            Role: {{ Auth::user()?->role }}
                         </div>
 
                         <!-- Authentication -->
@@ -165,8 +165,8 @@
         <!-- Responsive Settings Options -->
         <div class="pt-4 pb-1 border-t border-gray-200">
             <div class="px-4">
-                <div class="font-medium text-base text-gray-800">{{ Auth::user()->user?->full_name ?? Auth::user()->email }}</div>
-                <div class="font-medium text-sm text-gray-500">{{ Auth::user()->email }}</div>
+                <div class="font-medium text-base text-gray-800">{{ Auth::user()?->user?->full_name ?? Auth::user()?->email }}</div>
+                <div class="font-medium text-sm text-gray-500">{{ Auth::user()?->email }}</div>
             </div>
 
             <div class="mt-3 space-y-1">
