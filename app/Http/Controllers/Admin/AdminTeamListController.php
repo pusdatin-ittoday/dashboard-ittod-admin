@@ -74,7 +74,11 @@ class AdminTeamListController extends Controller
         // Filter by Date / Batch
         if ($request->filled('batch')) {
             $batch = $request->input('batch');
-            if ($batch === 'today') {
+            if ($batch === 'batch_1' || $batch === 'batch1') {
+                $query->where('created_at', '<=', '2026-07-31 23:59:59');
+            } elseif ($batch === 'batch_2' || $batch === 'batch2') {
+                $query->where('created_at', '>=', '2026-08-01 00:00:00');
+            } elseif ($batch === 'today') {
                 $query->whereDate('created_at', now()->today());
             } elseif ($batch === 'this_week') {
                 $query->whereBetween('created_at', [now()->startOfWeek(), now()->endOfWeek()]);

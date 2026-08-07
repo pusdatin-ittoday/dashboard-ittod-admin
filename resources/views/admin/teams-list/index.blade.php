@@ -142,6 +142,8 @@
                         class="w-full rounded-md border-gray-300 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
                     >
                         <option value="">Semua Periode</option>
+                        <option value="batch_1" {{ $selectedBatch === 'batch_1' ? 'selected' : '' }}>Batch 1 (17 Jul - 31 Jul)</option>
+                        <option value="batch_2" {{ $selectedBatch === 'batch_2' ? 'selected' : '' }}>Batch 2 (31 Jul - 11 Agu)</option>
                         <option value="today" {{ $selectedBatch === 'today' ? 'selected' : '' }}>Hari Ini</option>
                         <option value="this_week" {{ $selectedBatch === 'this_week' ? 'selected' : '' }}>Minggu Ini</option>
                         <option value="this_month" {{ $selectedBatch === 'this_month' ? 'selected' : '' }}>Bulan Ini</option>
@@ -272,6 +274,15 @@
 
                                 <!-- Waktu Daftar -->
                                 <td class="px-6 py-4 text-xs font-medium text-gray-600 whitespace-nowrap">
+                                    @if($team->created_at?->isBefore('2026-08-01'))
+                                        <span class="inline-flex items-center rounded bg-purple-100 px-2 py-0.5 text-[10px] font-extrabold text-purple-800 border border-purple-200 mb-1">
+                                            Batch 1 (17-31 Jul)
+                                        </span>
+                                    @else
+                                        <span class="inline-flex items-center rounded bg-indigo-100 px-2 py-0.5 text-[10px] font-extrabold text-indigo-800 border border-indigo-200 mb-1">
+                                            Batch 2 (31 Jul - 11 Agu)
+                                        </span>
+                                    @endif
                                     <div>{{ $team->created_at?->translatedFormat('d M Y') ?? '-' }}</div>
                                     <div class="text-gray-400 font-mono mt-0.5">{{ $team->created_at?->format('H:i') ?? '' }} WIB</div>
                                 </td>
