@@ -22,6 +22,8 @@ class Team extends Model
         'id',
         'competition_id',
         'team_name',
+        'previous_team_name',
+        'name_changed_at',
         'team_code',
         'max_member',
         'is_document_verified',
@@ -35,6 +37,7 @@ class Team extends Model
         // removed is_verified integer cast
         'max_member' => 'integer',
         'is_name_changed' => 'boolean',
+        'name_changed_at' => 'datetime',
     ];
 
     /**

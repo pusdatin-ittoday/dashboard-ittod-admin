@@ -390,6 +390,28 @@
                             @endif
                         </dd>
                     </div>
+                    @unless($isIndividual)
+                        <div class="flex items-center justify-between gap-4 border-t border-gray-100 pt-3">
+                            <dt class="text-gray-500">Riwayat Nama</dt>
+                            <dd>
+                                @if($team->is_name_changed)
+                                    <button
+                                        type="button"
+                                        x-data
+                                        x-on:click="$dispatch('open-name-history')"
+                                        class="inline-flex items-center gap-1.5 rounded-md border border-amber-300 bg-amber-50 px-2.5 py-1 text-xs font-semibold text-amber-800 hover:bg-amber-100 transition"
+                                    >
+                                        <svg class="h-3.5 w-3.5 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                        </svg>
+                                        <span>Lihat Riwayat (1x)</span>
+                                    </button>
+                                @else
+                                    <span class="text-xs font-medium text-gray-400">Belum Diubah (0/1)</span>
+                                @endif
+                            </dd>
+                        </div>
+                    @endunless
                 </dl>
             </section>
 
@@ -470,4 +492,76 @@
             </section>
         </aside>
     </div>
+
+    @unless($isIndividual)
+        {{-- History Modal --}}
+        <div
+            x-data="{ open: false }"
+            x-on:open-name-history.window="open = true"
+            x-on:keydown.escape.window="open = false"
+            x-show="open"
+            class="fixed inset-0 z-50 overflow-y-auto"
+            style="display: none;"
+        >
+            <div class="flex min-h-screen items-center justify-center p-4 text-center">
+                <div x-show="open" x-transition.opacity class="fixed inset-0 bg-gray-900/60 backdrop-blur-sm"></div>
+
+                <div
+                    x-show="open"
+                    x-transition
+                    x-on:click.outside="open = false"
+                    class="relative w-full max-w-md transform overflow-hidden rounded-xl bg-white p-6 text-left align-middle shadow-xl transition-all"
+                >
+                    <div class="flex items-center justify-between border-b border-gray-200 pb-4">
+                        <div class="flex items-center gap-2 font-bold text-base text-gray-950">
+                            <svg class="h-5 w-5 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                            <h3>Riwayat Perubahan Nama Tim</h3>
+                        </div>
+                        <button x-on:click="open = false" class="text-gray-400 hover:text-gray-600">
+                            <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                            </svg>
+                        </button>
+                    </div>
+
+                    <div class="mt-4 space-y-4 text-sm">
+                        <div class="rounded-lg bg-gray-50 p-3.5 border border-gray-200">
+                            <span class="text-xs font-semibold uppercase text-gray-500 block mb-1">Nama Tim Saat Ini (Aktif)</span>
+                            <span class="font-bold text-gray-950 text-base">{{ $team->team_name }}</span>
+                        </div>
+
+                        <div class="rounded-lg bg-amber-50 p-3.5 border border-amber-200">
+                            <span class="text-xs font-semibold uppercase text-amber-800 block mb-1">Nama Tim Asli / Sebelumnya</span>
+                            <span class="font-semibold text-amber-950 text-base">{{ $team->previous_team_name ?? '-' }}</span>
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-3 text-xs">
+                            <div class="rounded-md bg-gray-100 p-2.5">
+                                <span class="text-gray-500 block mb-0.5">Waktu Perubahan</span>
+                                <span class="font-semibold text-gray-900">
+                                    {{ $team->name_changed_at ? $team->name_changed_at->format('d M Y, H:i') . ' WIB' : '-' }}
+                                </span>
+                            </div>
+                            <div class="rounded-md bg-gray-100 p-2.5">
+                                <span class="text-gray-500 block mb-0.5">Status Batas</span>
+                                <span class="font-semibold text-rose-700">Terkunci (1/1 kali)</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mt-6 flex justify-end">
+                        <button
+                            type="button"
+                            x-on:click="open = false"
+                            class="rounded-md border border-gray-300 bg-white px-4 py-2 text-xs font-semibold text-gray-700 hover:bg-gray-50"
+                        >
+                            Tutup
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    @endunless
 </x-admin.layout>
