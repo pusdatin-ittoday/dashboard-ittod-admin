@@ -2,7 +2,7 @@
     title="List Tim & Monitoring Peserta"
     subtitle="Direktori pemantauan seluruh tim kompetisi dan event IT Today (Read-Only)."
 >
-    <div class="flex flex-col gap-6">
+    <div x-data="{ lightboxOpen: false, lightboxImg: '', lightboxTitle: '' }" x-on:open-lightbox.window="lightboxOpen = true; lightboxImg = $event.detail.img; lightboxTitle = $event.detail.title" class="flex flex-col gap-6">
         <!-- Summary Stats Cards -->
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             <div class="rounded-lg border border-gray-200 bg-white p-5 shadow-sm">
@@ -20,28 +20,28 @@
 
             <div class="rounded-lg border border-gray-200 bg-white p-5 shadow-sm">
                 <div class="flex items-center justify-between">
-                    <span class="text-xs font-bold uppercase tracking-wider text-emerald-700">Terverifikasi</span>
-                    <span class="rounded-full bg-emerald-50 p-2 text-emerald-600">
+                    <span class="text-xs font-bold uppercase tracking-wider text-blue-700">Berkas Terverifikasi</span>
+                    <span class="rounded-full bg-blue-50 p-2 text-blue-600">
                         <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
                         </svg>
                     </span>
                 </div>
-                <p class="mt-2 text-2xl font-black text-emerald-700">{{ $stats['verified_teams'] }}</p>
-                <p class="mt-1 text-xs text-gray-500">Tim lolos verifikasi</p>
+                <p class="mt-2 text-2xl font-black text-blue-700">{{ $stats['verified_berkas'] }}</p>
+                <p class="mt-1 text-xs text-gray-500">Berkas lolos validasi</p>
             </div>
 
             <div class="rounded-lg border border-gray-200 bg-white p-5 shadow-sm">
                 <div class="flex items-center justify-between">
-                    <span class="text-xs font-bold uppercase tracking-wider text-amber-700">Pending / Menunggu</span>
-                    <span class="rounded-full bg-amber-50 p-2 text-amber-600">
+                    <span class="text-xs font-bold uppercase tracking-wider text-emerald-700">Pembayaran Lunas</span>
+                    <span class="rounded-full bg-emerald-50 p-2 text-emerald-600">
                         <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                         </svg>
                     </span>
                 </div>
-                <p class="mt-2 text-2xl font-black text-amber-700">{{ $stats['pending_teams'] }}</p>
-                <p class="mt-1 text-xs text-gray-500">Menunggu tinjauan</p>
+                <p class="mt-2 text-2xl font-black text-emerald-700">{{ $stats['verified_pembayaran'] }}</p>
+                <p class="mt-1 text-xs text-gray-500">Transaksi disetujui</p>
             </div>
 
             <div class="rounded-lg border border-gray-200 bg-white p-5 shadow-sm">
@@ -60,7 +60,7 @@
 
         <!-- Filter & Search Bar Section -->
         <section class="rounded-lg border border-gray-200 bg-white p-5 shadow-sm">
-            <form method="GET" action="{{ route('admin.teams-list.index') }}" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 items-end">
+            <form method="GET" action="{{ route('admin.teams-list.index') }}" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-3 items-end">
                 <!-- Search -->
                 <div class="sm:col-span-2 lg:col-span-2">
                     <label class="block text-xs font-bold uppercase tracking-wide text-gray-600 mb-1">
@@ -85,13 +85,13 @@
                 <!-- Event Filter -->
                 <div>
                     <label class="block text-xs font-bold uppercase tracking-wide text-gray-600 mb-1">
-                        Event / Kompetisi
+                        Event / Lomba
                     </label>
                     <select
                         name="event_id"
                         class="w-full rounded-md border-gray-300 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
                     >
-                        <option value="">Semua Event / Lomba</option>
+                        <option value="">Semua Event</option>
                         @foreach($events as $ev)
                             <option value="{{ $ev->id }}" {{ $selectedEventId === $ev->id ? 'selected' : '' }}>
                                 {{ $ev->title }}
@@ -100,19 +100,35 @@
                     </select>
                 </div>
 
-                <!-- Status Filter -->
+                <!-- Status Berkas Filter -->
                 <div>
                     <label class="block text-xs font-bold uppercase tracking-wide text-gray-600 mb-1">
-                        Status Verifikasi
+                        Status Berkas
                     </label>
                     <select
-                        name="status"
+                        name="status_berkas"
                         class="w-full rounded-md border-gray-300 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
                     >
-                        <option value="">Semua Status</option>
-                        <option value="verified" {{ $selectedStatus === 'verified' ? 'selected' : '' }}>Terverifikasi (Approved)</option>
-                        <option value="pending" {{ $selectedStatus === 'pending' ? 'selected' : '' }}>Pending</option>
-                        <option value="rejected" {{ $selectedStatus === 'rejected' ? 'selected' : '' }}>Ditolak (Rejected)</option>
+                        <option value="">Semua Berkas</option>
+                        <option value="verified" {{ $selectedStatusBerkas === 'verified' ? 'selected' : '' }}>✓ Terverifikasi</option>
+                        <option value="pending" {{ $selectedStatusBerkas === 'pending' ? 'selected' : '' }}>⏱ Pending</option>
+                        <option value="rejected" {{ $selectedStatusBerkas === 'rejected' ? 'selected' : '' }}>✕ Ditolak</option>
+                    </select>
+                </div>
+
+                <!-- Status Pembayaran Filter -->
+                <div>
+                    <label class="block text-xs font-bold uppercase tracking-wide text-gray-600 mb-1">
+                        Status Pembayaran
+                    </label>
+                    <select
+                        name="status_pembayaran"
+                        class="w-full rounded-md border-gray-300 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                    >
+                        <option value="">Semua Pembayaran</option>
+                        <option value="verified" {{ $selectedStatusPembayaran === 'verified' ? 'selected' : '' }}>✓ Lunas / Approved</option>
+                        <option value="pending" {{ $selectedStatusPembayaran === 'pending' ? 'selected' : '' }}>⏱ Pending</option>
+                        <option value="rejected" {{ $selectedStatusPembayaran === 'rejected' ? 'selected' : '' }}>✕ Ditolak</option>
                     </select>
                 </div>
 
@@ -133,14 +149,14 @@
                 </div>
 
                 <!-- Action Buttons -->
-                <div class="flex items-center gap-2 sm:col-span-2 lg:col-span-5 justify-end mt-1">
+                <div class="flex items-center gap-2 sm:col-span-2 lg:col-span-6 justify-end mt-1">
                     <button
                         type="submit"
                         class="rounded-md bg-indigo-600 px-4 py-2 text-xs font-bold text-white shadow hover:bg-indigo-700 transition-colors"
                     >
                         Terapkan Filter
                     </button>
-                    @if($selectedEventId || $selectedStatus || $selectedBatch || $searchQuery)
+                    @if($selectedEventId || $selectedStatusBerkas || $selectedStatusPembayaran || $selectedBatch || $searchQuery)
                         <a
                             href="{{ route('admin.teams-list.index') }}"
                             class="rounded-md border border-gray-300 bg-white px-4 py-2 text-xs font-semibold text-gray-700 hover:bg-gray-50"
@@ -164,10 +180,11 @@
                     <thead class="bg-gray-50">
                         <tr>
                             <th class="px-6 py-3 text-left text-xs font-bold uppercase text-gray-600">Nama Tim & Kode</th>
-                            <th class="px-6 py-3 text-left text-xs font-bold uppercase text-gray-600">Event / Kompetisi</th>
-                            <th class="px-6 py-3 text-left text-xs font-bold uppercase text-gray-600">Ketua & Sekolah/Instansi</th>
-                            <th class="px-6 py-3 text-left text-xs font-bold uppercase text-gray-600">Jumlah Anggota</th>
-                            <th class="px-6 py-3 text-left text-xs font-bold uppercase text-gray-600">Status</th>
+                            <th class="px-6 py-3 text-left text-xs font-bold uppercase text-gray-600">Event / Lomba</th>
+                            <th class="px-6 py-3 text-left text-xs font-bold uppercase text-gray-600">Ketua & Instansi</th>
+                            <th class="px-6 py-3 text-left text-xs font-bold uppercase text-gray-600">Anggota</th>
+                            <th class="px-6 py-3 text-left text-xs font-bold uppercase text-gray-600">Status Berkas</th>
+                            <th class="px-6 py-3 text-left text-xs font-bold uppercase text-gray-600">Status Pembayaran</th>
                             <th class="px-6 py-3 text-left text-xs font-bold uppercase text-gray-600">Waktu Daftar</th>
                             <th class="px-6 py-3 text-right text-xs font-bold uppercase text-gray-600">Aksi</th>
                         </tr>
@@ -219,19 +236,36 @@
                                     </span>
                                 </td>
 
-                                <!-- Status Verifikasi -->
+                                <!-- Status Berkas -->
                                 <td class="px-6 py-4 whitespace-nowrap">
-                                    @if(in_array($team->is_verified, ['approved', 'verified', '1', 1], true))
-                                        <span class="inline-flex items-center rounded-full bg-emerald-100 px-2.5 py-0.5 text-xs font-bold text-emerald-800">
-                                            ✓ Terverifikasi
+                                    @if(in_array($team->is_document_verified, ['verified', 'approved', '1', 1], true))
+                                        <span class="inline-flex items-center rounded-full bg-blue-100 px-2.5 py-0.5 text-xs font-bold text-blue-800">
+                                            ✓ Berkas Lolos
                                         </span>
-                                    @elseif(in_array($team->is_verified, ['rejected', '0'], true))
+                                    @elseif(in_array($team->is_document_verified, ['rejected', '0'], true))
                                         <span class="inline-flex items-center rounded-full bg-red-100 px-2.5 py-0.5 text-xs font-bold text-red-800">
-                                            ✕ Ditolak
+                                            ✕ Berkas Ditolak
                                         </span>
                                     @else
                                         <span class="inline-flex items-center rounded-full bg-amber-100 px-2.5 py-0.5 text-xs font-bold text-amber-800">
-                                            ⏱ Pending
+                                            ⏱ Berkas Pending
+                                        </span>
+                                    @endif
+                                </td>
+
+                                <!-- Status Pembayaran -->
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    @if(in_array($team->is_verified, ['approved', 'verified', '1', 1], true))
+                                        <span class="inline-flex items-center rounded-full bg-emerald-100 px-2.5 py-0.5 text-xs font-bold text-emerald-800">
+                                            ✓ Bayar Lunas
+                                        </span>
+                                    @elseif(in_array($team->is_verified, ['rejected', '0'], true))
+                                        <span class="inline-flex items-center rounded-full bg-red-100 px-2.5 py-0.5 text-xs font-bold text-red-800">
+                                            ✕ Bayar Ditolak
+                                        </span>
+                                    @else
+                                        <span class="inline-flex items-center rounded-full bg-amber-100 px-2.5 py-0.5 text-xs font-bold text-amber-800">
+                                            ⏱ Bayar Pending
                                         </span>
                                     @endif
                                 </td>
@@ -248,7 +282,7 @@
                                         type="button"
                                         x-data
                                         x-on:click="$dispatch('open-modal', 'view-team-{{ $team->id }}')"
-                                        class="rounded-md border border-indigo-200 bg-indigo-50 px-3 py-1.5 text-xs font-bold text-indigo-700 hover:bg-indigo-100"
+                                        class="rounded-md border border-indigo-200 bg-indigo-50 px-3 py-1.5 text-xs font-bold text-indigo-700 hover:bg-indigo-100 cursor-pointer"
                                     >
                                         Detail Preview
                                     </button>
@@ -256,7 +290,7 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="7" class="px-6 py-12 text-center text-sm text-gray-500">
+                                <td colspan="8" class="px-6 py-12 text-center text-sm text-gray-500">
                                     Tidak ada data tim yang sesuai dengan kriteria pencarian/filter.
                                 </td>
                             </tr>
@@ -265,6 +299,37 @@
                 </table>
             </div>
         </section>
+
+        <!-- Fullscreen Image Lightbox Modal -->
+        <div
+            x-show="lightboxOpen"
+            x-cloak
+            x-on:keydown.escape.window="lightboxOpen = false"
+            class="fixed inset-0 z-50 flex items-center justify-center bg-black/90 p-4 backdrop-blur-md"
+            style="display: none;"
+        >
+            <button
+                type="button"
+                @click="lightboxOpen = false"
+                class="absolute top-4 right-4 z-50 rounded-full bg-white/20 p-2.5 text-white hover:bg-white/40 focus:outline-none transition-colors cursor-pointer"
+                title="Tutup Preview (Esc)"
+            >
+                <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+            </button>
+
+            <div @click.outside="lightboxOpen = false" class="relative max-w-5xl max-h-[92vh] flex flex-col items-center justify-center overflow-hidden rounded-xl bg-black/60 p-3 border border-white/20 shadow-2xl">
+                <img :src="lightboxImg" alt="Enlarged Document" class="max-h-[82vh] w-auto max-w-full rounded-lg object-contain shadow-2xl">
+                <div class="mt-3 text-center text-xs font-bold text-white/90 flex items-center gap-3">
+                    <span x-text="lightboxTitle" class="bg-indigo-900/80 text-indigo-200 px-2.5 py-0.5 rounded border border-indigo-500/40"></span>
+                    <span>&bull;</span>
+                    <a :href="lightboxImg" target="_blank" class="text-indigo-300 underline hover:text-white transition-colors">
+                        Buka Dokumen Asli di Tab Baru ↗
+                    </a>
+                </div>
+            </div>
+        </div>
     </div>
 
     <!-- Modals Detail Preview Read-Only -->
@@ -281,8 +346,22 @@
                             <p class="text-xs font-mono text-indigo-600 font-bold mt-0.5">Kode Tim: {{ $team->team_code }}</p>
                         @endif
                     </div>
-                    <div class="text-right">
-                        <p class="text-xs font-mono text-gray-500">
+                    <div class="text-right flex flex-col items-end gap-1">
+                        <!-- Status Badges -->
+                        <div class="flex items-center gap-1.5">
+                            @if(in_array($team->is_document_verified, ['verified', 'approved', '1', 1], true))
+                                <span class="rounded bg-blue-100 px-2 py-0.5 text-[10px] font-bold text-blue-800">✓ Berkas Lolos</span>
+                            @else
+                                <span class="rounded bg-amber-100 px-2 py-0.5 text-[10px] font-bold text-amber-800">⏱ Berkas Pending</span>
+                            @endif
+
+                            @if(in_array($team->is_verified, ['approved', 'verified', '1', 1], true))
+                                <span class="rounded bg-emerald-100 px-2 py-0.5 text-[10px] font-bold text-emerald-800">✓ Bayar Lunas</span>
+                            @else
+                                <span class="rounded bg-amber-100 px-2 py-0.5 text-[10px] font-bold text-amber-800">⏱ Bayar Pending</span>
+                            @endif
+                        </div>
+                        <p class="text-[11px] font-mono text-gray-500 mt-1">
                             Terdaftar: {{ $team->created_at?->translatedFormat('d F Y, H:i') ?? '-' }} WIB
                         </p>
                     </div>
@@ -324,9 +403,13 @@
 
                                 @if($u?->ktm_key)
                                     <div class="shrink-0">
-                                        <a href="{{ env('R2_PUBLIC', 'https://cdn.ittoday.web.id') . '/' . $u->ktm_key }}" target="_blank" class="inline-flex items-center gap-1 text-xs font-bold text-indigo-600 hover:underline bg-white px-3 py-1.5 rounded border border-gray-300 shadow-sm">
-                                            <span>Lihat KTM / Kartu ↗</span>
-                                        </a>
+                                        <button
+                                            type="button"
+                                            @click="$dispatch('open-lightbox', { img: '{{ env('R2_PUBLIC', 'https://cdn.ittoday.web.id') . '/' . $u->ktm_key }}', title: 'KTM / Kartu Identitas - {{ addslashes($u?->full_name ?? '') }}' })"
+                                            class="inline-flex items-center gap-1.5 text-xs font-bold text-indigo-700 hover:text-indigo-900 bg-indigo-50 hover:bg-indigo-100 px-3 py-1.5 rounded border border-indigo-200 shadow-sm cursor-pointer transition-colors"
+                                        >
+                                            <span>🔍 Preview KTM / Kartu</span>
+                                        </button>
                                     </div>
                                 @endif
                             </div>
@@ -335,7 +418,7 @@
                 </div>
 
                 <div class="mt-6 flex justify-end border-t border-gray-200 pt-4">
-                    <button type="button" x-on:click="$dispatch('close-modal', 'view-team-{{ $team->id }}')" class="rounded-md border border-gray-300 px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50">Tutup</button>
+                    <button type="button" x-on:click="$dispatch('close-modal', 'view-team-{{ $team->id }}')" class="rounded-md border border-gray-300 px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50 cursor-pointer">Tutup</button>
                 </div>
             </div>
         </x-modal>

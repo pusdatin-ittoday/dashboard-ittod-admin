@@ -8,11 +8,12 @@
     title="{{ $isIndividual ? 'Detail Peserta: ' . $participantName : 'Detail Tim: ' . $team->team_name }}"
     subtitle="{{ $isIndividual ? 'ID Pendaftaran' : 'ID Tim' }}: {{ $team->id }}"
 >
-    @if(session('success'))
-        <div class="mb-6 rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-medium text-emerald-800">
-            {{ session('success') }}
-        </div>
-    @endif
+    <div x-data="{ lightboxOpen: false, lightboxImg: '', lightboxTitle: '' }" x-on:open-lightbox.window="lightboxOpen = true; lightboxImg = $event.detail.img; lightboxTitle = $event.detail.title">
+        @if(session('success'))
+            <div class="mb-6 rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-medium text-emerald-800">
+                {{ session('success') }}
+            </div>
+        @endif
 
     @if($errors->any())
         <div class="mb-6 rounded-lg border border-rose-200 bg-rose-50 px-4 py-3 text-sm font-medium text-rose-800">
@@ -244,10 +245,10 @@
                                                 <a href="{{ $ktmUrl }}" target="_blank" class="text-sm font-semibold text-emerald-700 hover:text-emerald-800">Buka</a>
                                             </div>
                                         @else
-                                            <img src="{{ $ktmUrl }}" alt="KTM {{ $participant->full_name }}" class="max-h-48 rounded-md border border-gray-200 bg-white object-contain p-1">
-                                            <a href="{{ $ktmUrl }}" target="_blank" class="mt-3 inline-flex rounded-md border border-gray-300 px-3 py-2 text-sm font-semibold text-gray-700 hover:bg-white">
-                                                Lihat Gambar
-                                            </a>
+                                            <img src="{{ $ktmUrl }}" alt="KTM {{ $participant->full_name }}" class="max-h-48 rounded-md border border-gray-200 bg-white object-contain p-1 cursor-pointer" @click="$dispatch('open-lightbox', { img: '{{ $ktmUrl }}', title: 'KTM / Kartu - {{ addslashes($participant->full_name) }}' })">
+                                            <button type="button" @click="$dispatch('open-lightbox', { img: '{{ $ktmUrl }}', title: 'KTM / Kartu - {{ addslashes($participant->full_name) }}' })" class="mt-3 inline-flex rounded-md border border-gray-300 px-3 py-2 text-sm font-semibold text-gray-700 hover:bg-white cursor-pointer">
+                                                🔍 Preview KTM / Kartu
+                                            </button>
                                         @endif
                                     @else
                                         <p class="py-8 text-center text-sm text-gray-500">KTM belum diunggah</p>
@@ -259,10 +260,10 @@
                                             $twibbonUrl = $participant->twibbon_key ? rtrim(config('services.api_url'), '/') . '/api/images/' . $participant->twibbon_key : null;
                                         @endphp
                                         @if($twibbonUrl)
-                                            <img src="{{ $twibbonUrl }}" alt="Bukti Upload Twibbon {{ $participant->full_name }}" class="max-h-48 rounded-md border border-gray-200 bg-white object-contain p-1">
-                                            <a href="{{ $twibbonUrl }}" target="_blank" class="mt-3 inline-flex rounded-md border border-gray-300 px-3 py-2 text-sm font-semibold text-gray-700 hover:bg-white">
-                                                Lihat Gambar
-                                            </a>
+                                            <img src="{{ $twibbonUrl }}" alt="Bukti Upload Twibbon {{ $participant->full_name }}" class="max-h-48 rounded-md border border-gray-200 bg-white object-contain p-1 cursor-pointer" @click="$dispatch('open-lightbox', { img: '{{ $twibbonUrl }}', title: 'Twibbon - {{ addslashes($participant->full_name) }}' })">
+                                            <button type="button" @click="$dispatch('open-lightbox', { img: '{{ $twibbonUrl }}', title: 'Twibbon - {{ addslashes($participant->full_name) }}' })" class="mt-3 inline-flex rounded-md border border-gray-300 px-3 py-2 text-sm font-semibold text-gray-700 hover:bg-white cursor-pointer">
+                                                🔍 Preview Twibbon
+                                            </button>
                                         @else
                                             <p class="py-8 text-center text-sm text-gray-500">Bukti Upload Twibbon belum diunggah</p>
                                         @endif
@@ -680,6 +681,35 @@
                     </form>
                 </div>
             </div>
+        <!-- Fullscreen Image Lightbox Modal -->
+        <div
+            x-show="lightboxOpen"
+            x-cloak
+            x-on:keydown.escape.window="lightboxOpen = false"
+            class="fixed inset-0 z-50 flex items-center justify-center bg-black/90 p-4 backdrop-blur-md"
+            style="display: none;"
+        >
+            <button
+                type="button"
+                @click="lightboxOpen = false"
+                class="absolute top-4 right-4 z-50 rounded-full bg-white/20 p-2.5 text-white hover:bg-white/40 focus:outline-none transition-colors cursor-pointer"
+                title="Tutup Preview (Esc)"
+            >
+                <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+            </button>
+
+            <div @click.outside="lightboxOpen = false" class="relative max-w-5xl max-h-[92vh] flex flex-col items-center justify-center overflow-hidden rounded-xl bg-black/60 p-3 border border-white/20 shadow-2xl">
+                <img :src="lightboxImg" alt="Enlarged Document" class="max-h-[82vh] w-auto max-w-full rounded-lg object-contain shadow-2xl">
+                <div class="mt-3 text-center text-xs font-bold text-white/90 flex items-center gap-3">
+                    <span x-text="lightboxTitle" class="bg-indigo-900/80 text-indigo-200 px-2.5 py-0.5 rounded border border-indigo-500/40"></span>
+                    <span>&bull;</span>
+                    <a :href="lightboxImg" target="_blank" class="text-indigo-300 underline hover:text-white transition-colors">
+                        Buka Dokumen Asli di Tab Baru ↗
+                    </a>
+                </div>
+            </div>
         </div>
-    @endunless
+    </div>
 </x-admin.layout>

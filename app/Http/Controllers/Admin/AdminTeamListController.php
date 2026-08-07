@@ -27,21 +27,43 @@ class AdminTeamListController extends Controller
             $query->where('competition_id', $request->input('event_id'));
         }
 
-        // Filter by Verification Status
-        if ($request->filled('status')) {
-            $status = strtolower($request->input('status'));
-            if ($status === 'verified' || $status === 'approved' || $status === '1') {
+        // Filter by Status Berkas (is_document_verified)
+        if ($request->filled('status_berkas')) {
+            $statusBerkas = strtolower($request->input('status_berkas'));
+            if ($statusBerkas === 'verified' || $statusBerkas === 'approved' || $statusBerkas === '1') {
+                $query->where(function ($q) {
+                    $q->where('is_document_verified', 'verified')
+                      ->orWhere('is_document_verified', 'approved')
+                      ->orWhere('is_document_verified', '1');
+                });
+            } elseif ($statusBerkas === 'rejected' || $statusBerkas === '0') {
+                $query->where(function ($q) {
+                    $q->where('is_document_verified', 'rejected')
+                      ->orWhere('is_document_verified', '0');
+                });
+            } elseif ($statusBerkas === 'pending') {
+                $query->where(function ($q) {
+                    $q->where('is_document_verified', 'pending')
+                      ->orWhereNull('is_document_verified');
+                });
+            }
+        }
+
+        // Filter by Status Pembayaran (is_verified)
+        if ($request->filled('status_pembayaran')) {
+            $statusBayar = strtolower($request->input('status_pembayaran'));
+            if ($statusBayar === 'verified' || $statusBayar === 'approved' || $statusBayar === '1') {
                 $query->where(function ($q) {
                     $q->where('is_verified', 'approved')
                       ->orWhere('is_verified', 'verified')
                       ->orWhere('is_verified', '1');
                 });
-            } elseif ($status === 'rejected' || $status === '0') {
+            } elseif ($statusBayar === 'rejected' || $statusBayar === '0') {
                 $query->where(function ($q) {
                     $q->where('is_verified', 'rejected')
                       ->orWhere('is_verified', '0');
                 });
-            } elseif ($status === 'pending') {
+            } elseif ($statusBayar === 'pending') {
                 $query->where(function ($q) {
                     $q->where('is_verified', 'pending')
                       ->orWhereNull('is_verified');
@@ -88,8 +110,9 @@ class AdminTeamListController extends Controller
         // Summary Stats
         $stats = [
             'total_teams' => $teams->count(),
-            'verified_teams' => $teams->filter(fn($t) => in_array($t->is_verified, ['approved', 'verified', '1', 1], true))->count(),
-            'pending_teams' => $teams->filter(fn($t) => in_array($t->is_verified, ['pending', null], true))->count(),
+            'verified_berkas' => $teams->filter(fn($t) => in_array($t->is_document_verified, ['verified', 'approved', '1', 1], true))->count(),
+            'verified_pembayaran' => $teams->filter(fn($t) => in_array($t->is_verified, ['approved', 'verified', '1', 1], true))->count(),
+            'pending_teams' => $teams->filter(fn($t) => in_array($t->is_verified, ['pending', null], true) || in_array($t->is_document_verified, ['pending', null], true))->count(),
             'total_members' => $teams->sum(fn($t) => $t->members->count()),
         ];
 
@@ -98,7 +121,8 @@ class AdminTeamListController extends Controller
             'events' => $events,
             'stats' => $stats,
             'selectedEventId' => $request->input('event_id', ''),
-            'selectedStatus' => $request->input('status', ''),
+            'selectedStatusBerkas' => $request->input('status_berkas', ''),
+            'selectedStatusPembayaran' => $request->input('status_pembayaran', ''),
             'selectedBatch' => $request->input('batch', ''),
             'searchQuery' => $request->input('search', ''),
         ]);
