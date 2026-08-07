@@ -1,7 +1,7 @@
 @foreach ($teams as $team)
     <x-modal name="view-team-{{ $team->id }}" maxWidth="3xl" focusable>
         <div class="p-6">
-            <div class="flex items-start justify-between border-b border-gray-200 pb-4">
+            <div class="flex flex-col sm:flex-row sm:items-start justify-between border-b border-gray-200 pb-4 gap-3">
                 <div>
                     <span class="inline-flex rounded border border-indigo-200 bg-indigo-50 px-2.5 py-0.5 text-xs font-extrabold uppercase text-indigo-700">
                         {{ $team->event?->title ?? 'Kompetisi' }}
@@ -11,7 +11,7 @@
                         <p class="text-xs font-mono text-indigo-600 font-bold mt-0.5">Kode Tim: {{ $team->team_code }}</p>
                     @endif
                 </div>
-                <div class="text-right flex flex-col items-end gap-1">
+                <div class="text-left sm:text-right flex flex-col items-start sm:items-end gap-1.5">
                     <!-- Status Badges -->
                     <div class="flex items-center gap-1.5">
                         @if(in_array($team->is_document_verified, ['verified', 'approved', '1', 1], true))
@@ -26,9 +26,32 @@
                             <span class="rounded bg-amber-100 px-2.5 py-0.5 text-[10px] font-bold text-amber-800">Bayar Pending</span>
                         @endif
                     </div>
-                    <p class="text-[11px] font-mono text-gray-500 mt-1">
+
+                    <p class="text-[11px] font-mono text-gray-500">
                         Terdaftar: {{ $team->created_at?->translatedFormat('d F Y, H:i') ?? '-' }} WIB
                     </p>
+
+                    <!-- Preview Bukti Pembayaran Button -->
+                    <div class="mt-1">
+                        @if($team->paymentProof?->url)
+                            <button
+                                type="button"
+                                @click="$dispatch('open-lightbox', { img: '{{ $team->paymentProof->url }}', title: 'Bukti Pembayaran - {{ addslashes($team->team_name) }}' })"
+                                class="inline-flex items-center gap-1.5 text-xs font-bold text-emerald-700 hover:text-emerald-900 bg-emerald-50 hover:bg-emerald-100 px-3 py-1.5 rounded border border-emerald-200 shadow-xs cursor-pointer transition-colors"
+                            >
+                                Preview Bukti Pembayaran
+                            </button>
+                        @else
+                            <button
+                                type="button"
+                                disabled
+                                class="inline-flex items-center gap-1.5 text-xs font-semibold text-gray-400 bg-gray-100 px-3 py-1.5 rounded border border-gray-200 cursor-not-allowed opacity-60"
+                                title="Tim belum mengunggah bukti pembayaran"
+                            >
+                                Bukti Pembayaran Belum Ada
+                            </button>
+                        @endif
+                    </div>
                 </div>
             </div>
 
