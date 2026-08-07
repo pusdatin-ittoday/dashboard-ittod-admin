@@ -189,7 +189,7 @@
                                     </div>
                                     <div>
                                         <dt class="text-xs font-semibold uppercase tracking-wide text-gray-500">Tanggal Lahir</dt>
-                                        <dd class="mt-1 font-medium text-gray-950">{{ $participant->birth_date ? $participant->birth_date->format('d/m/Y') : '-' }}</dd>
+                                        <dd class="mt-1 font-medium text-gray-950">{{ $participant->birth_date ? \Carbon\Carbon::parse($participant->birth_date)->format('d/m/Y') : '-' }}</dd>
                                     </div>
                                     <div>
                                         <dt class="text-xs font-semibold uppercase tracking-wide text-gray-500">Jenis Kelamin</dt>
@@ -569,7 +569,7 @@
                             <div class="rounded-md bg-gray-100 p-2.5">
                                 <span class="text-gray-500 block mb-0.5">Waktu Perubahan</span>
                                 <span class="font-semibold text-gray-900">
-                                    {{ $team->name_changed_at ? $team->name_changed_at->format('d M Y, H:i') . ' WIB' : '-' }}
+                                    {{ $team->name_changed_at ? \Carbon\Carbon::parse($team->name_changed_at)->format('d M Y, H:i') . ' WIB' : '-' }}
                                 </span>
                             </div>
                             <div class="rounded-md bg-gray-100 p-2.5">
