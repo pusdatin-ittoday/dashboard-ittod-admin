@@ -254,17 +254,17 @@
                                     @endif
                                     
                                     <div class="mt-8 border-t border-gray-200 pt-6">
-                                        <p class="mb-4 text-xs font-semibold uppercase tracking-wide text-gray-500">Twibbon</p>
+                                        <p class="mb-4 text-xs font-semibold uppercase tracking-wide text-gray-500">Bukti Upload Twibbon</p>
                                         @php
                                             $twibbonUrl = $participant->twibbon_key ? rtrim(config('services.api_url'), '/') . '/api/images/' . $participant->twibbon_key : null;
                                         @endphp
                                         @if($twibbonUrl)
-                                            <img src="{{ $twibbonUrl }}" alt="Twibbon {{ $participant->full_name }}" class="max-h-48 rounded-md border border-gray-200 bg-white object-contain p-1">
+                                            <img src="{{ $twibbonUrl }}" alt="Bukti Upload Twibbon {{ $participant->full_name }}" class="max-h-48 rounded-md border border-gray-200 bg-white object-contain p-1">
                                             <a href="{{ $twibbonUrl }}" target="_blank" class="mt-3 inline-flex rounded-md border border-gray-300 px-3 py-2 text-sm font-semibold text-gray-700 hover:bg-white">
                                                 Lihat Gambar
                                             </a>
                                         @else
-                                            <p class="py-8 text-center text-sm text-gray-500">Twibbon belum diunggah</p>
+                                            <p class="py-8 text-center text-sm text-gray-500">Bukti Upload Twibbon belum diunggah</p>
                                         @endif
                                     </div>
                                 </div>
@@ -391,25 +391,52 @@
                         </dd>
                     </div>
                     @unless($isIndividual)
-                        <div class="flex items-center justify-between gap-4 border-t border-gray-100 pt-3">
-                            <dt class="text-gray-500">Riwayat Nama</dt>
-                            <dd>
-                                @if($team->is_name_changed)
+                        <div class="flex flex-col gap-2 border-t border-gray-100 pt-3">
+                            <div class="flex items-center justify-between gap-4">
+                                <dt class="text-gray-500">Riwayat Nama</dt>
+                                <dd>
+                                    @if($team->is_name_changed)
+                                        <button
+                                            type="button"
+                                            x-data
+                                            x-on:click="$dispatch('open-name-history')"
+                                            class="inline-flex items-center gap-1.5 rounded-md border border-amber-300 bg-amber-50 px-2.5 py-1 text-xs font-semibold text-amber-800 hover:bg-amber-100 transition"
+                                        >
+                                            <svg class="h-3.5 w-3.5 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                            </svg>
+                                            <span>Lihat Riwayat (1x)</span>
+                                        </button>
+                                    @else
+                                        <span class="text-xs font-medium text-gray-400">Belum Diubah (0/1)</span>
+                                    @endif
+                                </dd>
+                            </div>
+
+                            @if(in_array(auth()->user()->role, ['superadmin', 'panitia_lomba'], true))
+                                <div class="flex flex-wrap items-center justify-end gap-2 pt-1">
                                     <button
                                         type="button"
                                         x-data
-                                        x-on:click="$dispatch('open-name-history')"
-                                        class="inline-flex items-center gap-1.5 rounded-md border border-amber-300 bg-amber-50 px-2.5 py-1 text-xs font-semibold text-amber-800 hover:bg-amber-100 transition"
+                                        x-on:click="$dispatch('open-edit-name-modal')"
+                                        class="rounded border border-indigo-200 bg-indigo-50 px-2 py-1 text-[11px] font-bold uppercase text-indigo-700 hover:bg-indigo-100"
                                     >
-                                        <svg class="h-3.5 w-3.5 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                                        </svg>
-                                        <span>Lihat Riwayat (1x)</span>
+                                        Edit Nama Tim (Admin)
                                     </button>
-                                @else
-                                    <span class="text-xs font-medium text-gray-400">Belum Diubah (0/1)</span>
-                                @endif
-                            </dd>
+                                    @if(auth()->user()->role === 'superadmin' && $team->is_name_changed)
+                                        <form action="{{ route('operation.teams.resetNameChange', $team->id) }}" method="POST" class="inline">
+                                            @csrf
+                                            <button
+                                                type="submit"
+                                                onclick="return confirm('Apakah Anda yakin ingin mereset batas edit nama tim ini? Peserta akan dapat mengubah nama tim 1 kali lagi.')"
+                                                class="rounded border border-amber-300 bg-amber-100 px-2 py-1 text-[11px] font-bold uppercase text-amber-800 hover:bg-amber-200"
+                                            >
+                                                Reset Limit (0/1)
+                                            </button>
+                                        </form>
+                                    @endif
+                                </div>
+                            @endif
                         </div>
                     @endunless
                 </dl>
@@ -551,7 +578,22 @@
                         </div>
                     </div>
 
-                    <div class="mt-6 flex justify-end">
+                    <div class="mt-6 flex items-center justify-between border-t border-gray-100 pt-4">
+                        @if(auth()->user()->role === 'superadmin' && $team->is_name_changed)
+                            <form action="{{ route('operation.teams.resetNameChange', $team->id) }}" method="POST">
+                                @csrf
+                                <button
+                                    type="submit"
+                                    onclick="return confirm('Reset batas edit nama tim ini agar peserta bisa ubah nama 1 kali lagi?')"
+                                    class="rounded-md border border-amber-300 bg-amber-50 px-3 py-1.5 text-xs font-bold text-amber-800 hover:bg-amber-100"
+                                >
+                                    🔄 Reset Limit Edit (Buka Kunci)
+                                </button>
+                            </form>
+                        @else
+                            <div></div>
+                        @endif
+
                         <button
                             type="button"
                             x-on:click="open = false"
@@ -560,6 +602,82 @@
                             Tutup
                         </button>
                     </div>
+                </div>
+            </div>
+        </div>
+
+        {{-- Admin Edit Team Name Modal --}}
+        <div
+            x-data="{ openEdit: false }"
+            x-on:open-edit-name-modal.window="openEdit = true"
+            x-on:keydown.escape.window="openEdit = false"
+            x-show="openEdit"
+            class="fixed inset-0 z-50 overflow-y-auto"
+            style="display: none;"
+        >
+            <div class="flex min-h-screen items-center justify-center p-4 text-center">
+                <div x-show="openEdit" x-transition.opacity class="fixed inset-0 bg-gray-900/60 backdrop-blur-sm"></div>
+
+                <div
+                    x-show="openEdit"
+                    x-transition
+                    x-on:click.outside="openEdit = false"
+                    class="relative w-full max-w-md transform overflow-hidden rounded-xl bg-white p-6 text-left align-middle shadow-xl transition-all"
+                >
+                    <div class="flex items-center justify-between border-b border-gray-200 pb-4">
+                        <h3 class="text-base font-bold text-gray-950">Edit Nama Tim (Superadmin / Admin)</h3>
+                        <button x-on:click="openEdit = false" class="text-gray-400 hover:text-gray-600">
+                            <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                            </svg>
+                        </button>
+                    </div>
+
+                    <form action="{{ route('operation.teams.updateName', $team->id) }}" method="POST" class="mt-4 space-y-4 text-sm">
+                        @csrf
+                        <div>
+                            <label for="admin_team_name" class="block text-xs font-semibold uppercase text-gray-700">Nama Tim Baru</label>
+                            <input
+                                type="text"
+                                id="admin_team_name"
+                                name="team_name"
+                                value="{{ old('team_name', $team->team_name) }}"
+                                required
+                                minlength="3"
+                                maxlength="50"
+                                class="mt-1 block w-full rounded-md border-gray-300 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                            >
+                        </div>
+
+                        <div>
+                            <label for="admin_previous_team_name" class="block text-xs font-semibold uppercase text-gray-700">Nama Tim Sebelumnya (Opsional Audit Log)</label>
+                            <input
+                                type="text"
+                                id="admin_previous_team_name"
+                                name="previous_team_name"
+                                value="{{ old('previous_team_name', $team->previous_team_name ?? $team->team_name) }}"
+                                maxlength="50"
+                                class="mt-1 block w-full rounded-md border-gray-300 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                            >
+                            <p class="mt-1 text-[11px] text-gray-500">Nama awal yang dicatat dalam riwayat perubahan.</p>
+                        </div>
+
+                        <div class="mt-6 flex justify-end gap-3 pt-2">
+                            <button
+                                type="button"
+                                x-on:click="openEdit = false"
+                                class="rounded-md border border-gray-300 bg-white px-4 py-2 text-xs font-semibold text-gray-700 hover:bg-gray-50"
+                            >
+                                Batal
+                            </button>
+                            <button
+                                type="submit"
+                                class="rounded-md bg-indigo-600 px-4 py-2 text-xs font-semibold text-white hover:bg-indigo-700"
+                            >
+                                Simpan Perubahan
+                            </button>
+                        </div>
+                    </form>
                 </div>
             </div>
         </div>
