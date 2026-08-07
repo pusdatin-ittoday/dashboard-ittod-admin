@@ -681,6 +681,9 @@
                     </form>
                 </div>
             </div>
+        </div>
+    @endunless
+
     <div x-data="{ lightboxOpen: false, lightboxImg: '', lightboxTitle: '' }" x-init="$watch('lightboxOpen', v => { if (v) { document.body.classList.add('overflow-y-hidden'); } else { document.body.classList.remove('overflow-y-hidden'); } })" x-on:open-lightbox.window="lightboxOpen = true; lightboxImg = $event.detail.img; lightboxTitle = $event.detail.title">
         <!-- Admin Themed Image Preview Lightbox Modal with Smooth Transition -->
         <div
