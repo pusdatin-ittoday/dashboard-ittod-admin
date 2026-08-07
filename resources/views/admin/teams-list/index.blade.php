@@ -174,21 +174,23 @@
         <section class="overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm">
             <div class="border-b border-gray-200 px-6 py-4 flex items-center justify-between">
                 <h3 class="text-base font-bold text-gray-900">Daftar Tim Terdaftar</h3>
-                <span class="text-xs font-semibold text-gray-500">Menampilkan {{ $teams->count() }} tim</span>
+                <span class="text-xs font-semibold text-gray-500">
+                    Menampilkan {{ $teams->firstItem() ?? 0 }}-{{ $teams->lastItem() ?? 0 }} dari {{ $teams->total() }} tim
+                </span>
             </div>
 
-            <div class="overflow-x-auto">
-                <table class="min-w-full divide-y divide-gray-200">
+            <div class="w-full overflow-x-auto">
+                <table class="w-full divide-y divide-gray-200 text-left">
                     <thead class="bg-gray-50">
                         <tr>
-                            <th class="px-6 py-3 text-left text-xs font-bold uppercase text-gray-600">Nama Tim & Kode</th>
-                            <th class="px-6 py-3 text-left text-xs font-bold uppercase text-gray-600">Event / Lomba</th>
-                            <th class="px-6 py-3 text-left text-xs font-bold uppercase text-gray-600">Ketua & Instansi</th>
-                            <th class="px-6 py-3 text-left text-xs font-bold uppercase text-gray-600">Anggota</th>
-                            <th class="px-6 py-3 text-left text-xs font-bold uppercase text-gray-600">Status Berkas</th>
-                            <th class="px-6 py-3 text-left text-xs font-bold uppercase text-gray-600">Status Pembayaran</th>
-                            <th class="px-6 py-3 text-left text-xs font-bold uppercase text-gray-600">Waktu Daftar</th>
-                            <th class="px-6 py-3 text-right text-xs font-bold uppercase text-gray-600">Aksi</th>
+                            <th class="px-4 py-3 text-xs font-bold uppercase text-gray-600">Nama Tim & Kode</th>
+                            <th class="px-3 py-3 text-xs font-bold uppercase text-gray-600 whitespace-nowrap">Event / Lomba</th>
+                            <th class="px-4 py-3 text-xs font-bold uppercase text-gray-600">Ketua & Instansi</th>
+                            <th class="px-3 py-3 text-xs font-bold uppercase text-gray-600 whitespace-nowrap">Anggota</th>
+                            <th class="px-3 py-3 text-xs font-bold uppercase text-gray-600 whitespace-nowrap">Status Berkas</th>
+                            <th class="px-3 py-3 text-xs font-bold uppercase text-gray-600 whitespace-nowrap">Status Pembayaran</th>
+                            <th class="px-3.5 py-3 text-xs font-bold uppercase text-gray-600 whitespace-nowrap">Waktu Daftar</th>
+                            <th class="px-4 py-3 text-right text-xs font-bold uppercase text-gray-600 whitespace-nowrap">Aksi</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-gray-200 bg-white">
@@ -198,102 +200,102 @@
                             @endphp
                             <tr class="align-top hover:bg-gray-50">
                                 <!-- Nama Tim & Kode -->
-                                <td class="px-6 py-4">
-                                    <p class="font-extrabold text-gray-900 text-sm">
+                                <td class="px-4 py-3.5">
+                                    <p class="font-extrabold text-gray-900 text-xs sm:text-sm">
                                         {{ $team->team_name }}
                                     </p>
                                     @if($team->team_code)
-                                        <p class="text-xs font-mono text-indigo-600 font-bold mt-0.5">
+                                        <p class="text-[11px] font-mono text-indigo-600 font-bold mt-0.5">
                                             Code: {{ $team->team_code }}
                                         </p>
                                     @endif
                                 </td>
 
                                 <!-- Event / Kompetisi -->
-                                <td class="px-6 py-4 whitespace-nowrap">
-                                    <span class="inline-flex rounded border border-indigo-200 bg-indigo-50 px-2.5 py-1 text-xs font-bold text-indigo-700">
+                                <td class="px-3 py-3.5 whitespace-nowrap">
+                                    <span class="inline-flex rounded border border-indigo-200 bg-indigo-50 px-2 py-0.5 text-[11px] font-bold text-indigo-700">
                                         {{ $team->event?->title ?? 'Kompetisi' }}
                                     </span>
                                 </td>
 
                                 <!-- Ketua & Sekolah -->
-                                <td class="px-6 py-4">
+                                <td class="px-4 py-3.5">
                                     <p class="font-bold text-gray-900 text-xs">
                                         👑 {{ $leader?->full_name ?? 'Unknown Leader' }}
                                     </p>
-                                    <p class="text-xs text-gray-500 font-mono mt-0.5">
+                                    <p class="text-[11px] text-gray-500 font-mono mt-0.5">
                                         {{ $leader?->email ?? '-' }}
                                     </p>
                                     @if($leader?->nama_sekolah)
-                                        <p class="text-[11px] text-gray-600 mt-1">
+                                        <p class="text-[11px] text-gray-600 mt-0.5">
                                             🏫 {{ $leader->nama_sekolah }}
                                         </p>
                                     @endif
                                 </td>
 
                                 <!-- Jumlah Anggota -->
-                                <td class="px-6 py-4 whitespace-nowrap">
-                                    <span class="inline-flex items-center gap-1.5 text-xs font-bold text-gray-700 bg-gray-100 px-2.5 py-1 rounded border border-gray-200">
+                                <td class="px-3 py-3.5 whitespace-nowrap">
+                                    <span class="inline-flex items-center gap-1 text-xs font-bold text-gray-700 bg-gray-100 px-2 py-0.5 rounded border border-gray-200">
                                         👥 {{ $team->members->count() }} Orang
                                     </span>
                                 </td>
 
                                 <!-- Status Berkas -->
-                                <td class="px-6 py-4 whitespace-nowrap">
+                                <td class="px-3 py-3.5 whitespace-nowrap">
                                     @if(in_array($team->is_document_verified, ['verified', 'approved', '1', 1], true))
-                                        <span class="inline-flex items-center rounded-full bg-blue-100 px-2.5 py-0.5 text-xs font-bold text-blue-800">
+                                        <span class="inline-flex items-center rounded-full bg-blue-100 px-2 py-0.5 text-[11px] font-bold text-blue-800">
                                             ✓ Berkas Lolos
                                         </span>
                                     @elseif(in_array($team->is_document_verified, ['rejected', '0'], true))
-                                        <span class="inline-flex items-center rounded-full bg-red-100 px-2.5 py-0.5 text-xs font-bold text-red-800">
+                                        <span class="inline-flex items-center rounded-full bg-red-100 px-2 py-0.5 text-[11px] font-bold text-red-800">
                                             ✕ Berkas Ditolak
                                         </span>
                                     @else
-                                        <span class="inline-flex items-center rounded-full bg-amber-100 px-2.5 py-0.5 text-xs font-bold text-amber-800">
+                                        <span class="inline-flex items-center rounded-full bg-amber-100 px-2 py-0.5 text-[11px] font-bold text-amber-800">
                                             ⏱ Berkas Pending
                                         </span>
                                     @endif
                                 </td>
 
                                 <!-- Status Pembayaran -->
-                                <td class="px-6 py-4 whitespace-nowrap">
+                                <td class="px-3 py-3.5 whitespace-nowrap">
                                     @if(in_array($team->is_verified, ['approved', 'verified', '1', 1], true))
-                                        <span class="inline-flex items-center rounded-full bg-emerald-100 px-2.5 py-0.5 text-xs font-bold text-emerald-800">
+                                        <span class="inline-flex items-center rounded-full bg-emerald-100 px-2 py-0.5 text-[11px] font-bold text-emerald-800">
                                             ✓ Bayar Lunas
                                         </span>
                                     @elseif(in_array($team->is_verified, ['rejected', '0'], true))
-                                        <span class="inline-flex items-center rounded-full bg-red-100 px-2.5 py-0.5 text-xs font-bold text-red-800">
+                                        <span class="inline-flex items-center rounded-full bg-red-100 px-2 py-0.5 text-[11px] font-bold text-red-800">
                                             ✕ Bayar Ditolak
                                         </span>
                                     @else
-                                        <span class="inline-flex items-center rounded-full bg-amber-100 px-2.5 py-0.5 text-xs font-bold text-amber-800">
+                                        <span class="inline-flex items-center rounded-full bg-amber-100 px-2 py-0.5 text-[11px] font-bold text-amber-800">
                                             ⏱ Bayar Pending
                                         </span>
                                     @endif
                                 </td>
 
                                 <!-- Waktu Daftar -->
-                                <td class="px-6 py-4 text-xs font-medium text-gray-600 whitespace-nowrap">
+                                <td class="px-3.5 py-3.5 text-xs font-medium text-gray-600 whitespace-nowrap">
                                     @if($team->created_at?->isBefore('2026-08-01'))
-                                        <span class="inline-flex items-center rounded bg-purple-100 px-2 py-0.5 text-[10px] font-extrabold text-purple-800 border border-purple-200 mb-1">
+                                        <span class="inline-flex items-center rounded bg-purple-100 px-1.5 py-0.5 text-[10px] font-extrabold text-purple-800 border border-purple-200 mb-1">
                                             Batch 1 (17-31 Jul)
                                         </span>
                                     @else
-                                        <span class="inline-flex items-center rounded bg-indigo-100 px-2 py-0.5 text-[10px] font-extrabold text-indigo-800 border border-indigo-200 mb-1">
+                                        <span class="inline-flex items-center rounded bg-indigo-100 px-1.5 py-0.5 text-[10px] font-extrabold text-indigo-800 border border-indigo-200 mb-1">
                                             Batch 2 (31 Jul - 11 Agu)
                                         </span>
                                     @endif
                                     <div>{{ $team->created_at?->translatedFormat('d M Y') ?? '-' }}</div>
-                                    <div class="text-gray-400 font-mono mt-0.5">{{ $team->created_at?->format('H:i') ?? '' }} WIB</div>
+                                    <div class="text-gray-400 font-mono text-[11px] mt-0.5">{{ $team->created_at?->format('H:i') ?? '' }} WIB</div>
                                 </td>
 
                                 <!-- Aksi Read-Only Detail -->
-                                <td class="px-6 py-4 text-right whitespace-nowrap">
+                                <td class="px-4 py-3.5 text-right whitespace-nowrap">
                                     <button
                                         type="button"
                                         x-data
                                         x-on:click="$dispatch('open-modal', 'view-team-{{ $team->id }}')"
-                                        class="rounded-md border border-indigo-200 bg-indigo-50 px-3 py-1.5 text-xs font-bold text-indigo-700 hover:bg-indigo-100 cursor-pointer"
+                                        class="rounded-md border border-indigo-200 bg-indigo-50 px-2.5 py-1.5 text-xs font-bold text-indigo-700 hover:bg-indigo-100 cursor-pointer"
                                     >
                                         Detail Preview
                                     </button>
@@ -309,6 +311,13 @@
                     </tbody>
                 </table>
             </div>
+
+            <!-- Laravel Pagination Links -->
+            @if($teams->hasPages())
+                <div class="px-6 py-4 border-t border-gray-200 bg-gray-50">
+                    {{ $teams->links() }}
+                </div>
+            @endif
         </section>
 
         <!-- Fullscreen Image Lightbox Modal -->

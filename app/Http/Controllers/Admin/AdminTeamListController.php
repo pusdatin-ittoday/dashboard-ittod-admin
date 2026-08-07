@@ -102,7 +102,19 @@ class AdminTeamListController extends Controller
             });
         }
 
-        $teams = $query->latest('created_at')->get();
+        $statsQuery = clone $query;
+        $allTeams = $statsQuery->get();
+
+        // Summary Stats
+        $stats = [
+            'total_teams' => $allTeams->count(),
+            'verified_berkas' => $allTeams->filter(fn($t) => in_array($t->is_document_verified, ['verified', 'approved', '1', 1], true))->count(),
+            'verified_pembayaran' => $allTeams->filter(fn($t) => in_array($t->is_verified, ['approved', 'verified', '1', 1], true))->count(),
+            'pending_teams' => $allTeams->filter(fn($t) => in_array($t->is_verified, ['pending', null], true) || in_array($t->is_document_verified, ['pending', null], true))->count(),
+            'total_members' => $allTeams->sum(fn($t) => $t->members->count()),
+        ];
+
+        $teams = $query->latest('created_at')->paginate(15)->withQueryString();
 
         // Dropdown events list for filter
         if (auth()->user()?->role === 'panitia_lomba') {
@@ -110,15 +122,6 @@ class AdminTeamListController extends Controller
         } else {
             $events = Event::orderBy('title')->get();
         }
-
-        // Summary Stats
-        $stats = [
-            'total_teams' => $teams->count(),
-            'verified_berkas' => $teams->filter(fn($t) => in_array($t->is_document_verified, ['verified', 'approved', '1', 1], true))->count(),
-            'verified_pembayaran' => $teams->filter(fn($t) => in_array($t->is_verified, ['approved', 'verified', '1', 1], true))->count(),
-            'pending_teams' => $teams->filter(fn($t) => in_array($t->is_verified, ['pending', null], true) || in_array($t->is_document_verified, ['pending', null], true))->count(),
-            'total_members' => $teams->sum(fn($t) => $t->members->count()),
-        ];
 
         return view('admin.teams-list.index', [
             'teams' => $teams,
