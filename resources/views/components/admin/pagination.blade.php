@@ -7,40 +7,23 @@
                     &laquo; Prev
                 </span>
             @else
-                <a
-                    href="{{ $paginator->previousPageUrl() }}"
-                    rel="prev"
-                    data-pagination-url="{{ $paginator->previousPageUrl() }}"
-                    class="pagination-link inline-flex items-center rounded-md border border-gray-300 bg-white px-3 py-1.5 text-xs font-bold text-gray-700 hover:bg-indigo-50 hover:text-indigo-700 hover:border-indigo-300 shadow-2xs transition-colors cursor-pointer"
-                >
+                <a href="{{ $paginator->previousPageUrl() }}" rel="prev" class="inline-flex items-center rounded-md border border-gray-300 bg-white px-3 py-1.5 text-xs font-bold text-gray-700 hover:bg-indigo-50 hover:text-indigo-700 hover:border-indigo-300 shadow-2xs transition-colors cursor-pointer">
                     &laquo; Prev
                 </a>
             @endif
 
             {{-- Pagination Elements --}}
             @foreach ($elements as $element)
-                {{-- "Three Dots" Separator --}}
                 @if (is_string($element))
-                    <span class="inline-flex items-center px-2 py-1.5 text-xs font-bold text-gray-400 select-none">
-                        {{ $element }}
-                    </span>
+                    <span class="inline-flex items-center px-2 py-1.5 text-xs font-bold text-gray-400 select-none">{{ $element }}</span>
                 @endif
 
-                {{-- Array Of Links --}}
                 @if (is_array($element))
                     @foreach ($element as $page => $url)
                         @if ($page == $paginator->currentPage())
-                            <span class="inline-flex items-center rounded-md bg-indigo-600 px-3.5 py-1.5 text-xs font-bold text-white shadow-xs select-none">
-                                {{ $page }}
-                            </span>
+                            <span class="inline-flex items-center rounded-md bg-indigo-600 px-3.5 py-1.5 text-xs font-bold text-white shadow-xs select-none">{{ $page }}</span>
                         @else
-                            <a
-                                href="{{ $url }}"
-                                data-pagination-url="{{ $url }}"
-                                class="pagination-link inline-flex items-center rounded-md border border-gray-300 bg-white px-3.5 py-1.5 text-xs font-bold text-gray-700 hover:bg-indigo-50 hover:text-indigo-700 hover:border-indigo-300 shadow-2xs transition-colors cursor-pointer"
-                            >
-                                {{ $page }}
-                            </a>
+                            <a href="{{ $url }}" class="inline-flex items-center rounded-md border border-gray-300 bg-white px-3.5 py-1.5 text-xs font-bold text-gray-700 hover:bg-indigo-50 hover:text-indigo-700 hover:border-indigo-300 shadow-2xs transition-colors cursor-pointer">{{ $page }}</a>
                         @endif
                     @endforeach
                 @endif
@@ -48,12 +31,7 @@
 
             {{-- Next Page Link --}}
             @if ($paginator->hasMorePages())
-                <a
-                    href="{{ $paginator->nextPageUrl() }}"
-                    rel="next"
-                    data-pagination-url="{{ $paginator->nextPageUrl() }}"
-                    class="pagination-link inline-flex items-center rounded-md border border-gray-300 bg-white px-3 py-1.5 text-xs font-bold text-gray-700 hover:bg-indigo-50 hover:text-indigo-700 hover:border-indigo-300 shadow-2xs transition-colors cursor-pointer"
-                >
+                <a href="{{ $paginator->nextPageUrl() }}" rel="next" class="inline-flex items-center rounded-md border border-gray-300 bg-white px-3 py-1.5 text-xs font-bold text-gray-700 hover:bg-indigo-50 hover:text-indigo-700 hover:border-indigo-300 shadow-2xs transition-colors cursor-pointer">
                     Next &raquo;
                 </a>
             @else

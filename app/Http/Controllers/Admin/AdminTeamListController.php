@@ -122,15 +122,6 @@ class AdminTeamListController extends Controller
 
         $teams = $query->latest('created_at')->paginate(15)->fragment('teams-table')->withQueryString();
 
-        if ($request->ajax() || $request->has('ajax')) {
-            return response()->json([
-                'rows_html' => view('admin.teams-list._team_rows', compact('teams'))->render(),
-                'modals_html' => view('admin.teams-list._team_modals', compact('teams'))->render(),
-                'pagination_html' => (string) $teams->links('components.admin.pagination'),
-                'showing_info' => 'Menampilkan ' . ($teams->firstItem() ?? 0) . ' - ' . ($teams->lastItem() ?? 0) . ' dari ' . $teams->total() . ' tim',
-            ]);
-        }
-
         // Dropdown events list for filter
         if (auth()->user()?->role === 'panitia_lomba') {
             $events = auth()->user()->events()->orderBy('title')->get();
