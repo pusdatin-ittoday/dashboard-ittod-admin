@@ -1,0 +1,127 @@
+@foreach ($teams as $team)
+    <x-modal name="view-team-{{ $team->id }}" maxWidth="3xl" focusable>
+        <div class="p-6">
+            <div class="flex items-start justify-between border-b border-gray-200 pb-4">
+                <div>
+                    <span class="inline-flex rounded border border-indigo-200 bg-indigo-50 px-2.5 py-0.5 text-xs font-extrabold uppercase text-indigo-700">
+                        {{ $team->event?->title ?? 'Kompetisi' }}
+                    </span>
+                    <h3 class="mt-2 text-xl font-bold text-gray-950">{{ $team->team_name }}</h3>
+                    @if($team->team_code)
+                        <p class="text-xs font-mono text-indigo-600 font-bold mt-0.5">Kode Tim: {{ $team->team_code }}</p>
+                    @endif
+                </div>
+                <div class="text-right flex flex-col items-end gap-1">
+                    <!-- Status Badges -->
+                    <div class="flex items-center gap-1.5">
+                        @if(in_array($team->is_document_verified, ['verified', 'approved', '1', 1], true))
+                            <span class="rounded bg-blue-100 px-2 py-0.5 text-[10px] font-bold text-blue-800">✓ Berkas Lolos</span>
+                        @else
+                            <span class="rounded bg-amber-100 px-2 py-0.5 text-[10px] font-bold text-amber-800">⏱ Berkas Pending</span>
+                        @endif
+
+                        @if(in_array($team->is_verified, ['approved', 'verified', '1', 1], true))
+                            <span class="rounded bg-emerald-100 px-2 py-0.5 text-[10px] font-bold text-emerald-800">✓ Bayar Lunas</span>
+                        @else
+                            <span class="rounded bg-amber-100 px-2 py-0.5 text-[10px] font-bold text-amber-800">⏱ Bayar Pending</span>
+                        @endif
+                    </div>
+                    <p class="text-[11px] font-mono text-gray-500 mt-1">
+                        Terdaftar: {{ $team->created_at?->translatedFormat('d F Y, H:i') ?? '-' }} WIB
+                    </p>
+                </div>
+            </div>
+
+            <!-- Members Roster List -->
+            <div class="mt-5">
+                <h4 class="text-xs font-bold uppercase tracking-wider text-gray-500 mb-3">Daftar Anggota Tim ({{ $team->members->count() }} Orang)</h4>
+                <div class="space-y-3">
+                    @foreach($team->members as $mem)
+                        @php $u = $mem->user; @endphp
+                        <div class="rounded-lg border border-gray-200 bg-gray-50 p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
+                            <div class="flex items-start gap-3">
+                                <div class="h-8 w-8 rounded-full bg-indigo-600 text-white flex items-center justify-center font-bold shrink-0">
+                                    {{ strtoupper(substr($u?->full_name ?? 'U', 0, 1)) }}
+                                </div>
+                                <div>
+                                    <div class="flex items-center gap-2">
+                                        <span class="font-extrabold text-gray-900 text-sm">{{ $u?->full_name ?? 'Nama Unknown' }}</span>
+                                        @if($mem->role === 'leader')
+                                            <span class="bg-amber-100 text-amber-800 text-[10px] font-bold px-2 py-0.5 rounded border border-amber-200">
+                                                Ketua Tim
+                                            </span>
+                                        @else
+                                            <span class="bg-gray-200 text-gray-700 text-[10px] font-semibold px-2 py-0.5 rounded">
+                                                Anggota
+                                            </span>
+                                        @endif
+                                    </div>
+
+                                    <!-- Status Berkas & Pembayaran Member -->
+                                    <div class="flex flex-wrap items-center gap-1.5 mt-1">
+                                        @if(!empty($mem->verification_error))
+                                            <span class="bg-rose-100 text-rose-800 text-[10px] font-bold px-2 py-0.5 rounded border border-rose-200">
+                                                ✕ Berkas Ditolak
+                                            </span>
+                                        @elseif($mem->is_verified)
+                                            <span class="bg-blue-100 text-blue-800 text-[10px] font-bold px-2 py-0.5 rounded border border-blue-200">
+                                                ✓ Berkas Valid
+                                            </span>
+                                        @else
+                                            <span class="bg-amber-100 text-amber-800 text-[10px] font-bold px-2 py-0.5 rounded border border-amber-200">
+                                                ⏱ Berkas Pending
+                                            </span>
+                                        @endif
+
+                                        @if(in_array($team->is_verified, ['approved', 'verified', '1', 1], true))
+                                            <span class="bg-emerald-100 text-emerald-800 text-[10px] font-bold px-2 py-0.5 rounded border border-emerald-200">
+                                                ✓ Bayar Lunas
+                                            </span>
+                                        @elseif(in_array($team->is_verified, ['rejected', '0'], true))
+                                            <span class="bg-red-100 text-red-800 text-[10px] font-bold px-2 py-0.5 rounded border border-red-200">
+                                                ✕ Bayar Ditolak
+                                            </span>
+                                        @else
+                                            <span class="bg-amber-100 text-amber-800 text-[10px] font-bold px-2 py-0.5 rounded border border-amber-200">
+                                                ⏱ Bayar Pending
+                                            </span>
+                                        @endif
+                                    </div>
+
+                                    <p class="text-gray-500 font-mono mt-1">{{ $u?->email ?? '-' }}</p>
+                                    @if($u?->phone_number)
+                                        <p class="text-gray-500 font-mono">WA/Telp: {{ $u->phone_number }}</p>
+                                    @endif
+                                    @if($u?->nama_sekolah)
+                                        <p class="text-gray-600 mt-0.5">Instansi: <strong>{{ $u->nama_sekolah }}</strong></p>
+                                    @endif
+                                    @if(!empty($mem->verification_error))
+                                        <p class="text-[11px] text-rose-700 font-medium mt-1 bg-rose-50 border border-rose-200 rounded px-2 py-1">
+                                            ⚠️ <strong>Catatan Revisi:</strong> {{ $mem->verification_error }}
+                                        </p>
+                                    @endif
+                                </div>
+                            </div>
+
+                            @if($u?->ktm_key)
+                                <div class="shrink-0">
+                                    <button
+                                        type="button"
+                                        @click="$dispatch('open-lightbox', { img: '{{ env('R2_PUBLIC', 'https://cdn.ittoday.web.id') . '/' . $u->ktm_key }}', title: 'KTM / Kartu Identitas - {{ addslashes($u?->full_name ?? '') }}' })"
+                                        class="inline-flex items-center gap-1.5 text-xs font-bold text-indigo-700 hover:text-indigo-900 bg-indigo-50 hover:bg-indigo-100 px-3 py-1.5 rounded border border-indigo-200 shadow-sm cursor-pointer transition-colors"
+                                    >
+                                        <span>🔍 Preview KTM / Kartu</span>
+                                    </button>
+                                </div>
+                            @endif
+                        </div>
+                    @endforeach
+                </div>
+            </div>
+
+            <div class="mt-6 flex justify-end border-t border-gray-200 pt-4">
+                <button type="button" x-on:click="$dispatch('close-modal', 'view-team-{{ $team->id }}')" class="rounded-md border border-gray-300 px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50 cursor-pointer">Tutup</button>
+            </div>
+        </div>
+    </x-modal>
+@endforeach

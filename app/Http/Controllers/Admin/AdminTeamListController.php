@@ -116,6 +116,18 @@ class AdminTeamListController extends Controller
 
         $teams = $query->latest('created_at')->paginate(15)->withQueryString();
 
+        if ($request->ajax() || $request->has('ajax')) {
+            return response()->json([
+                'rows_html' => view('admin.teams-list._team_rows', compact('teams'))->render(),
+                'modals_html' => view('admin.teams-list._team_modals', compact('teams'))->render(),
+                'has_more' => $teams->hasMorePages(),
+                'next_page' => $teams->currentPage() + 1,
+                'current_page' => $teams->currentPage(),
+                'total' => $teams->total(),
+                'showing_to' => $teams->lastItem() ?? 0,
+            ]);
+        }
+
         // Dropdown events list for filter
         if (auth()->user()?->role === 'panitia_lomba') {
             $events = auth()->user()->events()->orderBy('title')->get();

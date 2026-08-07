@@ -154,7 +154,7 @@
                 <div class="flex items-center gap-2 sm:col-span-2 lg:col-span-6 justify-end mt-1">
                     <button
                         type="submit"
-                        class="rounded-md bg-indigo-600 px-4 py-2 text-xs font-bold text-white shadow hover:bg-indigo-700 transition-colors"
+                        class="rounded-md bg-indigo-600 px-4 py-2 text-xs font-bold text-white shadow hover:bg-indigo-700 transition-colors cursor-pointer"
                     >
                         Terapkan Filter
                     </button>
@@ -170,12 +170,52 @@
             </form>
         </section>
 
-        <!-- Read-Only Teams Table Section -->
-        <section class="overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm">
+        <!-- Read-Only Teams Table Section with Lazy Loading -->
+        <section
+            x-data="{
+                nextPage: {{ $teams->currentPage() + 1 }},
+                hasMore: {{ $teams->hasMorePages() ? 'true' : 'false' }},
+                loading: false,
+                showingTo: {{ $teams->lastItem() ?? 0 }},
+                total: {{ $teams->total() }},
+
+                async loadMore() {
+                    if (this.loading || !this.hasMore) return;
+                    this.loading = true;
+
+                    const urlParams = new URLSearchParams(window.location.search);
+                    urlParams.set('page', this.nextPage);
+                    urlParams.set('ajax', '1');
+
+                    try {
+                        const response = await fetch(`${window.location.pathname}?${urlParams.toString()}`, {
+                            headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                        });
+                        const data = await response.json();
+
+                        if (data.rows_html) {
+                            document.getElementById('teams-table-body').insertAdjacentHTML('beforeend', data.rows_html);
+                        }
+                        if (data.modals_html) {
+                            document.getElementById('teams-modals-container').insertAdjacentHTML('beforeend', data.modals_html);
+                        }
+
+                        this.hasMore = data.has_more;
+                        this.nextPage = data.next_page;
+                        this.showingTo = data.showing_to;
+                    } catch (e) {
+                        console.error('Error loading more teams:', e);
+                    } finally {
+                        this.loading = false;
+                    }
+                }
+            }"
+            class="overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm"
+        >
             <div class="border-b border-gray-200 px-6 py-4 flex items-center justify-between">
                 <h3 class="text-base font-bold text-gray-900">Daftar Tim Terdaftar</h3>
                 <span class="text-xs font-semibold text-gray-500">
-                    Menampilkan {{ $teams->firstItem() ?? 0 }}-{{ $teams->lastItem() ?? 0 }} dari {{ $teams->total() }} tim
+                    Menampilkan <span x-text="showingTo"></span> dari <span x-text="total"></span> tim
                 </span>
             </div>
 
@@ -193,131 +233,35 @@
                             <th class="px-4 py-3 text-right text-xs font-bold uppercase text-gray-600 whitespace-nowrap">Aksi</th>
                         </tr>
                     </thead>
-                    <tbody class="divide-y divide-gray-200 bg-white">
-                        @forelse ($teams as $team)
-                            @php
-                                $leader = $team->members->first(fn($m) => $m->role === 'leader')?->user ?? $team->members->first()?->user;
-                            @endphp
-                            <tr class="align-top hover:bg-gray-50">
-                                <!-- Nama Tim & Kode -->
-                                <td class="px-4 py-3.5">
-                                    <p class="font-extrabold text-gray-900 text-xs sm:text-sm">
-                                        {{ $team->team_name }}
-                                    </p>
-                                    @if($team->team_code)
-                                        <p class="text-[11px] font-mono text-indigo-600 font-bold mt-0.5">
-                                            Code: {{ $team->team_code }}
-                                        </p>
-                                    @endif
-                                </td>
-
-                                <!-- Event / Kompetisi -->
-                                <td class="px-3 py-3.5 whitespace-nowrap">
-                                    <span class="inline-flex rounded border border-indigo-200 bg-indigo-50 px-2 py-0.5 text-[11px] font-bold text-indigo-700">
-                                        {{ $team->event?->title ?? 'Kompetisi' }}
-                                    </span>
-                                </td>
-
-                                <!-- Ketua & Sekolah -->
-                                <td class="px-4 py-3.5">
-                                    <p class="font-bold text-gray-900 text-xs">
-                                        👑 {{ $leader?->full_name ?? 'Unknown Leader' }}
-                                    </p>
-                                    <p class="text-[11px] text-gray-500 font-mono mt-0.5">
-                                        {{ $leader?->email ?? '-' }}
-                                    </p>
-                                    @if($leader?->nama_sekolah)
-                                        <p class="text-[11px] text-gray-600 mt-0.5">
-                                            🏫 {{ $leader->nama_sekolah }}
-                                        </p>
-                                    @endif
-                                </td>
-
-                                <!-- Jumlah Anggota -->
-                                <td class="px-3 py-3.5 whitespace-nowrap">
-                                    <span class="inline-flex items-center gap-1 text-xs font-bold text-gray-700 bg-gray-100 px-2 py-0.5 rounded border border-gray-200">
-                                        👥 {{ $team->members->count() }} Orang
-                                    </span>
-                                </td>
-
-                                <!-- Status Berkas -->
-                                <td class="px-3 py-3.5 whitespace-nowrap">
-                                    @if(in_array($team->is_document_verified, ['verified', 'approved', '1', 1], true))
-                                        <span class="inline-flex items-center rounded-full bg-blue-100 px-2 py-0.5 text-[11px] font-bold text-blue-800">
-                                            ✓ Berkas Lolos
-                                        </span>
-                                    @elseif(in_array($team->is_document_verified, ['rejected', '0'], true))
-                                        <span class="inline-flex items-center rounded-full bg-red-100 px-2 py-0.5 text-[11px] font-bold text-red-800">
-                                            ✕ Berkas Ditolak
-                                        </span>
-                                    @else
-                                        <span class="inline-flex items-center rounded-full bg-amber-100 px-2 py-0.5 text-[11px] font-bold text-amber-800">
-                                            ⏱ Berkas Pending
-                                        </span>
-                                    @endif
-                                </td>
-
-                                <!-- Status Pembayaran -->
-                                <td class="px-3 py-3.5 whitespace-nowrap">
-                                    @if(in_array($team->is_verified, ['approved', 'verified', '1', 1], true))
-                                        <span class="inline-flex items-center rounded-full bg-emerald-100 px-2 py-0.5 text-[11px] font-bold text-emerald-800">
-                                            ✓ Bayar Lunas
-                                        </span>
-                                    @elseif(in_array($team->is_verified, ['rejected', '0'], true))
-                                        <span class="inline-flex items-center rounded-full bg-red-100 px-2 py-0.5 text-[11px] font-bold text-red-800">
-                                            ✕ Bayar Ditolak
-                                        </span>
-                                    @else
-                                        <span class="inline-flex items-center rounded-full bg-amber-100 px-2 py-0.5 text-[11px] font-bold text-amber-800">
-                                            ⏱ Bayar Pending
-                                        </span>
-                                    @endif
-                                </td>
-
-                                <!-- Waktu Daftar -->
-                                <td class="px-3.5 py-3.5 text-xs font-medium text-gray-600 whitespace-nowrap">
-                                    @if($team->created_at?->isBefore('2026-08-01'))
-                                        <span class="inline-flex items-center rounded bg-purple-100 px-1.5 py-0.5 text-[10px] font-extrabold text-purple-800 border border-purple-200 mb-1">
-                                            Batch 1 (17-31 Jul)
-                                        </span>
-                                    @else
-                                        <span class="inline-flex items-center rounded bg-indigo-100 px-1.5 py-0.5 text-[10px] font-extrabold text-indigo-800 border border-indigo-200 mb-1">
-                                            Batch 2 (31 Jul - 11 Agu)
-                                        </span>
-                                    @endif
-                                    <div>{{ $team->created_at?->translatedFormat('d M Y') ?? '-' }}</div>
-                                    <div class="text-gray-400 font-mono text-[11px] mt-0.5">{{ $team->created_at?->format('H:i') ?? '' }} WIB</div>
-                                </td>
-
-                                <!-- Aksi Read-Only Detail -->
-                                <td class="px-4 py-3.5 text-right whitespace-nowrap">
-                                    <button
-                                        type="button"
-                                        x-data
-                                        x-on:click="$dispatch('open-modal', 'view-team-{{ $team->id }}')"
-                                        class="rounded-md border border-indigo-200 bg-indigo-50 px-2.5 py-1.5 text-xs font-bold text-indigo-700 hover:bg-indigo-100 cursor-pointer"
-                                    >
-                                        Detail Preview
-                                    </button>
-                                </td>
-                            </tr>
-                        @empty
-                            <tr>
-                                <td colspan="8" class="px-6 py-12 text-center text-sm text-gray-500">
-                                    Tidak ada data tim yang sesuai dengan kriteria pencarian/filter.
-                                </td>
-                            </tr>
-                        @endforelse
+                    <tbody id="teams-table-body" class="divide-y divide-gray-200 bg-white">
+                        @include('admin.teams-list._team_rows', ['teams' => $teams])
                     </tbody>
                 </table>
             </div>
 
-            <!-- Laravel Pagination Links -->
-            @if($teams->hasPages())
-                <div class="px-6 py-4 border-t border-gray-200 bg-gray-50">
-                    {{ $teams->links() }}
-                </div>
-            @endif
+            <!-- Lazy Load Trigger Footer -->
+            <div x-show="hasMore" class="px-6 py-4 border-t border-gray-200 bg-gray-50 flex items-center justify-between">
+                <span class="text-xs font-semibold text-gray-500">
+                    Menampilkan <span x-text="showingTo"></span> dari <span x-text="total"></span> tim
+                </span>
+                <button
+                    type="button"
+                    @click="loadMore()"
+                    :disabled="loading"
+                    class="inline-flex items-center gap-2 rounded-md bg-indigo-600 px-5 py-2.5 text-xs font-bold text-white shadow hover:bg-indigo-700 disabled:opacity-50 cursor-pointer transition-all"
+                >
+                    <template x-if="loading">
+                        <svg class="animate-spin h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                    </template>
+                    <span x-text="loading ? 'Memuat Tim...' : '⬇ Muat Lebih Banyak Tim (15 Lagi)'"></span>
+                </button>
+            </div>
+            <div x-show="!hasMore && total > 0" class="px-6 py-3 border-t border-gray-200 bg-gray-50 text-center text-xs text-gray-500 font-semibold">
+                ✓ Semua data tim telah ditampilkan (<span x-text="total"></span> tim)
+            </div>
         </section>
 
         <!-- Fullscreen Image Lightbox Modal -->
@@ -352,132 +296,8 @@
         </div>
     </div>
 
-    <!-- Modals Detail Preview Read-Only -->
-    @foreach ($teams as $team)
-        <x-modal name="view-team-{{ $team->id }}" maxWidth="3xl" focusable>
-            <div class="p-6">
-                <div class="flex items-start justify-between border-b border-gray-200 pb-4">
-                    <div>
-                        <span class="inline-flex rounded border border-indigo-200 bg-indigo-50 px-2.5 py-0.5 text-xs font-extrabold uppercase text-indigo-700">
-                            {{ $team->event?->title ?? 'Kompetisi' }}
-                        </span>
-                        <h3 class="mt-2 text-xl font-bold text-gray-950">{{ $team->team_name }}</h3>
-                        @if($team->team_code)
-                            <p class="text-xs font-mono text-indigo-600 font-bold mt-0.5">Kode Tim: {{ $team->team_code }}</p>
-                        @endif
-                    </div>
-                    <div class="text-right flex flex-col items-end gap-1">
-                        <!-- Status Badges -->
-                        <div class="flex items-center gap-1.5">
-                            @if(in_array($team->is_document_verified, ['verified', 'approved', '1', 1], true))
-                                <span class="rounded bg-blue-100 px-2 py-0.5 text-[10px] font-bold text-blue-800">✓ Berkas Lolos</span>
-                            @else
-                                <span class="rounded bg-amber-100 px-2 py-0.5 text-[10px] font-bold text-amber-800">⏱ Berkas Pending</span>
-                            @endif
-
-                            @if(in_array($team->is_verified, ['approved', 'verified', '1', 1], true))
-                                <span class="rounded bg-emerald-100 px-2 py-0.5 text-[10px] font-bold text-emerald-800">✓ Bayar Lunas</span>
-                            @else
-                                <span class="rounded bg-amber-100 px-2 py-0.5 text-[10px] font-bold text-amber-800">⏱ Bayar Pending</span>
-                            @endif
-                        </div>
-                        <p class="text-[11px] font-mono text-gray-500 mt-1">
-                            Terdaftar: {{ $team->created_at?->translatedFormat('d F Y, H:i') ?? '-' }} WIB
-                        </p>
-                    </div>
-                </div>
-
-                <!-- Members Roster List -->
-                <div class="mt-5">
-                    <h4 class="text-xs font-bold uppercase tracking-wider text-gray-500 mb-3">Daftar Anggota Tim ({{ $team->members->count() }} Orang)</h4>
-                    <div class="space-y-3">
-                        @foreach($team->members as $mem)
-                            @php $u = $mem->user; @endphp
-                            <div class="rounded-lg border border-gray-200 bg-gray-50 p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
-                                <div class="flex items-start gap-3">
-                                    <div class="h-8 w-8 rounded-full bg-indigo-600 text-white flex items-center justify-center font-bold shrink-0">
-                                        {{ strtoupper(substr($u?->full_name ?? 'U', 0, 1)) }}
-                                    </div>
-                                    <div>
-                                        <div class="flex items-center gap-2">
-                                            <span class="font-extrabold text-gray-900 text-sm">{{ $u?->full_name ?? 'Nama Unknown' }}</span>
-                                            @if($mem->role === 'leader')
-                                                <span class="bg-amber-100 text-amber-800 text-[10px] font-bold px-2 py-0.5 rounded border border-amber-200">
-                                                    Ketua Tim
-                                                </span>
-                                            @else
-                                                <span class="bg-gray-200 text-gray-700 text-[10px] font-semibold px-2 py-0.5 rounded">
-                                                    Anggota
-                                                </span>
-                                            @endif
-                                        </div>
-
-                                        <!-- Status Berkas & Pembayaran Member -->
-                                        <div class="flex flex-wrap items-center gap-1.5 mt-1">
-                                            @if(!empty($mem->verification_error))
-                                                <span class="bg-rose-100 text-rose-800 text-[10px] font-bold px-2 py-0.5 rounded border border-rose-200">
-                                                    ✕ Berkas Ditolak
-                                                </span>
-                                            @elseif($mem->is_verified)
-                                                <span class="bg-blue-100 text-blue-800 text-[10px] font-bold px-2 py-0.5 rounded border border-blue-200">
-                                                    ✓ Berkas Valid
-                                                </span>
-                                            @else
-                                                <span class="bg-amber-100 text-amber-800 text-[10px] font-bold px-2 py-0.5 rounded border border-amber-200">
-                                                    ⏱ Berkas Pending
-                                                </span>
-                                            @endif
-
-                                            @if(in_array($team->is_verified, ['approved', 'verified', '1', 1], true))
-                                                <span class="bg-emerald-100 text-emerald-800 text-[10px] font-bold px-2 py-0.5 rounded border border-emerald-200">
-                                                    ✓ Bayar Lunas
-                                                </span>
-                                            @elseif(in_array($team->is_verified, ['rejected', '0'], true))
-                                                <span class="bg-red-100 text-red-800 text-[10px] font-bold px-2 py-0.5 rounded border border-red-200">
-                                                    ✕ Bayar Ditolak
-                                                </span>
-                                            @else
-                                                <span class="bg-amber-100 text-amber-800 text-[10px] font-bold px-2 py-0.5 rounded border border-amber-200">
-                                                    ⏱ Bayar Pending
-                                                </span>
-                                            @endif
-                                        </div>
-
-                                        <p class="text-gray-500 font-mono mt-1">{{ $u?->email ?? '-' }}</p>
-                                        @if($u?->phone_number)
-                                            <p class="text-gray-500 font-mono">WA/Telp: {{ $u->phone_number }}</p>
-                                        @endif
-                                        @if($u?->nama_sekolah)
-                                            <p class="text-gray-600 mt-0.5">Instansi: <strong>{{ $u->nama_sekolah }}</strong></p>
-                                        @endif
-                                        @if(!empty($mem->verification_error))
-                                            <p class="text-[11px] text-rose-700 font-medium mt-1 bg-rose-50 border border-rose-200 rounded px-2 py-1">
-                                                ⚠️ <strong>Catatan Revisi:</strong> {{ $mem->verification_error }}
-                                            </p>
-                                        @endif
-                                    </div>
-                                </div>
-
-                                @if($u?->ktm_key)
-                                    <div class="shrink-0">
-                                        <button
-                                            type="button"
-                                            @click="$dispatch('open-lightbox', { img: '{{ env('R2_PUBLIC', 'https://cdn.ittoday.web.id') . '/' . $u->ktm_key }}', title: 'KTM / Kartu Identitas - {{ addslashes($u?->full_name ?? '') }}' })"
-                                            class="inline-flex items-center gap-1.5 text-xs font-bold text-indigo-700 hover:text-indigo-900 bg-indigo-50 hover:bg-indigo-100 px-3 py-1.5 rounded border border-indigo-200 shadow-sm cursor-pointer transition-colors"
-                                        >
-                                            <span>🔍 Preview KTM / Kartu</span>
-                                        </button>
-                                    </div>
-                                @endif
-                            </div>
-                        @endforeach
-                    </div>
-                </div>
-
-                <div class="mt-6 flex justify-end border-t border-gray-200 pt-4">
-                    <button type="button" x-on:click="$dispatch('close-modal', 'view-team-{{ $team->id }}')" class="rounded-md border border-gray-300 px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50 cursor-pointer">Tutup</button>
-                </div>
-            </div>
-        </x-modal>
-    @endforeach
+    <!-- Modals Detail Preview Read-Only Container -->
+    <div id="teams-modals-container">
+        @include('admin.teams-list._team_modals', ['teams' => $teams])
+    </div>
 </x-admin.layout>
