@@ -24,6 +24,13 @@
                         </x-nav-link>
                     @endif
 
+                    <!-- List Tim (Read-Only Overview) -->
+                    @if(Auth::check() && in_array(Auth::user()->role, ['superadmin', 'admin_biasa', 'panitia_lomba']))
+                        <x-nav-link :href="route('admin.teams-list.index')" :active="request()->routeIs('admin.teams-list.*')">
+                            {{ __('List Tim') }}
+                        </x-nav-link>
+                    @endif
+
                     <!-- Event & Lomba -->
                     @if(Auth::check() && in_array(Auth::user()->role, ['superadmin', 'panitia_lomba', 'admin_biasa']))
                         <x-nav-link :href="route('admin.timelines.index')" :active="request()->routeIs('admin.timelines.*')">
@@ -125,6 +132,9 @@
             @if(Auth::check() && in_array(Auth::user()->role, ['superadmin', 'admin_biasa', 'panitia_lomba']))
                 <x-responsive-nav-link :href="route('admin.users.index')" :active="request()->routeIs('admin.users.*')">
                     {{ __('List Peserta') }}
+                </x-responsive-nav-link>
+                <x-responsive-nav-link :href="route('admin.teams-list.index')" :active="request()->routeIs('admin.teams-list.*')">
+                    {{ __('List Tim') }}
                 </x-responsive-nav-link>
             @endif
 

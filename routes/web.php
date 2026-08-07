@@ -91,6 +91,8 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/feedback', [\App\Http\Controllers\Admin\AdminFeedbackController::class, 'index'])->name('feedback.index');
         Route::patch('/feedback/{feedback}/status', [\App\Http\Controllers\Admin\AdminFeedbackController::class, 'updateStatus'])->name('feedback.status');
         Route::delete('/feedback/{feedback}', [\App\Http\Controllers\Admin\AdminFeedbackController::class, 'destroy'])->name('feedback.destroy');
+
+        Route::get('/teams-list', [\App\Http\Controllers\Admin\AdminTeamListController::class, 'index'])->name('teams-list.index');
     });
 
     Route::post('/transaction/{teamId}/verify', [TransactionController::class, 'verify']);
