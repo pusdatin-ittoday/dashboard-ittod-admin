@@ -40,7 +40,7 @@
                         @if($team->paymentProof?->url)
                             <button
                                 type="button"
-                                @click="$dispatch('open-lightbox', { img: '{{ $team->paymentProof->url }}', title: 'Bukti Pembayaran - {{ addslashes($team->team_name) }}' })"
+                                @click="$dispatch('open-lightbox', { img: '{{ $team->paymentProof->url }}', title: {{ \Illuminate\Support\Js::from('Bukti Pembayaran - ' . $team->team_name) }} })"
                                 class="inline-flex items-center gap-1.5 text-xs font-bold text-emerald-700 hover:text-emerald-900 bg-emerald-50 hover:bg-emerald-100 px-3 py-1.5 rounded border border-emerald-200 shadow-xs cursor-pointer transition-colors"
                             >
                                 Preview Bukti Pembayaran
@@ -123,7 +123,7 @@
                                 @if($u?->ktm_key)
                                     <button
                                         type="button"
-                                        @click="$dispatch('open-lightbox', { img: '{{ env('R2_PUBLIC', 'https://cdn.ittoday.web.id') . '/' . $u->ktm_key }}', title: 'KTM / Kartu Identitas - {{ addslashes($u?->full_name ?? '') }}' })"
+                                        @click="$dispatch('open-lightbox', { img: '{{ env('R2_PUBLIC', 'https://cdn.ittoday.web.id') . '/' . $u->ktm_key }}', title: {{ \Illuminate\Support\Js::from('KTM / Kartu Identitas - ' . ($u?->full_name ?? '')) }} })"
                                         class="inline-flex items-center gap-1.5 text-xs font-bold text-indigo-700 hover:text-indigo-900 bg-indigo-50 hover:bg-indigo-100 px-3 py-1.5 rounded border border-indigo-200 shadow-sm cursor-pointer transition-colors whitespace-nowrap"
                                     >
                                         <span>Preview KTM / Kartu</span>

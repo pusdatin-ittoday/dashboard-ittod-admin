@@ -186,6 +186,12 @@
                         const response = await fetch(targetUrl.toString(), {
                             headers: { 'X-Requested-With': 'XMLHttpRequest' }
                         });
+
+                        if (!response.ok) {
+                            window.location.href = url;
+                            return;
+                        }
+
                         const data = await response.json();
 
                         if (data.rows_html) {
