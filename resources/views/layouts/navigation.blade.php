@@ -61,6 +61,13 @@
                             {{ __('Pengumuman') }}
                         </x-nav-link>
                     @endif
+
+                    <!-- Feedback Peserta: All admin staff roles -->
+                    @if(Auth::check() && in_array(Auth::user()->role, ['superadmin', 'admin_biasa', 'panitia_lomba']))
+                        <x-nav-link :href="route('admin.feedback.index')" :active="request()->routeIs('admin.feedback.*')">
+                            {{ __('Feedback') }}
+                        </x-nav-link>
+                    @endif
                 </div>
             </div>
 

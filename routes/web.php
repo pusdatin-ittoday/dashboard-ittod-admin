@@ -87,6 +87,10 @@ Route::middleware(['auth'])->group(function () {
         Route::patch('/announcements/{announcement}', [AdminDashboardController::class, 'updateAnnouncement'])->name('announcements.update');
         Route::patch('/announcements/{announcement}/pin', [AdminDashboardController::class, 'pinAnnouncement'])->name('announcements.pin');
         Route::delete('/announcements/{announcement}', [AdminDashboardController::class, 'destroyAnnouncement'])->name('announcements.destroy');
+
+        Route::get('/feedback', [\App\Http\Controllers\Admin\AdminFeedbackController::class, 'index'])->name('feedback.index');
+        Route::patch('/feedback/{feedback}/status', [\App\Http\Controllers\Admin\AdminFeedbackController::class, 'updateStatus'])->name('feedback.status');
+        Route::delete('/feedback/{feedback}', [\App\Http\Controllers\Admin\AdminFeedbackController::class, 'destroy'])->name('feedback.destroy');
     });
 
     Route::post('/transaction/{teamId}/verify', [TransactionController::class, 'verify']);
