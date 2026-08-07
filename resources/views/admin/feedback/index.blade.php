@@ -195,12 +195,8 @@
             <!-- Modal Content Image -->
             <div @click.outside="lightboxOpen = false" class="relative max-w-5xl max-h-[92vh] flex flex-col items-center justify-center overflow-hidden rounded-xl bg-black/60 p-3 border border-white/20 shadow-2xl">
                 <img :src="lightboxImg" alt="Enlarged Screenshot" class="max-h-[82vh] w-auto max-w-full rounded-lg object-contain shadow-2xl">
-                <div class="mt-3 text-center text-xs font-bold text-white/90 flex items-center gap-3">
-                    <span x-text="lightboxTitle" class="bg-purple-900/80 text-purple-200 px-2.5 py-0.5 rounded border border-purple-500/40"></span>
-                    <span>&bull;</span>
-                    <a :href="lightboxImg" target="_blank" class="text-indigo-300 underline hover:text-white transition-colors">
-                        Buka Foto Asli di Tab Baru ↗
-                    </a>
+                <div class="mt-3 text-center text-xs font-bold text-white/90 flex items-center justify-center">
+                    <span x-text="lightboxTitle" class="bg-purple-900/80 text-purple-200 px-3 py-1 rounded border border-purple-500/40 shadow-sm"></span>
                 </div>
             </div>
         </div>
