@@ -200,10 +200,10 @@
                 </table>
             </div>
 
-            <!-- Standard Native Laravel Pagination Links -->
+            <!-- Centered Light-Themed Pagination Navigation -->
             @if($teams->hasPages())
-                <div class="px-6 py-4 border-t border-gray-200 bg-gray-50">
-                    {{ $teams->links() }}
+                <div class="px-6 py-4 border-t border-gray-200 bg-gray-50 flex items-center justify-center">
+                    {{ $teams->links('components.admin.pagination') }}
                 </div>
             @endif
         </section>
