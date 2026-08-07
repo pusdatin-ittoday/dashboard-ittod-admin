@@ -49,25 +49,32 @@ class AdminTeamListController extends Controller
             }
         }
 
-        // Filter by Status Pembayaran (is_verified)
+        // Filter by Status Pembayaran (is_verified & payment_proof_id)
         if ($request->filled('status_pembayaran')) {
             $statusBayar = strtolower($request->input('status_pembayaran'));
-            if ($statusBayar === 'verified' || $statusBayar === 'approved' || $statusBayar === '1') {
+            if (in_array($statusBayar, ['verified', 'approved', '1', 'lunas'], true)) {
                 $query->where(function ($q) {
                     $q->where('is_verified', 'approved')
                       ->orWhere('is_verified', 'verified')
                       ->orWhere('is_verified', '1');
                 });
-            } elseif ($statusBayar === 'rejected' || $statusBayar === '0') {
+            } elseif (in_array($statusBayar, ['rejected', '0', 'ditolak'], true)) {
                 $query->where(function ($q) {
                     $q->where('is_verified', 'rejected')
                       ->orWhere('is_verified', '0');
                 });
-            } elseif ($statusBayar === 'pending') {
-                $query->where(function ($q) {
-                    $q->where('is_verified', 'pending')
-                      ->orWhereNull('is_verified');
-                });
+            } elseif (in_array($statusBayar, ['unverified', 'pending_verification', 'belum_diverifikasi'], true)) {
+                $query->whereNotNull('payment_proof_id')
+                      ->where(function ($q) {
+                          $q->where('is_verified', 'pending')
+                            ->orWhereNull('is_verified');
+                      });
+            } elseif (in_array($statusBayar, ['unpaid', 'pending', 'belum_bayar'], true)) {
+                $query->whereNull('payment_proof_id')
+                      ->where(function ($q) {
+                          $q->where('is_verified', 'pending')
+                            ->orWhereNull('is_verified');
+                      });
             }
         }
 

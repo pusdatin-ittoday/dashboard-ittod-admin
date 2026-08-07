@@ -64,16 +64,20 @@
         <!-- Status Pembayaran -->
         <td class="px-3 py-3.5 whitespace-nowrap">
             @if(in_array($team->is_verified, ['approved', 'verified', '1', 1], true))
-                <span class="inline-flex items-center rounded-full bg-emerald-100 px-2.5 py-0.5 text-[11px] font-bold text-emerald-800">
+                <span class="inline-flex items-center rounded-full bg-emerald-100 px-2.5 py-0.5 text-[11px] font-bold text-emerald-800 border border-emerald-200">
                     Bayar Lunas
                 </span>
             @elseif(in_array($team->is_verified, ['rejected', '0'], true))
-                <span class="inline-flex items-center rounded-full bg-red-100 px-2.5 py-0.5 text-[11px] font-bold text-red-800">
+                <span class="inline-flex items-center rounded-full bg-red-100 px-2.5 py-0.5 text-[11px] font-bold text-red-800 border border-red-200">
                     Bayar Ditolak
                 </span>
+            @elseif(!empty($team->payment_proof_id))
+                <span class="inline-flex items-center rounded-full bg-amber-100 px-2.5 py-0.5 text-[11px] font-bold text-amber-800 border border-amber-200">
+                    Belum Diverifikasi
+                </span>
             @else
-                <span class="inline-flex items-center rounded-full bg-amber-100 px-2.5 py-0.5 text-[11px] font-bold text-amber-800">
-                    Bayar Pending
+                <span class="inline-flex items-center rounded-full bg-gray-100 px-2.5 py-0.5 text-[11px] font-semibold text-gray-600 border border-gray-200">
+                    Belum Bayar
                 </span>
             @endif
         </td>

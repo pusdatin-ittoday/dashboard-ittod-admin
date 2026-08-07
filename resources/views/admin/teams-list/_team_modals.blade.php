@@ -21,9 +21,13 @@
                         @endif
 
                         @if(in_array($team->is_verified, ['approved', 'verified', '1', 1], true))
-                            <span class="rounded bg-emerald-100 px-2.5 py-0.5 text-[10px] font-bold text-emerald-800">Bayar Lunas</span>
+                            <span class="rounded bg-emerald-100 px-2.5 py-0.5 text-[10px] font-bold text-emerald-800 border border-emerald-200">Bayar Lunas</span>
+                        @elseif(in_array($team->is_verified, ['rejected', '0'], true))
+                            <span class="rounded bg-red-100 px-2.5 py-0.5 text-[10px] font-bold text-red-800 border border-red-200">Bayar Ditolak</span>
+                        @elseif(!empty($team->payment_proof_id))
+                            <span class="rounded bg-amber-100 px-2.5 py-0.5 text-[10px] font-bold text-amber-800 border border-amber-200">Belum Diverifikasi</span>
                         @else
-                            <span class="rounded bg-amber-100 px-2.5 py-0.5 text-[10px] font-bold text-amber-800">Bayar Pending</span>
+                            <span class="rounded bg-gray-100 px-2.5 py-0.5 text-[10px] font-semibold text-gray-600 border border-gray-200">Belum Bayar</span>
                         @endif
                     </div>
 
@@ -96,8 +100,8 @@
                                 </div>
                             </div>
 
-                            <!-- Middle Column: Centered Status Badges (3 cols) -->
-                            <div class="md:col-span-3 flex flex-wrap md:flex-col items-center justify-center gap-1.5 text-center">
+                            <!-- Middle Column: Centered Member Document Status Badge (3 cols) -->
+                            <div class="md:col-span-3 flex items-center justify-center text-center">
                                 <!-- Status Berkas Member -->
                                 @if(!empty($mem->verification_error))
                                     <span class="bg-rose-100 text-rose-800 text-[10px] font-bold px-2.5 py-1 rounded border border-rose-200 shadow-2xs whitespace-nowrap">
@@ -110,21 +114,6 @@
                                 @else
                                     <span class="bg-amber-100 text-amber-800 text-[10px] font-bold px-2.5 py-1 rounded border border-amber-200 shadow-2xs whitespace-nowrap">
                                         Berkas Pending
-                                    </span>
-                                @endif
-
-                                <!-- Status Pembayaran Tim -->
-                                @if(in_array($team->is_verified, ['approved', 'verified', '1', 1], true))
-                                    <span class="bg-emerald-100 text-emerald-800 text-[10px] font-bold px-2.5 py-1 rounded border border-emerald-200 shadow-2xs whitespace-nowrap">
-                                        Bayar Lunas
-                                    </span>
-                                @elseif(in_array($team->is_verified, ['rejected', '0'], true))
-                                    <span class="bg-red-100 text-red-800 text-[10px] font-bold px-2.5 py-1 rounded border border-red-200 shadow-2xs whitespace-nowrap">
-                                        Bayar Ditolak
-                                    </span>
-                                @else
-                                    <span class="bg-amber-100 text-amber-800 text-[10px] font-bold px-2.5 py-1 rounded border border-amber-200 shadow-2xs whitespace-nowrap">
-                                        Bayar Pending
                                     </span>
                                 @endif
                             </div>

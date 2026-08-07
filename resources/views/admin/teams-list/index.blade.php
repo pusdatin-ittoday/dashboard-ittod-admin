@@ -126,9 +126,10 @@
                         class="w-full rounded-md border-gray-300 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
                     >
                         <option value="">Semua Pembayaran</option>
-                        <option value="verified" {{ $selectedStatusPembayaran === 'verified' ? 'selected' : '' }}>Lunas / Approved</option>
-                        <option value="pending" {{ $selectedStatusPembayaran === 'pending' ? 'selected' : '' }}>Pending</option>
-                        <option value="rejected" {{ $selectedStatusPembayaran === 'rejected' ? 'selected' : '' }}>Ditolak</option>
+                        <option value="verified" {{ $selectedStatusPembayaran === 'verified' ? 'selected' : '' }}>Bayar Lunas</option>
+                        <option value="unverified" {{ $selectedStatusPembayaran === 'unverified' ? 'selected' : '' }}>Belum Diverifikasi (Ada Bukti)</option>
+                        <option value="unpaid" {{ $selectedStatusPembayaran === 'unpaid' ? 'selected' : '' }}>Belum Bayar (Tanpa Bukti)</option>
+                        <option value="rejected" {{ $selectedStatusPembayaran === 'rejected' ? 'selected' : '' }}>Bayar Ditolak</option>
                     </select>
                 </div>
 
