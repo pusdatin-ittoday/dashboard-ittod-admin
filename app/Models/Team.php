@@ -26,6 +26,7 @@ class Team extends Model
         'max_member',
         'is_document_verified',
         'is_verified',
+        'is_name_changed',
         'verification_error',
         'payment_proof_id',
     ];
@@ -33,6 +34,7 @@ class Team extends Model
     protected $casts = [
         // removed is_verified integer cast
         'max_member' => 'integer',
+        'is_name_changed' => 'boolean',
     ];
 
     /**
