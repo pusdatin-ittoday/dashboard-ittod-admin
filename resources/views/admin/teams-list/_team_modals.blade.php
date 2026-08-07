@@ -38,52 +38,22 @@
                 <div class="space-y-3">
                     @foreach($team->members as $mem)
                         @php $u = $mem->user; @endphp
-                        <div class="rounded-lg border border-gray-200 bg-gray-50 p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
-                            <div class="flex items-start gap-3">
+                        <div class="rounded-lg border border-gray-200 bg-gray-50 p-4 grid grid-cols-1 md:grid-cols-12 gap-3 items-center text-xs">
+                            <!-- Left Column: Member Info (6 cols) -->
+                            <div class="md:col-span-6 flex items-start gap-3">
                                 <div class="h-8 w-8 rounded-full bg-indigo-600 text-white flex items-center justify-center font-bold shrink-0">
                                     {{ strtoupper(substr($u?->full_name ?? 'U', 0, 1)) }}
                                 </div>
-                                <div>
-                                    <div class="flex items-center gap-2">
+                                <div class="min-w-0 flex-1">
+                                    <div class="flex items-center gap-2 flex-wrap">
                                         <span class="font-extrabold text-gray-900 text-sm">{{ $u?->full_name ?? 'Nama Unknown' }}</span>
                                         @if($mem->role === 'leader')
-                                            <span class="bg-amber-100 text-amber-800 text-[10px] font-bold px-2 py-0.5 rounded border border-amber-200">
-                                                Ketua Tim
+                                            <span class="bg-purple-600 text-white text-[10px] font-extrabold px-2 py-0.5 rounded shadow-xs tracking-wide">
+                                                👑 Ketua Tim
                                             </span>
                                         @else
                                             <span class="bg-gray-200 text-gray-700 text-[10px] font-semibold px-2 py-0.5 rounded">
                                                 Anggota
-                                            </span>
-                                        @endif
-                                    </div>
-
-                                    <!-- Status Berkas & Pembayaran Member -->
-                                    <div class="flex flex-wrap items-center gap-1.5 mt-1">
-                                        @if(!empty($mem->verification_error))
-                                            <span class="bg-rose-100 text-rose-800 text-[10px] font-bold px-2 py-0.5 rounded border border-rose-200">
-                                                ✕ Berkas Ditolak
-                                            </span>
-                                        @elseif($mem->is_verified)
-                                            <span class="bg-blue-100 text-blue-800 text-[10px] font-bold px-2 py-0.5 rounded border border-blue-200">
-                                                ✓ Berkas Valid
-                                            </span>
-                                        @else
-                                            <span class="bg-amber-100 text-amber-800 text-[10px] font-bold px-2 py-0.5 rounded border border-amber-200">
-                                                ⏱ Berkas Pending
-                                            </span>
-                                        @endif
-
-                                        @if(in_array($team->is_verified, ['approved', 'verified', '1', 1], true))
-                                            <span class="bg-emerald-100 text-emerald-800 text-[10px] font-bold px-2 py-0.5 rounded border border-emerald-200">
-                                                ✓ Bayar Lunas
-                                            </span>
-                                        @elseif(in_array($team->is_verified, ['rejected', '0'], true))
-                                            <span class="bg-red-100 text-red-800 text-[10px] font-bold px-2 py-0.5 rounded border border-red-200">
-                                                ✕ Bayar Ditolak
-                                            </span>
-                                        @else
-                                            <span class="bg-amber-100 text-amber-800 text-[10px] font-bold px-2 py-0.5 rounded border border-amber-200">
-                                                ⏱ Bayar Pending
                                             </span>
                                         @endif
                                     </div>
@@ -103,17 +73,53 @@
                                 </div>
                             </div>
 
-                            @if($u?->ktm_key)
-                                <div class="shrink-0">
+                            <!-- Middle Column: Centered Status Badges (3 cols) -->
+                            <div class="md:col-span-3 flex flex-wrap md:flex-col items-center justify-center gap-1.5 text-center">
+                                <!-- Status Berkas Member -->
+                                @if(!empty($mem->verification_error))
+                                    <span class="bg-rose-100 text-rose-800 text-[10px] font-bold px-2.5 py-1 rounded border border-rose-200 shadow-2xs whitespace-nowrap">
+                                        ✕ Berkas Ditolak
+                                    </span>
+                                @elseif($mem->is_verified)
+                                    <span class="bg-blue-100 text-blue-800 text-[10px] font-bold px-2.5 py-1 rounded border border-blue-200 shadow-2xs whitespace-nowrap">
+                                        ✓ Berkas Valid
+                                    </span>
+                                @else
+                                    <span class="bg-amber-100 text-amber-800 text-[10px] font-bold px-2.5 py-1 rounded border border-amber-200 shadow-2xs whitespace-nowrap">
+                                        ⏱ Berkas Pending
+                                    </span>
+                                @endif
+
+                                <!-- Status Pembayaran Tim -->
+                                @if(in_array($team->is_verified, ['approved', 'verified', '1', 1], true))
+                                    <span class="bg-emerald-100 text-emerald-800 text-[10px] font-bold px-2.5 py-1 rounded border border-emerald-200 shadow-2xs whitespace-nowrap">
+                                        ✓ Bayar Lunas
+                                    </span>
+                                @elseif(in_array($team->is_verified, ['rejected', '0'], true))
+                                    <span class="bg-red-100 text-red-800 text-[10px] font-bold px-2.5 py-1 rounded border border-red-200 shadow-2xs whitespace-nowrap">
+                                        ✕ Bayar Ditolak
+                                    </span>
+                                @else
+                                    <span class="bg-amber-100 text-amber-800 text-[10px] font-bold px-2.5 py-1 rounded border border-amber-200 shadow-2xs whitespace-nowrap">
+                                        ⏱ Bayar Pending
+                                    </span>
+                                @endif
+                            </div>
+
+                            <!-- Right Column: KTM Preview Button (3 cols) -->
+                            <div class="md:col-span-3 flex justify-start md:justify-end">
+                                @if($u?->ktm_key)
                                     <button
                                         type="button"
                                         @click="$dispatch('open-lightbox', { img: '{{ env('R2_PUBLIC', 'https://cdn.ittoday.web.id') . '/' . $u->ktm_key }}', title: 'KTM / Kartu Identitas - {{ addslashes($u?->full_name ?? '') }}' })"
-                                        class="inline-flex items-center gap-1.5 text-xs font-bold text-indigo-700 hover:text-indigo-900 bg-indigo-50 hover:bg-indigo-100 px-3 py-1.5 rounded border border-indigo-200 shadow-sm cursor-pointer transition-colors"
+                                        class="inline-flex items-center gap-1.5 text-xs font-bold text-indigo-700 hover:text-indigo-900 bg-indigo-50 hover:bg-indigo-100 px-3 py-1.5 rounded border border-indigo-200 shadow-sm cursor-pointer transition-colors whitespace-nowrap"
                                     >
                                         <span>🔍 Preview KTM / Kartu</span>
                                     </button>
-                                </div>
-                            @endif
+                                @else
+                                    <span class="text-xs text-gray-400 italic">KTM Belum Ada</span>
+                                @endif
+                            </div>
                         </div>
                     @endforeach
                 </div>
