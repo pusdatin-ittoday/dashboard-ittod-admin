@@ -10,8 +10,8 @@
                 <a
                     href="{{ $paginator->previousPageUrl() }}"
                     rel="prev"
-                    @click.prevent="$dispatch('goto-page', '{{ $paginator->previousPageUrl() }}')"
-                    class="inline-flex items-center rounded-md border border-gray-300 bg-white px-3 py-1.5 text-xs font-bold text-gray-700 hover:bg-indigo-50 hover:text-indigo-700 hover:border-indigo-300 shadow-2xs transition-colors cursor-pointer"
+                    data-pagination-url="{{ $paginator->previousPageUrl() }}"
+                    class="pagination-link inline-flex items-center rounded-md border border-gray-300 bg-white px-3 py-1.5 text-xs font-bold text-gray-700 hover:bg-indigo-50 hover:text-indigo-700 hover:border-indigo-300 shadow-2xs transition-colors cursor-pointer"
                 >
                     &laquo; Prev
                 </a>
@@ -36,8 +36,8 @@
                         @else
                             <a
                                 href="{{ $url }}"
-                                @click.prevent="$dispatch('goto-page', '{{ $url }}')"
-                                class="inline-flex items-center rounded-md border border-gray-300 bg-white px-3.5 py-1.5 text-xs font-bold text-gray-700 hover:bg-indigo-50 hover:text-indigo-700 hover:border-indigo-300 shadow-2xs transition-colors cursor-pointer"
+                                data-pagination-url="{{ $url }}"
+                                class="pagination-link inline-flex items-center rounded-md border border-gray-300 bg-white px-3.5 py-1.5 text-xs font-bold text-gray-700 hover:bg-indigo-50 hover:text-indigo-700 hover:border-indigo-300 shadow-2xs transition-colors cursor-pointer"
                             >
                                 {{ $page }}
                             </a>
@@ -51,8 +51,8 @@
                 <a
                     href="{{ $paginator->nextPageUrl() }}"
                     rel="next"
-                    @click.prevent="$dispatch('goto-page', '{{ $paginator->nextPageUrl() }}')"
-                    class="inline-flex items-center rounded-md border border-gray-300 bg-white px-3 py-1.5 text-xs font-bold text-gray-700 hover:bg-indigo-50 hover:text-indigo-700 hover:border-indigo-300 shadow-2xs transition-colors cursor-pointer"
+                    data-pagination-url="{{ $paginator->nextPageUrl() }}"
+                    class="pagination-link inline-flex items-center rounded-md border border-gray-300 bg-white px-3 py-1.5 text-xs font-bold text-gray-700 hover:bg-indigo-50 hover:text-indigo-700 hover:border-indigo-300 shadow-2xs transition-colors cursor-pointer"
                 >
                     Next &raquo;
                 </a>

@@ -171,61 +171,44 @@
             </form>
         </section>
 
-        <!-- Read-Only Teams Table Section with Instant Scroll-Preserving Pagination -->
+        <!-- Read-Only Teams Table Section with Scroll-Preserving Pagination -->
         <section
             id="teams-table"
-            x-data="{
-                loading: false,
-                async fetchPage(url) {
-                    if (this.loading || !url) return;
-                    this.loading = true;
+            x-data="{ loading: false }"
+            x-init="
+                // Event delegation: catch clicks on ANY pagination link inside the container,
+                // including links injected dynamically via innerHTML after AJAX.
+                // This is the fix: Alpine @click directives die on innerHTML replacement,
+                // but this delegate listener on the parent lives forever.
+                document.getElementById('teams-pagination-container').addEventListener('click', function(e) {
+                    const link = e.target.closest('[data-pagination-url]');
+                    if (!link) return;
+                    e.preventDefault();
 
-                    // Preserve current exact vertical scroll position
-                    const currentScrollY = window.scrollY || window.pageYOffset;
+                    if (loading) return;
+                    loading = true;
 
-                    const targetUrl = new URL(url, window.location.origin);
-                    targetUrl.searchParams.set('ajax', '1');
+                    const savedScrollY = window.scrollY;
+                    const url = link.getAttribute('data-pagination-url');
+                    const fetchUrl = new URL(url, window.location.origin);
+                    fetchUrl.searchParams.set('ajax', '1');
 
-                    try {
-                        const response = await fetch(targetUrl.toString(), {
-                            headers: { 'X-Requested-With': 'XMLHttpRequest' }
-                        });
-
-                        if (!response.ok) {
-                            window.location.href = url.includes('#') ? url : url + '#teams-table';
-                            return;
-                        }
-
-                        const data = await response.json();
-
-                        if (data.rows_html) {
-                            document.getElementById('teams-table-body').innerHTML = data.rows_html;
-                        }
-                        if (data.modals_html) {
-                            document.getElementById('teams-modals-container').innerHTML = data.modals_html;
-                        }
-                        if (data.pagination_html) {
-                            document.getElementById('teams-pagination-container').innerHTML = data.pagination_html;
-                        }
-                        if (data.showing_info) {
-                            document.getElementById('teams-showing-info').innerText = data.showing_info;
-                        }
-
-                        window.history.pushState({}, '', url);
-
-                        // Ensure scroll height remains 100% frozen in place
-                        requestAnimationFrame(() => {
-                            window.scrollTo({ top: currentScrollY, behavior: 'instant' });
-                        });
-                    } catch (e) {
-                        console.error('Error fetching page:', e);
-                        window.location.href = url.includes('#') ? url : url + '#teams-table';
-                    } finally {
-                        this.loading = false;
-                    }
-                }
-            }"
-            x-on:goto-page.window="fetchPage($event.detail)"
+                    fetch(fetchUrl.toString(), { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+                        .then(r => r.ok ? r.json() : Promise.reject(r))
+                        .then(data => {
+                            if (data.rows_html)       document.getElementById('teams-table-body').innerHTML = data.rows_html;
+                            if (data.modals_html)     document.getElementById('teams-modals-container').innerHTML = data.modals_html;
+                            if (data.pagination_html) document.getElementById('teams-pagination-container').innerHTML = data.pagination_html;
+                            if (data.showing_info)    document.getElementById('teams-showing-info').innerText = data.showing_info;
+                            window.history.pushState({}, '', url);
+                            // Force scroll back to the exact saved position
+                            window.scrollTo(0, savedScrollY);
+                            requestAnimationFrame(() => window.scrollTo(0, savedScrollY));
+                        })
+                        .catch(() => { window.location.href = url; })
+                        .finally(() => { loading = false; });
+                });
+            "
             class="relative overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm"
         >
             <div class="border-b border-gray-200 px-6 py-4 flex items-center justify-between">
