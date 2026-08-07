@@ -686,13 +686,13 @@
             x-show="lightboxOpen"
             x-cloak
             x-on:keydown.escape.window="lightboxOpen = false"
-            class="fixed inset-0 z-50 flex items-center justify-center bg-black/90 p-4 backdrop-blur-md"
+            class="fixed inset-0 z-[99999] flex items-center justify-center bg-black/90 p-4 backdrop-blur-md"
             style="display: none;"
         >
             <button
                 type="button"
                 @click="lightboxOpen = false"
-                class="absolute top-4 right-4 z-50 rounded-full bg-white/20 p-2.5 text-white hover:bg-white/40 focus:outline-none transition-colors cursor-pointer"
+                class="absolute top-4 right-4 z-[99999] rounded-full bg-white/20 p-2.5 text-white hover:bg-white/40 focus:outline-none transition-colors cursor-pointer"
                 title="Tutup Preview (Esc)"
             >
                 <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
