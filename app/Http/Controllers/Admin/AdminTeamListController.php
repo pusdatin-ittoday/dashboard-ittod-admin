@@ -30,13 +30,13 @@ class AdminTeamListController extends Controller
         // Filter by Status Berkas (is_document_verified)
         if ($request->filled('status_berkas')) {
             $statusBerkas = strtolower($request->input('status_berkas'));
-            if ($statusBerkas === 'verified' || $statusBerkas === 'approved' || $statusBerkas === '1') {
+            if (in_array($statusBerkas, ['verified', 'approved', '1'], true)) {
                 $query->where(function ($q) {
                     $q->where('is_document_verified', 'verified')
                       ->orWhere('is_document_verified', 'approved')
                       ->orWhere('is_document_verified', '1');
                 });
-            } elseif ($statusBerkas === 'rejected' || $statusBerkas === '0') {
+            } elseif (in_array($statusBerkas, ['rejected', '0'], true)) {
                 $query->where(function ($q) {
                     $q->where('is_document_verified', 'rejected')
                       ->orWhere('is_document_verified', '0');
@@ -109,21 +109,7 @@ class AdminTeamListController extends Controller
             });
         }
 
-        $teams = (clone $query)->latest('created_at')->paginate(15)->withQueryString();
-
-        if ($request->ajax() || $request->has('ajax')) {
-            return response()->json([
-                'rows_html' => view('admin.teams-list._team_rows', compact('teams'))->render(),
-                'modals_html' => view('admin.teams-list._team_modals', compact('teams'))->render(),
-                'has_more' => $teams->hasMorePages(),
-                'next_page' => $teams->currentPage() + 1,
-                'current_page' => $teams->currentPage(),
-                'total' => $teams->total(),
-                'showing_to' => $teams->lastItem() ?? 0,
-            ]);
-        }
-
-        $allTeams = $query->get();
+        $allTeams = (clone $query)->get();
 
         // Summary Stats
         $stats = [
@@ -133,6 +119,8 @@ class AdminTeamListController extends Controller
             'pending_teams' => $allTeams->filter(fn($t) => in_array($t->is_verified, ['pending', null], true) || in_array($t->is_document_verified, ['pending', null], true))->count(),
             'total_members' => $allTeams->sum(fn($t) => $t->members->count()),
         ];
+
+        $teams = $query->latest('created_at')->paginate(15)->withQueryString();
 
         // Dropdown events list for filter
         if (auth()->user()?->role === 'panitia_lomba') {

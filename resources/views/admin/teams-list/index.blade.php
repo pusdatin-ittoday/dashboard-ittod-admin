@@ -171,66 +171,12 @@
             </form>
         </section>
 
-        <!-- Read-Only Teams Table Section with Hybrid Infinite Scroll & Lazy Loading -->
-        <section
-            x-data="{
-                nextPage: {{ $teams->currentPage() + 1 }},
-                hasMore: {{ $teams->hasMorePages() ? 'true' : 'false' }},
-                loading: false,
-                showingTo: {{ $teams->lastItem() ?? 0 }},
-                total: {{ $teams->total() }},
-
-                async loadMore() {
-                    if (this.loading || !this.hasMore) return;
-                    this.loading = true;
-
-                    const urlParams = new URLSearchParams(window.location.search);
-                    urlParams.set('page', this.nextPage);
-                    urlParams.set('ajax', '1');
-
-                    try {
-                        const response = await fetch(`${window.location.pathname}?${urlParams.toString()}`, {
-                            headers: { 'X-Requested-With': 'XMLHttpRequest' }
-                        });
-                        const data = await response.json();
-
-                        if (data.rows_html) {
-                            document.getElementById('teams-table-body').insertAdjacentHTML('beforeend', data.rows_html);
-                        }
-                        if (data.modals_html) {
-                            document.getElementById('teams-modals-container').insertAdjacentHTML('beforeend', data.modals_html);
-                        }
-
-                        this.hasMore = Boolean(data.has_more);
-                        this.nextPage = data.next_page;
-                        this.showingTo = data.showing_to;
-                    } catch (e) {
-                        console.error('Error loading more teams:', e);
-                    } finally {
-                        this.loading = false;
-                    }
-                },
-
-                initObserver() {
-                    const self = this;
-                    const observer = new IntersectionObserver((entries) => {
-                        if (entries[0].isIntersecting && self.hasMore && !self.loading) {
-                            self.loadMore();
-                        }
-                    }, { rootMargin: '200px' });
-
-                    if (this.$refs.scrollTrigger) {
-                        observer.observe(this.$refs.scrollTrigger);
-                    }
-                }
-            }"
-            x-init="initObserver()"
-            class="overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm"
-        >
+        <!-- Read-Only Teams Table Section with Standard Laravel Pagination -->
+        <section class="overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm">
             <div class="border-b border-gray-200 px-6 py-4 flex items-center justify-between">
                 <h3 class="text-base font-bold text-gray-900">Daftar Tim Terdaftar</h3>
                 <span class="text-xs font-semibold text-gray-500">
-                    Menampilkan <span x-text="showingTo"></span> dari <span x-text="total"></span> tim
+                    Menampilkan {{ $teams->firstItem() ?? 0 }} - {{ $teams->lastItem() ?? 0 }} dari {{ $teams->total() }} tim
                 </span>
             </div>
 
@@ -254,33 +200,12 @@
                 </table>
             </div>
 
-            <!-- Scroll Trigger Sentinel -->
-            <div x-ref="scrollTrigger" class="h-4"></div>
-
-            <!-- Lazy Load Footer (Auto Scroll + Manual Button Fallback) -->
-            <div x-show="hasMore" class="px-6 py-4 border-t border-gray-200 bg-gray-50 flex items-center justify-between">
-                <span class="text-xs font-semibold text-gray-500">
-                    Menampilkan <span x-text="showingTo"></span> dari <span x-text="total"></span> tim
-                </span>
-                <button
-                    type="button"
-                    @click="loadMore()"
-                    :disabled="loading"
-                    class="inline-flex items-center gap-2 rounded-md bg-indigo-600 px-4 py-2 text-xs font-bold text-white shadow-sm hover:bg-indigo-700 disabled:opacity-50 cursor-pointer transition-colors"
-                >
-                    <template x-if="loading">
-                        <svg class="animate-spin h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
-                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                        </svg>
-                    </template>
-                    <span x-text="loading ? 'Memuat Tim...' : 'Muat Lebih Banyak Tim (15 Lagi)'"></span>
-                </button>
-            </div>
-
-            <div x-show="!hasMore && total > 0" class="px-6 py-3 border-t border-gray-200 bg-gray-50 text-center text-xs text-gray-500 font-semibold">
-                Semua data tim telah ditampilkan (<span x-text="showingTo"></span> dari <span x-text="total"></span> tim)
-            </div>
+            <!-- Standard Native Laravel Pagination Links -->
+            @if($teams->hasPages())
+                <div class="px-6 py-4 border-t border-gray-200 bg-gray-50">
+                    {{ $teams->links() }}
+                </div>
+            @endif
         </section>
 
         <!-- Admin Themed Image Preview Lightbox Modal with Smooth Transition -->
