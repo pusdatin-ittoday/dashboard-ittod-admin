@@ -15,15 +15,15 @@
                     <!-- Status Badges -->
                     <div class="flex items-center gap-1.5">
                         @if(in_array($team->is_document_verified, ['verified', 'approved', '1', 1], true))
-                            <span class="rounded bg-blue-100 px-2 py-0.5 text-[10px] font-bold text-blue-800">✓ Berkas Lolos</span>
+                            <span class="rounded bg-blue-100 px-2.5 py-0.5 text-[10px] font-bold text-blue-800">Berkas Lolos</span>
                         @else
-                            <span class="rounded bg-amber-100 px-2 py-0.5 text-[10px] font-bold text-amber-800">⏱ Berkas Pending</span>
+                            <span class="rounded bg-amber-100 px-2.5 py-0.5 text-[10px] font-bold text-amber-800">Berkas Pending</span>
                         @endif
 
                         @if(in_array($team->is_verified, ['approved', 'verified', '1', 1], true))
-                            <span class="rounded bg-emerald-100 px-2 py-0.5 text-[10px] font-bold text-emerald-800">✓ Bayar Lunas</span>
+                            <span class="rounded bg-emerald-100 px-2.5 py-0.5 text-[10px] font-bold text-emerald-800">Bayar Lunas</span>
                         @else
-                            <span class="rounded bg-amber-100 px-2 py-0.5 text-[10px] font-bold text-amber-800">⏱ Bayar Pending</span>
+                            <span class="rounded bg-amber-100 px-2.5 py-0.5 text-[10px] font-bold text-amber-800">Bayar Pending</span>
                         @endif
                     </div>
                     <p class="text-[11px] font-mono text-gray-500 mt-1">
@@ -48,8 +48,8 @@
                                     <div class="flex items-center gap-2 flex-wrap">
                                         <span class="font-extrabold text-gray-900 text-sm">{{ $u?->full_name ?? 'Nama Unknown' }}</span>
                                         @if($mem->role === 'leader')
-                                            <span class="bg-purple-600 text-white text-[10px] font-extrabold px-2 py-0.5 rounded shadow-xs tracking-wide">
-                                                👑 Ketua Tim
+                                            <span class="bg-purple-600 text-white text-[10px] font-extrabold px-2.5 py-0.5 rounded shadow-xs tracking-wide">
+                                                Ketua Tim
                                             </span>
                                         @else
                                             <span class="bg-gray-200 text-gray-700 text-[10px] font-semibold px-2 py-0.5 rounded">
@@ -67,7 +67,7 @@
                                     @endif
                                     @if(!empty($mem->verification_error))
                                         <p class="text-[11px] text-rose-700 font-medium mt-1 bg-rose-50 border border-rose-200 rounded px-2 py-1">
-                                            ⚠️ <strong>Catatan Revisi:</strong> {{ $mem->verification_error }}
+                                            <strong>Catatan Revisi:</strong> {{ $mem->verification_error }}
                                         </p>
                                     @endif
                                 </div>
@@ -78,30 +78,30 @@
                                 <!-- Status Berkas Member -->
                                 @if(!empty($mem->verification_error))
                                     <span class="bg-rose-100 text-rose-800 text-[10px] font-bold px-2.5 py-1 rounded border border-rose-200 shadow-2xs whitespace-nowrap">
-                                        ✕ Berkas Ditolak
+                                        Berkas Ditolak
                                     </span>
                                 @elseif($mem->is_verified)
                                     <span class="bg-blue-100 text-blue-800 text-[10px] font-bold px-2.5 py-1 rounded border border-blue-200 shadow-2xs whitespace-nowrap">
-                                        ✓ Berkas Valid
+                                        Berkas Valid
                                     </span>
                                 @else
                                     <span class="bg-amber-100 text-amber-800 text-[10px] font-bold px-2.5 py-1 rounded border border-amber-200 shadow-2xs whitespace-nowrap">
-                                        ⏱ Berkas Pending
+                                        Berkas Pending
                                     </span>
                                 @endif
 
                                 <!-- Status Pembayaran Tim -->
                                 @if(in_array($team->is_verified, ['approved', 'verified', '1', 1], true))
                                     <span class="bg-emerald-100 text-emerald-800 text-[10px] font-bold px-2.5 py-1 rounded border border-emerald-200 shadow-2xs whitespace-nowrap">
-                                        ✓ Bayar Lunas
+                                        Bayar Lunas
                                     </span>
                                 @elseif(in_array($team->is_verified, ['rejected', '0'], true))
                                     <span class="bg-red-100 text-red-800 text-[10px] font-bold px-2.5 py-1 rounded border border-red-200 shadow-2xs whitespace-nowrap">
-                                        ✕ Bayar Ditolak
+                                        Bayar Ditolak
                                     </span>
                                 @else
                                     <span class="bg-amber-100 text-amber-800 text-[10px] font-bold px-2.5 py-1 rounded border border-amber-200 shadow-2xs whitespace-nowrap">
-                                        ⏱ Bayar Pending
+                                        Bayar Pending
                                     </span>
                                 @endif
                             </div>
@@ -114,7 +114,7 @@
                                         @click="$dispatch('open-lightbox', { img: '{{ env('R2_PUBLIC', 'https://cdn.ittoday.web.id') . '/' . $u->ktm_key }}', title: 'KTM / Kartu Identitas - {{ addslashes($u?->full_name ?? '') }}' })"
                                         class="inline-flex items-center gap-1.5 text-xs font-bold text-indigo-700 hover:text-indigo-900 bg-indigo-50 hover:bg-indigo-100 px-3 py-1.5 rounded border border-indigo-200 shadow-sm cursor-pointer transition-colors whitespace-nowrap"
                                     >
-                                        <span>🔍 Preview KTM / Kartu</span>
+                                        <span>Preview KTM / Kartu</span>
                                     </button>
                                 @else
                                     <span class="text-xs text-gray-400 italic">KTM Belum Ada</span>

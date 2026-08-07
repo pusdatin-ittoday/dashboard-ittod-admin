@@ -25,38 +25,38 @@
         <!-- Ketua & Sekolah -->
         <td class="px-4 py-3.5">
             <p class="font-bold text-gray-900 text-xs">
-                👑 {{ $leader?->full_name ?? 'Unknown Leader' }}
+                {{ $leader?->full_name ?? 'Unknown Leader' }}
             </p>
             <p class="text-[11px] text-gray-500 font-mono mt-0.5">
                 {{ $leader?->email ?? '-' }}
             </p>
             @if($leader?->nama_sekolah)
                 <p class="text-[11px] text-gray-600 mt-0.5">
-                    🏫 {{ $leader->nama_sekolah }}
+                    {{ $leader->nama_sekolah }}
                 </p>
             @endif
         </td>
 
         <!-- Jumlah Anggota -->
         <td class="px-3 py-3.5 whitespace-nowrap">
-            <span class="inline-flex items-center gap-1 text-xs font-bold text-gray-700 bg-gray-100 px-2 py-0.5 rounded border border-gray-200">
-                👥 {{ $team->members->count() }} Orang
+            <span class="inline-flex items-center text-xs font-bold text-gray-700 bg-gray-100 px-2 py-0.5 rounded border border-gray-200">
+                {{ $team->members->count() }} Orang
             </span>
         </td>
 
         <!-- Status Berkas -->
         <td class="px-3 py-3.5 whitespace-nowrap">
             @if(in_array($team->is_document_verified, ['verified', 'approved', '1', 1], true))
-                <span class="inline-flex items-center rounded-full bg-blue-100 px-2 py-0.5 text-[11px] font-bold text-blue-800">
-                    ✓ Berkas Lolos
+                <span class="inline-flex items-center rounded-full bg-blue-100 px-2.5 py-0.5 text-[11px] font-bold text-blue-800">
+                    Berkas Lolos
                 </span>
             @elseif(in_array($team->is_document_verified, ['rejected', '0'], true))
-                <span class="inline-flex items-center rounded-full bg-red-100 px-2 py-0.5 text-[11px] font-bold text-red-800">
-                    ✕ Berkas Ditolak
+                <span class="inline-flex items-center rounded-full bg-red-100 px-2.5 py-0.5 text-[11px] font-bold text-red-800">
+                    Berkas Ditolak
                 </span>
             @else
-                <span class="inline-flex items-center rounded-full bg-amber-100 px-2 py-0.5 text-[11px] font-bold text-amber-800">
-                    ⏱ Berkas Pending
+                <span class="inline-flex items-center rounded-full bg-amber-100 px-2.5 py-0.5 text-[11px] font-bold text-amber-800">
+                    Berkas Pending
                 </span>
             @endif
         </td>
@@ -64,16 +64,16 @@
         <!-- Status Pembayaran -->
         <td class="px-3 py-3.5 whitespace-nowrap">
             @if(in_array($team->is_verified, ['approved', 'verified', '1', 1], true))
-                <span class="inline-flex items-center rounded-full bg-emerald-100 px-2 py-0.5 text-[11px] font-bold text-emerald-800">
-                    ✓ Bayar Lunas
+                <span class="inline-flex items-center rounded-full bg-emerald-100 px-2.5 py-0.5 text-[11px] font-bold text-emerald-800">
+                    Bayar Lunas
                 </span>
             @elseif(in_array($team->is_verified, ['rejected', '0'], true))
-                <span class="inline-flex items-center rounded-full bg-red-100 px-2 py-0.5 text-[11px] font-bold text-red-800">
-                    ✕ Bayar Ditolak
+                <span class="inline-flex items-center rounded-full bg-red-100 px-2.5 py-0.5 text-[11px] font-bold text-red-800">
+                    Bayar Ditolak
                 </span>
             @else
-                <span class="inline-flex items-center rounded-full bg-amber-100 px-2 py-0.5 text-[11px] font-bold text-amber-800">
-                    ⏱ Bayar Pending
+                <span class="inline-flex items-center rounded-full bg-amber-100 px-2.5 py-0.5 text-[11px] font-bold text-amber-800">
+                    Bayar Pending
                 </span>
             @endif
         </td>
