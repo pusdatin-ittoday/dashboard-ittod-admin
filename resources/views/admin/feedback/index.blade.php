@@ -125,8 +125,8 @@
 
                             <!-- Tanggal dan Jam Kirim -->
                             <td class="px-6 py-4 text-xs font-medium text-gray-600 whitespace-nowrap">
-                                <div>{{ $item->created_at->translatedFormat('d M Y') }}</div>
-                                <div class="text-gray-400 font-mono mt-0.5">{{ $item->created_at->format('H:i') }} WIB</div>
+                                <div>{{ $item->created_at?->translatedFormat('d M Y') ?? '-' }}</div>
+                                <div class="text-gray-400 font-mono mt-0.5">{{ $item->created_at?->format('H:i') ?? '' }} WIB</div>
                             </td>
 
                             <!-- Aksi -->
@@ -180,7 +180,7 @@
                         <h3 class="mt-2 text-lg font-bold text-gray-950">Detail Feedback Peserta</h3>
                     </div>
                     <p class="text-xs font-mono text-gray-500">
-                        {{ $item->created_at->translatedFormat('d F Y, H:i') }} WIB
+                        {{ $item->created_at?->translatedFormat('d F Y, H:i') ?? '-' }} WIB
                     </p>
                 </div>
 
