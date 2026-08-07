@@ -411,12 +411,49 @@
                                                 </span>
                                             @endif
                                         </div>
-                                        <p class="text-gray-500 font-mono mt-0.5">{{ $u?->email ?? '-' }}</p>
+
+                                        <!-- Status Berkas & Pembayaran Member -->
+                                        <div class="flex flex-wrap items-center gap-1.5 mt-1">
+                                            @if(!empty($mem->verification_error))
+                                                <span class="bg-rose-100 text-rose-800 text-[10px] font-bold px-2 py-0.5 rounded border border-rose-200">
+                                                    ✕ Berkas Ditolak
+                                                </span>
+                                            @elseif($mem->is_verified)
+                                                <span class="bg-blue-100 text-blue-800 text-[10px] font-bold px-2 py-0.5 rounded border border-blue-200">
+                                                    ✓ Berkas Valid
+                                                </span>
+                                            @else
+                                                <span class="bg-amber-100 text-amber-800 text-[10px] font-bold px-2 py-0.5 rounded border border-amber-200">
+                                                    ⏱ Berkas Pending
+                                                </span>
+                                            @endif
+
+                                            @if(in_array($team->is_verified, ['approved', 'verified', '1', 1], true))
+                                                <span class="bg-emerald-100 text-emerald-800 text-[10px] font-bold px-2 py-0.5 rounded border border-emerald-200">
+                                                    ✓ Bayar Lunas
+                                                </span>
+                                            @elseif(in_array($team->is_verified, ['rejected', '0'], true))
+                                                <span class="bg-red-100 text-red-800 text-[10px] font-bold px-2 py-0.5 rounded border border-red-200">
+                                                    ✕ Bayar Ditolak
+                                                </span>
+                                            @else
+                                                <span class="bg-amber-100 text-amber-800 text-[10px] font-bold px-2 py-0.5 rounded border border-amber-200">
+                                                    ⏱ Bayar Pending
+                                                </span>
+                                            @endif
+                                        </div>
+
+                                        <p class="text-gray-500 font-mono mt-1">{{ $u?->email ?? '-' }}</p>
                                         @if($u?->phone_number)
                                             <p class="text-gray-500 font-mono">WA/Telp: {{ $u->phone_number }}</p>
                                         @endif
                                         @if($u?->nama_sekolah)
-                                            <p class="text-gray-600 mt-1">Instansi: <strong>{{ $u->nama_sekolah }}</strong></p>
+                                            <p class="text-gray-600 mt-0.5">Instansi: <strong>{{ $u->nama_sekolah }}</strong></p>
+                                        @endif
+                                        @if(!empty($mem->verification_error))
+                                            <p class="text-[11px] text-rose-700 font-medium mt-1 bg-rose-50 border border-rose-200 rounded px-2 py-1">
+                                                ⚠️ <strong>Catatan Revisi:</strong> {{ $mem->verification_error }}
+                                            </p>
                                         @endif
                                     </div>
                                 </div>
