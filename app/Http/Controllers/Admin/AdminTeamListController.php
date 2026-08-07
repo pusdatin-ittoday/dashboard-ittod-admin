@@ -126,7 +126,7 @@ class AdminTeamListController extends Controller
             return response()->json([
                 'rows_html' => view('admin.teams-list._team_rows', compact('teams'))->render(),
                 'modals_html' => view('admin.teams-list._team_modals', compact('teams'))->render(),
-                'pagination_html' => $teams->links('components.admin.pagination')->render(),
+                'pagination_html' => (string) $teams->links('components.admin.pagination'),
                 'showing_info' => 'Menampilkan ' . ($teams->firstItem() ?? 0) . ' - ' . ($teams->lastItem() ?? 0) . ' dari ' . $teams->total() . ' tim',
             ]);
         }
