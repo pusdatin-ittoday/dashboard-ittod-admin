@@ -264,29 +264,52 @@
             </div>
         </section>
 
-        <!-- Fullscreen Image Lightbox Modal -->
+        <!-- Admin Themed Image Preview Lightbox Modal -->
         <div
             x-show="lightboxOpen"
             x-cloak
             x-on:keydown.escape.window="lightboxOpen = false"
-            class="fixed inset-0 z-[99999] flex items-center justify-center bg-black/90 p-4 backdrop-blur-md"
+            class="fixed inset-0 z-[99999] flex items-center justify-center bg-gray-900/80 p-4 sm:p-6 backdrop-blur-sm"
             style="display: none;"
         >
-            <button
-                type="button"
-                @click="lightboxOpen = false"
-                class="absolute top-4 right-4 z-[99999] rounded-full bg-white/20 p-2.5 text-white hover:bg-white/40 focus:outline-none transition-colors cursor-pointer"
-                title="Tutup Preview (Esc)"
+            <div
+                @click.outside="lightboxOpen = false"
+                class="relative w-full max-w-3xl max-h-[90vh] bg-white rounded-xl shadow-2xl border border-gray-200 overflow-hidden flex flex-col transform transition-all"
             >
-                <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12" />
-                </svg>
-            </button>
+                <!-- Modal Header -->
+                <div class="flex items-start justify-between border-b border-gray-200 px-6 py-4 bg-white shrink-0">
+                    <div>
+                        <span class="inline-flex rounded border border-indigo-200 bg-indigo-50 px-2.5 py-0.5 text-xs font-extrabold uppercase text-indigo-700">
+                            Preview Dokumen
+                        </span>
+                        <h3 class="mt-1 text-lg font-bold text-gray-950 truncate" x-text="lightboxTitle"></h3>
+                    </div>
+                    <button
+                        type="button"
+                        @click="lightboxOpen = false"
+                        class="rounded-lg p-1.5 text-gray-400 hover:bg-gray-100 hover:text-gray-600 transition-colors cursor-pointer"
+                        title="Tutup (Esc)"
+                    >
+                        <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                    </button>
+                </div>
 
-            <div @click.outside="lightboxOpen = false" class="relative max-w-5xl max-h-[92vh] flex flex-col items-center justify-center overflow-hidden rounded-xl bg-black/60 p-3 border border-white/20 shadow-2xl">
-                <img :src="lightboxImg" alt="Enlarged Document" class="max-h-[82vh] w-auto max-w-full rounded-lg object-contain shadow-2xl">
-                <div class="mt-3 text-center text-xs font-bold text-white/90 flex items-center justify-center">
-                    <span x-text="lightboxTitle" class="bg-indigo-900/80 text-indigo-200 px-3 py-1 rounded border border-indigo-500/40 shadow-sm"></span>
+                <!-- Modal Body Image View -->
+                <div class="p-6 bg-gray-50/60 flex items-center justify-center overflow-auto max-h-[70vh]">
+                    <img :src="lightboxImg" alt="Document Preview" class="max-h-[65vh] w-auto max-w-full rounded-lg border border-gray-200 bg-white p-2 object-contain shadow-md">
+                </div>
+
+                <!-- Modal Footer -->
+                <div class="px-6 py-4 bg-white border-t border-gray-200 flex justify-end shrink-0">
+                    <button
+                        type="button"
+                        @click="lightboxOpen = false"
+                        class="rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50 shadow-xs cursor-pointer transition-colors"
+                    >
+                        Tutup
+                    </button>
                 </div>
             </div>
         </div>
