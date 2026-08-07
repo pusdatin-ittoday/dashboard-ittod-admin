@@ -109,19 +109,7 @@ class AdminTeamListController extends Controller
             });
         }
 
-        $statsQuery = clone $query;
-        $allTeams = $statsQuery->get();
-
-        // Summary Stats
-        $stats = [
-            'total_teams' => $allTeams->count(),
-            'verified_berkas' => $allTeams->filter(fn($t) => in_array($t->is_document_verified, ['verified', 'approved', '1', 1], true))->count(),
-            'verified_pembayaran' => $allTeams->filter(fn($t) => in_array($t->is_verified, ['approved', 'verified', '1', 1], true))->count(),
-            'pending_teams' => $allTeams->filter(fn($t) => in_array($t->is_verified, ['pending', null], true) || in_array($t->is_document_verified, ['pending', null], true))->count(),
-            'total_members' => $allTeams->sum(fn($t) => $t->members->count()),
-        ];
-
-        $teams = $query->latest('created_at')->paginate(15)->withQueryString();
+        $teams = (clone $query)->latest('created_at')->paginate(15)->withQueryString();
 
         if ($request->ajax() || $request->has('ajax')) {
             return response()->json([
@@ -134,6 +122,17 @@ class AdminTeamListController extends Controller
                 'showing_to' => $teams->lastItem() ?? 0,
             ]);
         }
+
+        $allTeams = $query->get();
+
+        // Summary Stats
+        $stats = [
+            'total_teams' => $allTeams->count(),
+            'verified_berkas' => $allTeams->filter(fn($t) => in_array($t->is_document_verified, ['verified', 'approved', '1', 1], true))->count(),
+            'verified_pembayaran' => $allTeams->filter(fn($t) => in_array($t->is_verified, ['approved', 'verified', '1', 1], true))->count(),
+            'pending_teams' => $allTeams->filter(fn($t) => in_array($t->is_verified, ['pending', null], true) || in_array($t->is_document_verified, ['pending', null], true))->count(),
+            'total_members' => $allTeams->sum(fn($t) => $t->members->count()),
+        ];
 
         // Dropdown events list for filter
         if (auth()->user()?->role === 'panitia_lomba') {
