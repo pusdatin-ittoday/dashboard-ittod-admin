@@ -673,6 +673,7 @@ class AdminDashboardController extends Controller
         $user = auth()->user();
         $eventsQuery = Event::orderBy('title');
         $announcementsQuery = EventAnnouncement::with(['event', 'author'])
+            ->orderBy('priority', 'desc')
             ->orderBy('is_pinned', 'desc')
             ->latest('created_at');
 
@@ -703,7 +704,12 @@ class AdminDashboardController extends Controller
             'event_id' => $eventRules,
             'title' => ['required', 'string', 'max:191'],
             'description' => ['required', 'string'],
+            'is_pinned' => ['nullable', 'boolean'],
+            'priority' => ['nullable', 'integer', 'min:0', 'max:999'],
         ]);
+
+        $validated['is_pinned'] = (bool) $request->input('is_pinned', false);
+        $validated['priority'] = (int) $request->input('priority', 0);
 
         EventAnnouncement::create([
             'id' => (string) Str::uuid(),
@@ -730,7 +736,12 @@ class AdminDashboardController extends Controller
             'event_id' => $eventRules,
             'title' => ['required', 'string', 'max:191'],
             'description' => ['required', 'string'],
+            'is_pinned' => ['nullable', 'boolean'],
+            'priority' => ['nullable', 'integer', 'min:0', 'max:999'],
         ]);
+
+        $validated['is_pinned'] = (bool) $request->input('is_pinned', false);
+        $validated['priority'] = (int) $request->input('priority', 0);
 
         $announcement->update($validated);
 
