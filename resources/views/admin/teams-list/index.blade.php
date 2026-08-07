@@ -2,7 +2,7 @@
     title="List Tim & Monitoring Peserta"
     subtitle="Direktori pemantauan seluruh tim kompetisi dan event IT Today (Read-Only)."
 >
-    <div x-data="{ lightboxOpen: false, lightboxImg: '', lightboxTitle: '' }" x-on:open-lightbox.window="lightboxOpen = true; lightboxImg = $event.detail.img; lightboxTitle = $event.detail.title" class="flex flex-col gap-6">
+    <div x-data="{ lightboxOpen: false, lightboxImg: '', lightboxTitle: '' }" x-init="$watch('lightboxOpen', v => { if (v) { document.body.classList.add('overflow-y-hidden'); } else { document.body.classList.remove('overflow-y-hidden'); } })" x-on:open-lightbox.window="lightboxOpen = true; lightboxImg = $event.detail.img; lightboxTitle = $event.detail.title" class="flex flex-col gap-6">
         <!-- Summary Stats Cards -->
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             <div class="rounded-lg border border-gray-200 bg-white p-5 shadow-sm">
@@ -265,17 +265,38 @@
             </div>
         </section>
 
-        <!-- Admin Themed Image Preview Lightbox Modal -->
+        <!-- Admin Themed Image Preview Lightbox Modal with Smooth Transition -->
         <div
             x-show="lightboxOpen"
             x-cloak
             x-on:keydown.escape.window="lightboxOpen = false"
-            class="fixed inset-0 z-[99999] flex items-center justify-center bg-gray-900/80 p-4 sm:p-6 backdrop-blur-sm"
+            class="fixed inset-0 z-[99999] overflow-y-auto px-4 py-6 sm:px-0 flex items-center justify-center"
             style="display: none;"
         >
+            <!-- Dark Backdrop Fade Transition -->
             <div
+                x-show="lightboxOpen"
+                x-on:click="lightboxOpen = false"
+                x-transition:enter="ease-out duration-300"
+                x-transition:enter-start="opacity-0"
+                x-transition:enter-end="opacity-100"
+                x-transition:leave="ease-in duration-200"
+                x-transition:leave-start="opacity-100"
+                x-transition:leave-end="opacity-0"
+                class="fixed inset-0 bg-gray-900/80 backdrop-blur-sm transition-all"
+            ></div>
+
+            <!-- Modal Card Scale & Fade Transition -->
+            <div
+                x-show="lightboxOpen"
                 @click.outside="lightboxOpen = false"
-                class="relative w-full max-w-3xl max-h-[90vh] bg-white rounded-xl shadow-2xl border border-gray-200 overflow-hidden flex flex-col transform transition-all"
+                x-transition:enter="ease-out duration-300"
+                x-transition:enter-start="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+                x-transition:enter-end="opacity-100 translate-y-0 sm:scale-100"
+                x-transition:leave="ease-in duration-200"
+                x-transition:leave-start="opacity-100 translate-y-0 sm:scale-100"
+                x-transition:leave-end="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+                class="relative w-full max-w-3xl max-h-[90vh] bg-white rounded-xl shadow-2xl border border-gray-200 overflow-hidden flex flex-col transform transition-all z-10 my-auto"
             >
                 <!-- Modal Header -->
                 <div class="flex items-start justify-between border-b border-gray-200 px-6 py-4 bg-white shrink-0">
