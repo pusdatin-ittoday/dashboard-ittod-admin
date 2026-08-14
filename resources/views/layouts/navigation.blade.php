@@ -1,77 +1,88 @@
-<nav x-data="{ open: false }" class="bg-white border-b border-gray-100">
+<nav x-data="{ open: false }" class="bg-white border-b border-gray-200 sticky top-0 z-40">
     <!-- Primary Navigation Menu -->
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="max-w-[1750px] mx-auto px-4 sm:px-6 lg:px-8">
         <div class="flex justify-between h-16">
-            <div class="flex">
+            <div class="flex items-center">
                 <!-- Logo -->
-                <div class="shrink-0 flex items-center">
+                <div class="shrink-0 flex items-center me-4 sm:me-6">
                     <a href="{{ route('admin.dashboard') }}">
                         <x-application-logo class="block h-9 w-auto fill-current text-gray-800" />
                     </a>
                 </div>
 
                 <!-- Navigation Links -->
-                <div class="hidden space-x-4 sm:-my-px sm:ms-6 sm:flex">
+                <div class="hidden space-x-1 lg:space-x-2 xl:space-x-3 sm:-my-px sm:flex items-center">
+                    <!-- Dashboard -->
                     <x-nav-link :href="route('admin.dashboard')" :active="request()->routeIs('dashboard') || request()->routeIs('admin.dashboard')">
                         {{ __('Dashboard') }}
                     </x-nav-link>
-                    <!-- Manajemen Staff: Only Superadmin -->
-                    @if(Auth::check() && Auth::user()->role === 'superadmin')
-                        <x-nav-link :href="route('admin.staff.index')" :active="request()->routeIs('admin.staff.*')">
-                            {{ __('Manajemen Staff') }}
-                        </x-nav-link>
-                    @endif
 
-                    <!-- List Peserta: Superadmin, Admin Biasa, Panitia Lomba -->
+                    <!-- List Peserta -->
                     @if(Auth::check() && in_array(Auth::user()->role, ['superadmin', 'admin_biasa', 'panitia_lomba']))
                         <x-nav-link :href="route('admin.users.index')" :active="request()->routeIs('admin.users.*')">
-                            {{ __('List Peserta') }}
+                            {{ __('Peserta') }}
                         </x-nav-link>
                     @endif
 
-
-                    <!-- Berkas, Timeline, Agenda: Superadmin & Panitia Lomba -->
-                    @if(Auth::check() && in_array(Auth::user()->role, ['superadmin', 'panitia_lomba']))
-                        <x-nav-link :href="route('operation.teams.index')" :active="request()->routeIs('operation.teams.*') || request()->routeIs('admin.files-participants.*')">
-                            {{ __('Berkas & Peserta') }}
+                    <!-- List Tim (Read-Only Overview) -->
+                    @if(Auth::check() && in_array(Auth::user()->role, ['superadmin', 'admin_biasa', 'panitia_lomba']))
+                        <x-nav-link :href="route('admin.teams-list.index')" :active="request()->routeIs('admin.teams-list.*')">
+                            {{ __('List Tim') }}
                         </x-nav-link>
                     @endif
+
+                    <!-- Event & Lomba -->
                     @if(Auth::check() && in_array(Auth::user()->role, ['superadmin', 'panitia_lomba', 'admin_biasa']))
                         <x-nav-link :href="route('admin.timelines.index')" :active="request()->routeIs('admin.timelines.*')">
-                            {{ Auth::user()->role === 'superadmin' ? __('Kelola Event dan Kompetisi') : (Auth::user()->role === 'admin_biasa' ? __('Kelola Event') : __('Kelola Kompetisi')) }}
+                            {{ __('Event & Lomba') }}
                         </x-nav-link>
                     @endif
 
+                    <!-- Berkas & Tim -->
+                    @if(Auth::check() && in_array(Auth::user()->role, ['superadmin', 'panitia_lomba']))
+                        <x-nav-link :href="route('operation.teams.index')" :active="request()->routeIs('operation.teams.*') || request()->routeIs('admin.files-participants.*')">
+                            {{ __('Berkas & Tim') }}
+                        </x-nav-link>
+                    @endif
 
-
-
-
-                    <!-- Transaksi: Superadmin & Admin Biasa -->
+                    <!-- Verifikasi Pembayaran -->
                     @if(Auth::check() && in_array(Auth::user()->role, ['superadmin', 'admin_biasa']))
                         <x-nav-link :href="route('admin.transactions.index')" :active="request()->routeIs('admin.transactions.*')">
-                            {{ __('Verifikasi Pembayaran Tim') }}
+                            {{ __('Pembayaran') }}
                         </x-nav-link>
                     @endif
 
-
-
-                    <!-- Pengumuman: All admin staff roles -->
+                    <!-- Pengumuman -->
                     @if(Auth::check() && in_array(Auth::user()->role, ['superadmin', 'admin_biasa', 'panitia_lomba']))
                         <x-nav-link :href="route('admin.announcements.index')" :active="request()->routeIs('admin.announcements.*')">
                             {{ __('Pengumuman') }}
+                        </x-nav-link>
+                    @endif
+
+                    <!-- Feedback Peserta -->
+                    @if(Auth::check() && in_array(Auth::user()->role, ['superadmin', 'admin_biasa', 'panitia_lomba']))
+                        <x-nav-link :href="route('admin.feedback.index')" :active="request()->routeIs('admin.feedback.*')">
+                            {{ __('Feedback') }}
+                        </x-nav-link>
+                    @endif
+
+                    <!-- Staff: Only Superadmin -->
+                    @if(Auth::check() && Auth::user()->role === 'superadmin')
+                        <x-nav-link :href="route('admin.staff.index')" :active="request()->routeIs('admin.staff.*')">
+                            {{ __('Staff') }}
                         </x-nav-link>
                     @endif
                 </div>
             </div>
 
             <!-- Settings Dropdown -->
-            <div class="hidden sm:flex sm:items-center sm:ms-6">
+            <div class="hidden sm:flex sm:items-center sm:ms-4">
                 <x-dropdown align="right" width="48">
                     <x-slot name="trigger">
-                        <button class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-gray-500 bg-white hover:text-gray-700 focus:outline-none transition ease-in-out duration-150">
-                            <div>{{ Auth::user()->user?->full_name ?? Auth::user()->email }}</div>
+                        <button class="inline-flex items-center px-3 py-2 border border-gray-200 text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none transition ease-in-out duration-150 shadow-sm">
+                            <span class="whitespace-nowrap">{{ Auth::user()?->user?->full_name ?? Auth::user()?->email }}</span>
 
-                            <div class="ms-1">
+                            <div class="ms-1.5">
                                 <svg class="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
                                     <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
                                 </svg>
@@ -80,6 +91,11 @@
                     </x-slot>
 
                     <x-slot name="content">
+                        <!-- Role Badge -->
+                        <div class="px-4 py-2 border-b border-gray-100 text-xs text-gray-500 font-semibold uppercase tracking-wider">
+                            Role: {{ Auth::user()?->role }}
+                        </div>
+
                         <!-- Authentication -->
                         <form method="POST" action="{{ route('logout') }}">
                             @csrf
@@ -112,42 +128,46 @@
             <x-responsive-nav-link :href="route('admin.dashboard')" :active="request()->routeIs('dashboard') || request()->routeIs('admin.dashboard')">
                 {{ __('Dashboard') }}
             </x-responsive-nav-link>
-            @if(Auth::check() && Auth::user()->role === 'superadmin')
-                <x-responsive-nav-link :href="route('admin.staff.index')" :active="request()->routeIs('admin.staff.*')">
-                    {{ __('Manajemen Staff') }}
-                </x-responsive-nav-link>
-            @endif
-
+            
             @if(Auth::check() && in_array(Auth::user()->role, ['superadmin', 'admin_biasa', 'panitia_lomba']))
                 <x-responsive-nav-link :href="route('admin.users.index')" :active="request()->routeIs('admin.users.*')">
                     {{ __('List Peserta') }}
                 </x-responsive-nav-link>
+                <x-responsive-nav-link :href="route('admin.teams-list.index')" :active="request()->routeIs('admin.teams-list.*')">
+                    {{ __('List Tim') }}
+                </x-responsive-nav-link>
             @endif
 
+            @if(Auth::check() && in_array(Auth::user()->role, ['superadmin', 'panitia_lomba', 'admin_biasa']))
+                <x-responsive-nav-link :href="route('admin.timelines.index')" :active="request()->routeIs('admin.timelines.*')">
+                    {{ __('Event & Lomba') }}
+                </x-responsive-nav-link>
+            @endif
 
             @if(Auth::check() && in_array(Auth::user()->role, ['superadmin', 'panitia_lomba']))
                 <x-responsive-nav-link :href="route('operation.teams.index')" :active="request()->routeIs('operation.teams.*') || request()->routeIs('admin.files-participants.*')">
-                    {{ __('Berkas & Peserta') }}
-                </x-responsive-nav-link>
-                <x-responsive-nav-link :href="route('admin.timelines.index')" :active="request()->routeIs('admin.timelines.*')">
-                    {{ Auth::user()->role === 'superadmin' ? __('Kelola Event dan Kompetisi') : __('Kelola Kompetisi') }}
+                    {{ __('Berkas & Tim') }}
                 </x-responsive-nav-link>
             @endif
 
-
-
-
-
             @if(Auth::check() && in_array(Auth::user()->role, ['superadmin', 'admin_biasa']))
                 <x-responsive-nav-link :href="route('admin.transactions.index')" :active="request()->routeIs('admin.transactions.*')">
-                    {{ __('Verifikasi Pembayaran Tim') }}
+                    {{ __('Verifikasi Pembayaran') }}
                 </x-responsive-nav-link>
-
             @endif
 
             @if(Auth::check() && in_array(Auth::user()->role, ['superadmin', 'admin_biasa', 'panitia_lomba']))
                 <x-responsive-nav-link :href="route('admin.announcements.index')" :active="request()->routeIs('admin.announcements.*')">
                     {{ __('Pengumuman') }}
+                </x-responsive-nav-link>
+                <x-responsive-nav-link :href="route('admin.feedback.index')" :active="request()->routeIs('admin.feedback.*')">
+                    {{ __('Feedback') }}
+                </x-responsive-nav-link>
+            @endif
+
+            @if(Auth::check() && Auth::user()->role === 'superadmin')
+                <x-responsive-nav-link :href="route('admin.staff.index')" :active="request()->routeIs('admin.staff.*')">
+                    {{ __('Manajemen Staff') }}
                 </x-responsive-nav-link>
             @endif
         </div>
@@ -155,8 +175,8 @@
         <!-- Responsive Settings Options -->
         <div class="pt-4 pb-1 border-t border-gray-200">
             <div class="px-4">
-                <div class="font-medium text-base text-gray-800">{{ Auth::user()->user?->full_name ?? Auth::user()->email }}</div>
-                <div class="font-medium text-sm text-gray-500">{{ Auth::user()->email }}</div>
+                <div class="font-medium text-base text-gray-800">{{ Auth::user()?->user?->full_name ?? Auth::user()?->email }}</div>
+                <div class="font-medium text-sm text-gray-500">{{ Auth::user()?->email }}</div>
             </div>
 
             <div class="mt-3 space-y-1">

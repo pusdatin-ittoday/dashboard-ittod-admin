@@ -74,7 +74,20 @@
                                 </span>
                             </td>
                             <td class="px-6 py-4">
-                                <div class="flex items-center gap-2">
+                                <div class="flex flex-wrap items-center gap-2">
+                                    @if ($announcement->priority >= 10)
+                                        <span class="inline-flex items-center gap-1 rounded bg-rose-100 px-1.5 py-0.5 text-[10px] font-bold text-rose-800 border border-rose-200 uppercase">
+                                            Urgent ({{ $announcement->priority }})
+                                        </span>
+                                    @elseif ($announcement->priority >= 5)
+                                        <span class="inline-flex items-center gap-1 rounded bg-amber-100 px-1.5 py-0.5 text-[10px] font-bold text-amber-800 border border-amber-200 uppercase">
+                                            Penting ({{ $announcement->priority }})
+                                        </span>
+                                    @elseif ($announcement->priority > 0)
+                                        <span class="inline-flex items-center gap-1 rounded bg-indigo-100 px-1.5 py-0.5 text-[10px] font-bold text-indigo-800 border border-indigo-200 uppercase">
+                                            P-{{ $announcement->priority }}
+                                        </span>
+                                    @endif
                                     @if ($announcement->is_pinned)
                                         <span class="inline-flex items-center gap-1 rounded bg-amber-100 px-1.5 py-0.5 text-[10px] font-bold text-amber-800 border border-amber-200 uppercase">
                                             Pinned
@@ -160,11 +173,23 @@
                     <input name="title" value="{{ old('title') }}" required class="mt-1 w-full rounded-md border-gray-300 text-sm shadow-sm focus:border-emerald-500 focus:ring-emerald-500">
                 </label>
 
-                <label class="flex items-center gap-3 rounded-md border border-gray-200 px-3 py-3">
-                    <input type="hidden" name="is_pinned" value="0">
-                    <input type="checkbox" name="is_pinned" value="1" @checked(old('is_pinned')) class="rounded border-gray-300 text-emerald-600 focus:ring-emerald-500">
-                    <span class="text-sm font-semibold text-gray-700">Sematkan Pengumuman (Pin)</span>
-                </label>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <label class="flex items-center gap-3 rounded-md border border-gray-200 px-3 py-3">
+                        <input type="hidden" name="is_pinned" value="0">
+                        <input type="checkbox" name="is_pinned" value="1" @checked(old('is_pinned')) class="rounded border-gray-300 text-emerald-600 focus:ring-emerald-500">
+                        <span class="text-sm font-semibold text-gray-700">Sematkan (Pin)</span>
+                    </label>
+
+                    <label class="block">
+                        <span class="text-sm font-semibold text-gray-700">Prioritas Penayangan</span>
+                        <select name="priority" class="mt-1 w-full rounded-md border-gray-300 text-sm shadow-sm focus:border-emerald-500 focus:ring-emerald-500">
+                            <option value="0" @selected(old('priority', 0) == 0)>0 - Normal / Biasa (Urut Tanggal)</option>
+                            <option value="5" @selected(old('priority') == 5)>5 - Penting (Sedang)</option>
+                            <option value="10" @selected(old('priority') == 10)>10 - Sangat Penting / Urgent (Tinggi)</option>
+                            <option value="20" @selected(old('priority') == 20)>20 - Top Highlight</option>
+                        </select>
+                    </label>
+                </div>
 
                 <label class="block">
                     <span class="text-sm font-semibold text-gray-700">Isi Pengumuman</span>
@@ -209,11 +234,23 @@
                         <input name="title" value="{{ old('title', $announcement->title) }}" required class="mt-1 w-full rounded-md border-gray-300 text-sm shadow-sm focus:border-emerald-500 focus:ring-emerald-500">
                     </label>
 
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <label class="flex items-center gap-3 rounded-md border border-gray-200 px-3 py-3">
                         <input type="hidden" name="is_pinned" value="0">
                         <input type="checkbox" name="is_pinned" value="1" @checked(old('is_pinned', $announcement->is_pinned)) class="rounded border-gray-300 text-emerald-600 focus:ring-emerald-500">
-                        <span class="text-sm font-semibold text-gray-700">Sematkan Pengumuman (Pin)</span>
+                        <span class="text-sm font-semibold text-gray-700">Sematkan (Pin)</span>
                     </label>
+
+                    <label class="block">
+                        <span class="text-sm font-semibold text-gray-700">Prioritas Penayangan</span>
+                        <select name="priority" class="mt-1 w-full rounded-md border-gray-300 text-sm shadow-sm focus:border-emerald-500 focus:ring-emerald-500">
+                            <option value="0" @selected(old('priority', $announcement->priority ?? 0) == 0)>0 - Normal / Biasa (Urut Tanggal)</option>
+                            <option value="5" @selected(old('priority', $announcement->priority ?? 0) == 5)>5 - Penting (Sedang)</option>
+                            <option value="10" @selected(old('priority', $announcement->priority ?? 0) == 10)>10 - Sangat Penting / Urgent (Tinggi)</option>
+                            <option value="20" @selected(old('priority', $announcement->priority ?? 0) == 20)>20 - Top Highlight</option>
+                        </select>
+                    </label>
+                </div>
 
                     <label class="block">
                         <span class="text-sm font-semibold text-gray-700">Isi Pengumuman</span>

@@ -8,11 +8,12 @@
     title="{{ $isIndividual ? 'Detail Peserta: ' . $participantName : 'Detail Tim: ' . $team->team_name }}"
     subtitle="{{ $isIndividual ? 'ID Pendaftaran' : 'ID Tim' }}: {{ $team->id }}"
 >
-    @if(session('success'))
-        <div class="mb-6 rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-medium text-emerald-800">
-            {{ session('success') }}
-        </div>
-    @endif
+    <div x-data="{ lightboxOpen: false, lightboxImg: '', lightboxTitle: '' }" x-on:open-lightbox.window="lightboxOpen = true; lightboxImg = $event.detail.img; lightboxTitle = $event.detail.title">
+        @if(session('success'))
+            <div class="mb-6 rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-medium text-emerald-800">
+                {{ session('success') }}
+            </div>
+        @endif
 
     @if($errors->any())
         <div class="mb-6 rounded-lg border border-rose-200 bg-rose-50 px-4 py-3 text-sm font-medium text-rose-800">
@@ -188,7 +189,7 @@
                                     </div>
                                     <div>
                                         <dt class="text-xs font-semibold uppercase tracking-wide text-gray-500">Tanggal Lahir</dt>
-                                        <dd class="mt-1 font-medium text-gray-950">{{ $participant->birth_date ? $participant->birth_date->format('d/m/Y') : '-' }}</dd>
+                                        <dd class="mt-1 font-medium text-gray-950">{{ $participant->birth_date ? \Carbon\Carbon::parse($participant->birth_date)->format('d/m/Y') : '-' }}</dd>
                                     </div>
                                     <div>
                                         <dt class="text-xs font-semibold uppercase tracking-wide text-gray-500">Jenis Kelamin</dt>
@@ -244,27 +245,27 @@
                                                 <a href="{{ $ktmUrl }}" target="_blank" class="text-sm font-semibold text-emerald-700 hover:text-emerald-800">Buka</a>
                                             </div>
                                         @else
-                                            <img src="{{ $ktmUrl }}" alt="KTM {{ $participant->full_name }}" class="max-h-48 rounded-md border border-gray-200 bg-white object-contain p-1">
-                                            <a href="{{ $ktmUrl }}" target="_blank" class="mt-3 inline-flex rounded-md border border-gray-300 px-3 py-2 text-sm font-semibold text-gray-700 hover:bg-white">
-                                                Lihat Gambar
-                                            </a>
+                                            <img src="{{ $ktmUrl }}" alt="KTM {{ $participant->full_name }}" class="max-h-48 rounded-md border border-gray-200 bg-white object-contain p-1 cursor-pointer" @click="$dispatch('open-lightbox', { img: '{{ $ktmUrl }}', title: 'KTM / Kartu - {{ addslashes($participant->full_name) }}' })">
+                                            <button type="button" @click="$dispatch('open-lightbox', { img: '{{ $ktmUrl }}', title: 'KTM / Kartu - {{ addslashes($participant->full_name) }}' })" class="mt-3 inline-flex rounded-md border border-gray-300 px-3 py-2 text-sm font-semibold text-gray-700 hover:bg-white cursor-pointer">
+                                                🔍 Preview KTM / Kartu
+                                            </button>
                                         @endif
                                     @else
                                         <p class="py-8 text-center text-sm text-gray-500">KTM belum diunggah</p>
                                     @endif
                                     
                                     <div class="mt-8 border-t border-gray-200 pt-6">
-                                        <p class="mb-4 text-xs font-semibold uppercase tracking-wide text-gray-500">Twibbon</p>
+                                        <p class="mb-4 text-xs font-semibold uppercase tracking-wide text-gray-500">Bukti Upload Twibbon</p>
                                         @php
                                             $twibbonUrl = $participant->twibbon_key ? rtrim(config('services.api_url'), '/') . '/api/images/' . $participant->twibbon_key : null;
                                         @endphp
                                         @if($twibbonUrl)
-                                            <img src="{{ $twibbonUrl }}" alt="Twibbon {{ $participant->full_name }}" class="max-h-48 rounded-md border border-gray-200 bg-white object-contain p-1">
-                                            <a href="{{ $twibbonUrl }}" target="_blank" class="mt-3 inline-flex rounded-md border border-gray-300 px-3 py-2 text-sm font-semibold text-gray-700 hover:bg-white">
-                                                Lihat Gambar
-                                            </a>
+                                            <img src="{{ $twibbonUrl }}" alt="Bukti Upload Twibbon {{ $participant->full_name }}" class="max-h-48 rounded-md border border-gray-200 bg-white object-contain p-1 cursor-pointer" @click="$dispatch('open-lightbox', { img: '{{ $twibbonUrl }}', title: 'Twibbon - {{ addslashes($participant->full_name) }}' })">
+                                            <button type="button" @click="$dispatch('open-lightbox', { img: '{{ $twibbonUrl }}', title: 'Twibbon - {{ addslashes($participant->full_name) }}' })" class="mt-3 inline-flex rounded-md border border-gray-300 px-3 py-2 text-sm font-semibold text-gray-700 hover:bg-white cursor-pointer">
+                                                🔍 Preview Twibbon
+                                            </button>
                                         @else
-                                            <p class="py-8 text-center text-sm text-gray-500">Twibbon belum diunggah</p>
+                                            <p class="py-8 text-center text-sm text-gray-500">Bukti Upload Twibbon belum diunggah</p>
                                         @endif
                                     </div>
                                 </div>
@@ -390,6 +391,55 @@
                             @endif
                         </dd>
                     </div>
+                    @unless($isIndividual)
+                        <div class="flex flex-col gap-2 border-t border-gray-100 pt-3">
+                            <div class="flex items-center justify-between gap-4">
+                                <dt class="text-gray-500">Riwayat Nama</dt>
+                                <dd>
+                                    @if($team->is_name_changed)
+                                        <button
+                                            type="button"
+                                            x-data
+                                            x-on:click="$dispatch('open-name-history')"
+                                            class="inline-flex items-center gap-1.5 rounded-md border border-amber-300 bg-amber-50 px-2.5 py-1 text-xs font-semibold text-amber-800 hover:bg-amber-100 transition"
+                                        >
+                                            <svg class="h-3.5 w-3.5 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                            </svg>
+                                            <span>Lihat Riwayat (1x)</span>
+                                        </button>
+                                    @else
+                                        <span class="text-xs font-medium text-gray-400">Belum Diubah (0/1)</span>
+                                    @endif
+                                </dd>
+                            </div>
+
+                            @if(in_array(auth()->user()->role, ['superadmin', 'panitia_lomba'], true))
+                                <div class="flex flex-wrap items-center justify-end gap-2 pt-1">
+                                    <button
+                                        type="button"
+                                        x-data
+                                        x-on:click="$dispatch('open-edit-name-modal')"
+                                        class="rounded border border-indigo-200 bg-indigo-50 px-2 py-1 text-[11px] font-bold uppercase text-indigo-700 hover:bg-indigo-100"
+                                    >
+                                        Edit Nama Tim (Admin)
+                                    </button>
+                                    @if(auth()->user()->role === 'superadmin' && $team->is_name_changed)
+                                        <form action="{{ route('operation.teams.resetNameChange', $team->id) }}" method="POST" class="inline">
+                                            @csrf
+                                            <button
+                                                type="submit"
+                                                onclick="return confirm('Apakah Anda yakin ingin mereset batas edit nama tim ini? Peserta akan dapat mengubah nama tim 1 kali lagi.')"
+                                                class="rounded border border-amber-300 bg-amber-100 px-2 py-1 text-[11px] font-bold uppercase text-amber-800 hover:bg-amber-200"
+                                            >
+                                                Reset Limit (0/1)
+                                            </button>
+                                        </form>
+                                    @endif
+                                </div>
+                            @endif
+                        </div>
+                    @endunless
                 </dl>
             </section>
 
@@ -471,6 +521,242 @@
 
 
         </aside>
+    </div>
+
+    @unless($isIndividual)
+        {{-- History Modal --}}
+        <div
+            x-data="{ open: false }"
+            x-on:open-name-history.window="open = true"
+            x-on:keydown.escape.window="open = false"
+            x-show="open"
+            class="fixed inset-0 z-50 overflow-y-auto"
+            style="display: none;"
+        >
+            <div class="flex min-h-screen items-center justify-center p-4 text-center">
+                <div x-show="open" x-transition.opacity class="fixed inset-0 bg-gray-900/60 backdrop-blur-sm"></div>
+
+                <div
+                    x-show="open"
+                    x-transition
+                    x-on:click.outside="open = false"
+                    class="relative w-full max-w-md transform overflow-hidden rounded-xl bg-white p-6 text-left align-middle shadow-xl transition-all"
+                >
+                    <div class="flex items-center justify-between border-b border-gray-200 pb-4">
+                        <div class="flex items-center gap-2 font-bold text-base text-gray-950">
+                            <svg class="h-5 w-5 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                            <h3>Riwayat Perubahan Nama Tim</h3>
+                        </div>
+                        <button x-on:click="open = false" class="text-gray-400 hover:text-gray-600">
+                            <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                            </svg>
+                        </button>
+                    </div>
+
+                    <div class="mt-4 space-y-4 text-sm">
+                        <div class="rounded-lg bg-gray-50 p-3.5 border border-gray-200">
+                            <span class="text-xs font-semibold uppercase text-gray-500 block mb-1">Nama Tim Saat Ini (Aktif)</span>
+                            <span class="font-bold text-gray-950 text-base">{{ $team->team_name }}</span>
+                        </div>
+
+                        <div class="rounded-lg bg-amber-50 p-3.5 border border-amber-200">
+                            <span class="text-xs font-semibold uppercase text-amber-800 block mb-1">Nama Tim Asli / Sebelumnya</span>
+                            <span class="font-semibold text-amber-950 text-base">{{ $team->previous_team_name ?? '-' }}</span>
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-3 text-xs">
+                            <div class="rounded-md bg-gray-100 p-2.5">
+                                <span class="text-gray-500 block mb-0.5">Waktu Perubahan</span>
+                                <span class="font-semibold text-gray-900">
+                                    {{ $team->name_changed_at ? \Carbon\Carbon::parse($team->name_changed_at)->format('d M Y, H:i') . ' WIB' : '-' }}
+                                </span>
+                            </div>
+                            <div class="rounded-md bg-gray-100 p-2.5">
+                                <span class="text-gray-500 block mb-0.5">Status Batas</span>
+                                <span class="font-semibold text-rose-700">Terkunci (1/1 kali)</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mt-6 flex items-center justify-between border-t border-gray-100 pt-4">
+                        @if(auth()->user()->role === 'superadmin' && $team->is_name_changed)
+                            <form action="{{ route('operation.teams.resetNameChange', $team->id) }}" method="POST">
+                                @csrf
+                                <button
+                                    type="submit"
+                                    onclick="return confirm('Reset batas edit nama tim ini agar peserta bisa ubah nama 1 kali lagi?')"
+                                    class="rounded-md border border-amber-300 bg-amber-50 px-3 py-1.5 text-xs font-bold text-amber-800 hover:bg-amber-100"
+                                >
+                                    🔄 Reset Limit Edit (Buka Kunci)
+                                </button>
+                            </form>
+                        @else
+                            <div></div>
+                        @endif
+
+                        <button
+                            type="button"
+                            x-on:click="open = false"
+                            class="rounded-md border border-gray-300 bg-white px-4 py-2 text-xs font-semibold text-gray-700 hover:bg-gray-50"
+                        >
+                            Tutup
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {{-- Admin Edit Team Name Modal --}}
+        <div
+            x-data="{ openEdit: false }"
+            x-on:open-edit-name-modal.window="openEdit = true"
+            x-on:keydown.escape.window="openEdit = false"
+            x-show="openEdit"
+            class="fixed inset-0 z-50 overflow-y-auto"
+            style="display: none;"
+        >
+            <div class="flex min-h-screen items-center justify-center p-4 text-center">
+                <div x-show="openEdit" x-transition.opacity class="fixed inset-0 bg-gray-900/60 backdrop-blur-sm"></div>
+
+                <div
+                    x-show="openEdit"
+                    x-transition
+                    x-on:click.outside="openEdit = false"
+                    class="relative w-full max-w-md transform overflow-hidden rounded-xl bg-white p-6 text-left align-middle shadow-xl transition-all"
+                >
+                    <div class="flex items-center justify-between border-b border-gray-200 pb-4">
+                        <h3 class="text-base font-bold text-gray-950">Edit Nama Tim (Superadmin / Admin)</h3>
+                        <button x-on:click="openEdit = false" class="text-gray-400 hover:text-gray-600">
+                            <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                            </svg>
+                        </button>
+                    </div>
+
+                    <form action="{{ route('operation.teams.updateName', $team->id) }}" method="POST" class="mt-4 space-y-4 text-sm">
+                        @csrf
+                        <div>
+                            <label for="admin_team_name" class="block text-xs font-semibold uppercase text-gray-700">Nama Tim Baru</label>
+                            <input
+                                type="text"
+                                id="admin_team_name"
+                                name="team_name"
+                                value="{{ old('team_name', $team->team_name) }}"
+                                required
+                                minlength="3"
+                                maxlength="50"
+                                class="mt-1 block w-full rounded-md border-gray-300 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                            >
+                        </div>
+
+                        <div>
+                            <label for="admin_previous_team_name" class="block text-xs font-semibold uppercase text-gray-700">Nama Tim Sebelumnya (Opsional Audit Log)</label>
+                            <input
+                                type="text"
+                                id="admin_previous_team_name"
+                                name="previous_team_name"
+                                value="{{ old('previous_team_name', $team->previous_team_name ?? $team->team_name) }}"
+                                maxlength="50"
+                                class="mt-1 block w-full rounded-md border-gray-300 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                            >
+                            <p class="mt-1 text-[11px] text-gray-500">Nama awal yang dicatat dalam riwayat perubahan.</p>
+                        </div>
+
+                        <div class="mt-6 flex justify-end gap-3 pt-2">
+                            <button
+                                type="button"
+                                x-on:click="openEdit = false"
+                                class="rounded-md border border-gray-300 bg-white px-4 py-2 text-xs font-semibold text-gray-700 hover:bg-gray-50"
+                            >
+                                Batal
+                            </button>
+                            <button
+                                type="submit"
+                                class="rounded-md bg-indigo-600 px-4 py-2 text-xs font-semibold text-white hover:bg-indigo-700"
+                            >
+                                Simpan Perubahan
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    @endunless
+
+    <div x-data="{ lightboxOpen: false, lightboxImg: '', lightboxTitle: '' }" x-init="$watch('lightboxOpen', v => { if (v) { document.body.classList.add('overflow-y-hidden'); } else { document.body.classList.remove('overflow-y-hidden'); } })" x-on:open-lightbox.window="lightboxOpen = true; lightboxImg = $event.detail.img; lightboxTitle = $event.detail.title">
+        <!-- Admin Themed Image Preview Lightbox Modal with Smooth Transition -->
+        <div
+            x-show="lightboxOpen"
+            x-cloak
+            x-on:keydown.escape.window="lightboxOpen = false"
+            class="fixed inset-0 z-[99999] overflow-y-auto px-4 py-6 sm:px-0 flex items-center justify-center"
+            style="display: none;"
+        >
+            <!-- Dark Backdrop Fade Transition -->
+            <div
+                x-show="lightboxOpen"
+                x-on:click="lightboxOpen = false"
+                x-transition:enter="ease-out duration-300"
+                x-transition:enter-start="opacity-0"
+                x-transition:enter-end="opacity-100"
+                x-transition:leave="ease-in duration-200"
+                x-transition:leave-start="opacity-100"
+                x-transition:leave-end="opacity-0"
+                class="fixed inset-0 bg-gray-900/80 backdrop-blur-sm transition-all"
+            ></div>
+
+            <!-- Modal Card Scale & Fade Transition -->
+            <div
+                x-show="lightboxOpen"
+                @click.outside="lightboxOpen = false"
+                x-transition:enter="ease-out duration-300"
+                x-transition:enter-start="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+                x-transition:enter-end="opacity-100 translate-y-0 sm:scale-100"
+                x-transition:leave="ease-in duration-200"
+                x-transition:leave-start="opacity-100 translate-y-0 sm:scale-100"
+                x-transition:leave-end="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+                class="relative w-full max-w-3xl max-h-[90vh] bg-white rounded-xl shadow-2xl border border-gray-200 overflow-hidden flex flex-col transform transition-all z-10 my-auto"
+            >
+                <!-- Modal Header -->
+                <div class="flex items-start justify-between border-b border-gray-200 px-6 py-4 bg-white shrink-0">
+                    <div>
+                        <span class="inline-flex rounded border border-indigo-200 bg-indigo-50 px-2.5 py-0.5 text-xs font-extrabold uppercase text-indigo-700">
+                            Preview Dokumen
+                        </span>
+                        <h3 class="mt-1 text-lg font-bold text-gray-950 truncate" x-text="lightboxTitle"></h3>
+                    </div>
+                    <button
+                        type="button"
+                        @click="lightboxOpen = false"
+                        class="rounded-lg p-1.5 text-gray-400 hover:bg-gray-100 hover:text-gray-600 transition-colors cursor-pointer"
+                        title="Tutup (Esc)"
+                    >
+                        <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                    </button>
+                </div>
+
+                <!-- Modal Body Image View -->
+                <div class="p-6 bg-gray-50/60 flex items-center justify-center overflow-auto max-h-[70vh]">
+                    <img :src="lightboxImg" alt="Document Preview" class="max-h-[65vh] w-auto max-w-full rounded-lg border border-gray-200 bg-white p-2 object-contain shadow-md">
+                </div>
+
+                <!-- Modal Footer -->
+                <div class="px-6 py-4 bg-white border-t border-gray-200 flex justify-end shrink-0">
+                    <button
+                        type="button"
+                        @click="lightboxOpen = false"
+                        class="rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50 shadow-xs cursor-pointer transition-colors"
+                    >
+                        Tutup
+                    </button>
+                </div>
+            </div>
+        </div>
     </div>
 </x-admin.layout>
 

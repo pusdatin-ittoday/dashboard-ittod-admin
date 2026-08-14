@@ -23,10 +23,12 @@ class EventAnnouncement extends Model
         'title',
         'description',
         'is_pinned',
+        'priority',
     ];
 
     protected $casts = [
         'is_pinned' => 'boolean',
+        'priority' => 'integer',
     ];
 
     /**

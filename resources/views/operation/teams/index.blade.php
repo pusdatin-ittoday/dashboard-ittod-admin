@@ -206,8 +206,11 @@
                         >
                             <td class="px-6 py-4">
                                 <p class="font-semibold text-gray-950">{{ $displayName }}</p>
-                                <p class="mt-1 text-xs text-gray-500">
-                                    {{ $isIndividual ? 'Individu · ID: ' . $individualCode : 'Kode: ' . $team->team_code }}
+                                <p class="mt-1 flex items-center gap-1.5 text-xs text-gray-500">
+                                    <span>{{ $isIndividual ? 'Individu · ID: ' . $individualCode : 'Kode: ' . $team->team_code }}</span>
+                                    @if($team->is_name_changed)
+                                        <span class="inline-flex rounded border border-amber-200 bg-amber-50 px-1.5 py-0.5 text-[10px] font-bold text-amber-700" title="Nama tim pernah diubah 1x">Nama Diubah</span>
+                                    @endif
                                 </p>
                             </td>
                             <td class="px-6 py-4">

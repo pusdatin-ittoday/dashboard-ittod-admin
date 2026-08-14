@@ -223,4 +223,55 @@ class TeamController extends Controller
 
         return back()->with('success', 'Anggota berhasil dikeluarkan dari tim!');
     }
+
+    // Reset status pengubahan nama tim (Superadmin Only)
+    public function resetNameChange(string $id) {
+        abort_unless(auth()->user()->role === 'superadmin', 403, 'Aksi ini hanya untuk Superadmin.');
+
+        $team = Team::findOrFail($id);
+        $team->update([
+            'is_name_changed' => false,
+        ]);
+
+        return back()->with('success', 'Batas pengubahan nama tim berhasil direset! Tim sekarang dapat mengubah nama tim 1 kali lagi.');
+    }
+
+    // Mengubah nama tim secara manual oleh Admin/Superadmin
+    public function updateTeamNameAdmin(Request $request, string $id) {
+        abort_unless(in_array(auth()->user()->role, ['superadmin', 'panitia_lomba'], true), 403);
+        $team = Team::findOrFail($id);
+
+        if (auth()->user()->role === 'panitia_lomba') {
+            abort_unless(auth()->user()->events->contains('id', $team->competition_id), 403);
+        }
+
+        $request->validate([
+            'team_name' => 'required|string|min:3|max:50',
+            'previous_team_name' => 'nullable|string|max:50',
+        ]);
+
+        $trimmed = trim($request->team_name);
+
+        $exists = Team::where('competition_id', $team->competition_id)
+            ->where('team_name', $trimmed)
+            ->where('id', '!=', $id)
+            ->exists();
+
+        if ($exists) {
+            return back()->withErrors(['team_name' => 'Nama tim sudah digunakan di kompetisi ini.'])->withInput();
+        }
+
+        $prevName = filled($request->previous_team_name)
+            ? trim($request->previous_team_name)
+            : ($team->team_name !== $trimmed ? $team->team_name : $team->previous_team_name);
+
+        $team->update([
+            'previous_team_name' => $prevName,
+            'team_name' => $trimmed,
+            'is_name_changed' => true,
+            'name_changed_at' => now(),
+        ]);
+
+        return back()->with('success', 'Nama tim berhasil diperbarui oleh Admin!');
+    }
 }

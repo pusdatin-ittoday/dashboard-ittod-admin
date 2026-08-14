@@ -28,6 +28,8 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/teams/{id}/verify', [TeamController::class, 'updateStatus'])->name('operation.teams.verify');
         Route::post('/teams/{teamId}/members/{userId}/verify', [TeamController::class, 'updateMemberStatus'])->name('operation.teams.verifyMember');
         Route::post('/teams/{id}/finalist', [TeamController::class, 'updateFinalist'])->name('operation.teams.finalist');
+        Route::post('/teams/{id}/reset-name-change', [TeamController::class, 'resetNameChange'])->name('operation.teams.resetNameChange');
+        Route::post('/teams/{id}/update-name', [TeamController::class, 'updateTeamNameAdmin'])->name('operation.teams.updateName');
         Route::delete('/teams/{id}', [TeamController::class, 'destroy'])->name('operation.teams.destroy');
         Route::delete('/teams/{teamId}/members/{userId}', [TeamController::class, 'destroyMember'])->name('operation.teams.destroyMember');
 
@@ -86,6 +88,12 @@ Route::middleware(['auth'])->group(function () {
         Route::patch('/announcements/{announcement}', [AdminDashboardController::class, 'updateAnnouncement'])->name('announcements.update');
         Route::patch('/announcements/{announcement}/pin', [AdminDashboardController::class, 'pinAnnouncement'])->name('announcements.pin');
         Route::delete('/announcements/{announcement}', [AdminDashboardController::class, 'destroyAnnouncement'])->name('announcements.destroy');
+
+        Route::get('/feedback', [\App\Http\Controllers\Admin\AdminFeedbackController::class, 'index'])->name('feedback.index');
+        Route::patch('/feedback/{feedback}/status', [\App\Http\Controllers\Admin\AdminFeedbackController::class, 'updateStatus'])->name('feedback.status');
+        Route::delete('/feedback/{feedback}', [\App\Http\Controllers\Admin\AdminFeedbackController::class, 'destroy'])->name('feedback.destroy');
+
+        Route::get('/teams-list', [\App\Http\Controllers\Admin\AdminTeamListController::class, 'index'])->name('teams-list.index');
     });
 
     Route::post('/transaction/{teamId}/verify', [TransactionController::class, 'verify']);

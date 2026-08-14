@@ -22,10 +22,13 @@ class Team extends Model
         'id',
         'competition_id',
         'team_name',
+        'previous_team_name',
+        'name_changed_at',
         'team_code',
         'max_member',
         'is_document_verified',
         'is_verified',
+        'is_name_changed',
         'verification_error',
         'payment_proof_id',
         'is_finalist',
@@ -34,9 +37,11 @@ class Team extends Model
 
     protected $casts = [
         // removed is_verified integer cast
-        'max_member'   => 'integer',
-        'is_finalist'  => 'boolean',
-        'rank'         => 'integer',
+        'max_member'      => 'integer',
+        'is_finalist'     => 'boolean',
+        'rank'            => 'integer',
+        'is_name_changed' => 'boolean',
+        'name_changed_at' => 'datetime',
     ];
 
     /**
