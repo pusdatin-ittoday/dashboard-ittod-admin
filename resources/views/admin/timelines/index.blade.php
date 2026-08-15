@@ -376,9 +376,16 @@
                                 </td>
                                 <td class="px-6 py-4 text-sm font-semibold text-gray-700">
                                     @if($event->type === 'competition')
-                                        {{ $event->teams_count }} tim
+                                        <a href="{{ route('admin.teams-list.index', ['competition' => $event->id]) }}" class="text-indigo-600 hover:text-indigo-900 hover:underline">
+                                            {{ $event->teams_count }} tim
+                                        </a>
                                     @else
-                                        {{ $event->participants_count }} peserta
+                                        <a href="{{ route('admin.event-participants.index', ['event_id' => $event->id]) }}" class="inline-flex items-center gap-1 text-indigo-600 hover:text-indigo-900 hover:underline">
+                                            <span>{{ $event->participants_count }} peserta</span>
+                                            <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                                            </svg>
+                                        </a>
                                     @endif
                                 </td>
                                 <td class="px-6 py-4">
@@ -387,9 +394,16 @@
                                     </span>
                                 </td>
                                 <td class="px-6 py-4">
+                                    <div class="flex flex-col gap-1.5">
                                         <a href="{{ route('admin.timelines.agenda', $event) }}" class="inline-flex items-center justify-center rounded-md border border-gray-300 px-3 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50">
                                             {{ $event->type === 'competition' ? 'Kelola Agenda Spesifik' : 'Kelola Agenda' }}
                                         </a>
+                                        @if($event->type !== 'competition')
+                                            <a href="{{ route('admin.event-participants.index', ['event_id' => $event->id]) }}" class="inline-flex items-center justify-center rounded-md border border-indigo-200 bg-indigo-50 px-3 py-1.5 text-xs font-bold text-indigo-700 hover:bg-indigo-100">
+                                                Kelola Peserta ({{ $event->participants_count }})
+                                            </a>
+                                        @endif
+                                    </div>
                                 </td>
                                 @if ($canManageCompetitions || $canManageTimelines)
                                     <td class="px-6 py-4 text-right">
