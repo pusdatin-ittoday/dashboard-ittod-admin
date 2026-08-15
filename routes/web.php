@@ -63,7 +63,9 @@ Route::middleware(['auth'])->group(function () {
         Route::patch('/transactions/{team}/reject', [AdminDashboardController::class, 'rejectTransaction'])->name('transactions.reject');
         
         Route::get('/event-participants', [\App\Http\Controllers\Admin\EventParticipantController::class, 'index'])->name('event-participants.index');
+        Route::post('/event-participants', [\App\Http\Controllers\Admin\EventParticipantController::class, 'store'])->name('event-participants.store');
         Route::post('/event-participants/verify', [\App\Http\Controllers\Admin\EventParticipantController::class, 'verify'])->name('event-participants.verify');
+        Route::delete('/event-participants', [\App\Http\Controllers\Admin\EventParticipantController::class, 'destroy'])->name('event-participants.destroy');
 
         Route::get('/files-participants', [AdminDashboardController::class, 'filesParticipants'])->name('files-participants.index');
         Route::get('/files', [AdminDashboardController::class, 'files'])->name('files.index');

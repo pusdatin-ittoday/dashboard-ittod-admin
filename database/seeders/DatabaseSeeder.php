@@ -102,6 +102,20 @@ class DatabaseSeeder extends Seeder
             'max_noncompetition_participant' => 1000,
         ]);
 
+        Event::create([
+            'id' => 'Bootcamp',
+            'slug' => 'bootcamp',
+            'title' => 'Bootcamp Offline Artificial Intelligence',
+            'description' => 'Program pelatihan intensif AI bersama praktisi IT Today x Intelligo ID.',
+            'guide_book_url' => 'https://ittoday.web.id/guidebook-bootcamp.pdf',
+            'type' => 'non_competition',
+            'price' => 99000,
+            'contact_person1' => '081212258550',
+            'contact_person2' => '085135453902',
+            'participation_type' => 'individual',
+            'max_noncompetition_participant' => 500,
+        ]);
+
 
 
 
@@ -320,6 +334,48 @@ class DatabaseSeeder extends Seeder
             'is_document_verified' => 'approved', 'is_verified' => 'approved', 'payment_proof_id' => $mediaPay[5],
         ]);
         TeamMember::create(['user_id' => $peserta[9]->id, 'team_id' => $t5, 'role' => 'leader', 'kartu_id' => $mediaKtm[9], 'is_verified' => 1]);
+
+        // Tim 6: MineToday (Peserta 2 & 3 - isMineToday = true)
+        $t6 = (string) Str::uuid();
+        Team::create([
+            'id' => $t6, 'competition_id' => 'MineToday', 'team_name' => 'MineCraft Masters', 'team_code' => 'MINE-01', 'max_member' => 3,
+            'is_document_verified' => 'approved', 'is_verified' => 'approved', 'payment_proof_id' => $mediaPay[2],
+        ]);
+        TeamMember::create(['user_id' => $peserta[2]->id, 'team_id' => $t6, 'role' => 'leader', 'kartu_id' => $mediaKtm[2], 'is_verified' => 1]);
+        TeamMember::create(['user_id' => $peserta[3]->id, 'team_id' => $t6, 'role' => 'member', 'kartu_id' => $mediaKtm[3], 'is_verified' => 1]);
+
+        // Set Institutions
+        $peserta[1]->update(['nama_sekolah' => 'IPB University']);
+        $peserta[2]->update(['nama_sekolah' => 'Institut Pertanian Bogor']);
+        $peserta[3]->update(['nama_sekolah' => 'Universitas Indonesia']);
+        $peserta[4]->update(['nama_sekolah' => 'Institut Teknologi Bandung']);
+        $peserta[5]->update(['nama_sekolah' => 'Universitas Gadjah Mada']);
+
+        // Peserta Bootcamp Dummy:
+        // 1. Peserta 1: Mahasiswa IPB (Gratis, Accepted)
+        \App\Models\EventParticipant::create([
+            'user_id' => $peserta[1]->id,
+            'event_id' => 'Bootcamp',
+            'payment_verification' => 'accepted',
+            'date_added' => now()->subDays(2),
+        ]);
+
+        // 2. Peserta 3: Non-IPB, Peserta MineToday (1 Pintu Panitia, Pending Verifikasi)
+        \App\Models\EventParticipant::create([
+            'user_id' => $peserta[3]->id,
+            'event_id' => 'Bootcamp',
+            'payment_proof' => 'https://placehold.co/500x800/png?text=Bukti+Bayar+MineToday+Bootcamp',
+            'payment_verification' => 'pending',
+            'date_added' => now()->subDay(),
+        ]);
+
+        // 3. Peserta 4: Peserta Umum (Non-IPB, Non-MineToday, Intelligo Gateway)
+        \App\Models\EventParticipant::create([
+            'user_id' => $peserta[4]->id,
+            'event_id' => 'Bootcamp',
+            'payment_verification' => 'pending',
+            'date_added' => now(),
+        ]);
 
         // ==========================================
         // OTHERS
