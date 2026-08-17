@@ -225,9 +225,19 @@ class TeamController extends Controller
     public function destroy(string $id) {
         abort_unless(auth()->user()->role === 'superadmin', 403, 'Aksi ini hanya untuk Superadmin.');
         
-        $team = Team::findOrFail($id);
+        $team = Team::with('members')->findOrFail($id);
 
         \Illuminate\Support\Facades\DB::transaction(function () use ($team) {
+            // If this is an individual team (non-competition event participant), also delete from event_participant
+            if ($team->max_member === 1) {
+                foreach ($team->members as $m) {
+                    DB::table('event_participant')
+                        ->where('user_id', $m->user_id)
+                        ->where('event_id', $team->competition_id)
+                        ->delete();
+                }
+            }
+
             \App\Models\CompetitionSubmission::where('team_id', $team->id)->delete();
             TeamMember::where('team_id', $team->id)->delete();
             $team->delete();
@@ -235,7 +245,7 @@ class TeamController extends Controller
 
         return redirect()
             ->route('operation.teams.index')
-            ->with('success', 'Tim berhasil dihapus secara permanen!');
+            ->with('success', 'Tim/Peserta berhasil dihapus secara permanen!');
     }
 
     // Mengeluarkan anggota dari tim (Superadmin Only)

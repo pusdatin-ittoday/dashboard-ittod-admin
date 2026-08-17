@@ -224,13 +224,31 @@ class EventParticipantController extends Controller
             'event_id' => 'required|string',
         ]);
 
-        $deleted = DB::table('event_participant')
-            ->where('user_id', $request->user_id)
-            ->where('event_id', $request->event_id)
-            ->delete();
+        $deleted = DB::transaction(function () use ($request) {
+            $count = DB::table('event_participant')
+                ->where('user_id', $request->user_id)
+                ->where('event_id', $request->event_id)
+                ->delete();
+
+            // Also delete the individual team & team_member if created for this event
+            $individualTeams = \App\Models\Team::where('competition_id', $request->event_id)
+                ->where('max_member', 1)
+                ->whereHas('members', function ($q) use ($request) {
+                    $q->where('user_id', $request->user_id);
+                })
+                ->get();
+
+            foreach ($individualTeams as $team) {
+                \App\Models\CompetitionSubmission::where('team_id', $team->id)->delete();
+                \App\Models\TeamMember::where('team_id', $team->id)->delete();
+                $team->delete();
+            }
+
+            return $count > 0 || $individualTeams->isNotEmpty();
+        });
 
         if ($deleted) {
-            return back()->with('success', 'Peserta berhasil dihapus dari kegiatan.');
+            return back()->with('success', 'Peserta berhasil dihapus dari kegiatan dan daftar berkas.');
         }
 
         return back()->with('error', 'Peserta tidak ditemukan.');
