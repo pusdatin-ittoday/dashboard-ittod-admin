@@ -319,10 +319,22 @@ class AdminDashboardController extends Controller
             return back()->with('error', 'Transaksi yang sudah diterima tidak dapat diubah.');
         }
 
-        $team->update([
-            'is_verified' => 'approved',
-            'verification_error' => null,
-        ]);
+        DB::transaction(function () use ($team) {
+            $team->update([
+                'is_verified' => 'approved',
+                'verification_error' => null,
+            ]);
+
+            $memberUserIds = $team->members()->pluck('user_id');
+            if ($memberUserIds->isNotEmpty()) {
+                DB::table('event_participant')
+                    ->whereIn('user_id', $memberUserIds)
+                    ->where('event_id', $team->competition_id)
+                    ->update([
+                        'payment_verification' => 'accepted'
+                    ]);
+            }
+        });
 
         return back()->with('status', "Transaksi {$team->team_name} diterima.");
     }
@@ -339,10 +351,22 @@ class AdminDashboardController extends Controller
             'verification_error' => ['required', 'string', 'max:1000'],
         ]);
 
-        $team->update([
-            'is_verified' => 'rejected',
-            'verification_error' => $validated['verification_error'],
-        ]);
+        DB::transaction(function () use ($team, $validated) {
+            $team->update([
+                'is_verified' => 'rejected',
+                'verification_error' => $validated['verification_error'],
+            ]);
+
+            $memberUserIds = $team->members()->pluck('user_id');
+            if ($memberUserIds->isNotEmpty()) {
+                DB::table('event_participant')
+                    ->whereIn('user_id', $memberUserIds)
+                    ->where('event_id', $team->competition_id)
+                    ->update([
+                        'payment_verification' => 'rejected'
+                    ]);
+            }
+        });
 
         return back()->with('status', "Transaksi {$team->team_name} ditolak.");
     }
