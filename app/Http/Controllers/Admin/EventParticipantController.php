@@ -190,12 +190,27 @@ class EventParticipantController extends Controller
 
         $status = $request->action === 'accept' ? 'accepted' : 'rejected';
 
-        DB::table('event_participant')
-            ->where('user_id', $request->user_id)
-            ->where('event_id', $request->event_id)
-            ->update([
-                'payment_verification' => $status
-            ]);
+        DB::transaction(function () use ($request, $status) {
+            DB::table('event_participant')
+                ->where('user_id', $request->user_id)
+                ->where('event_id', $request->event_id)
+                ->update([
+                    'payment_verification' => $status
+                ]);
+
+            // Sync with team if individual team exists
+            $indTeam = \App\Models\Team::where('competition_id', $request->event_id)
+                ->whereHas('members', function ($q) use ($request) {
+                    $q->where('user_id', $request->user_id);
+                })
+                ->first();
+
+            if ($indTeam) {
+                $indTeam->update([
+                    'is_verified' => $status === 'accepted' ? 'approved' : 'rejected',
+                ]);
+            }
+        });
 
         return back()->with('success', 'Status verifikasi berhasil diperbarui.');
     }

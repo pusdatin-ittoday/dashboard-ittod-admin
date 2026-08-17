@@ -92,17 +92,39 @@
                     <label class="sr-only">Filter Event</label>
                     <select name="event_id" onchange="this.form.submit()" class="rounded-md border-gray-300 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
                         @if(in_array(auth()->user()->role, ['superadmin', 'admin_biasa']))
-                            <option value="all_teams" @selected($filterEventId === 'all_teams' || !$filterEventId)>Semua Tim (Global)</option>
-                            <option value="all_participants" @selected($filterEventId === 'all_participants')>Semua Peserta Seminar (Global)</option>
+                            <optgroup label="Global">
+                                <option value="all_global" @selected($filterEventId === 'all_global')>Semua Pendaftaran (Global)</option>
+                                <option value="all_teams" @selected($filterEventId === 'all_teams' || !$filterEventId)>Semua Tim Lomba (Kompetisi)</option>
+                                <option value="all_participants" @selected($filterEventId === 'all_participants')>Semua Peserta Kegiatan (Non-Kompetisi)</option>
+                            </optgroup>
                         @else
                             <option value="" @selected(!$filterEventId)>Pilih Event</option>
                         @endif
                         
-                        @foreach($events as $event)
-                            <option value="{{ $event->id }}" @selected($filterEventId === $event->id)>
-                                {{ $event->type === 'competition' ? 'Lomba' : 'Seminar' }}: {{ $event->title }}
-                            </option>
-                        @endforeach
+                        @php
+                            $compEvents = $events->where('type', 'competition');
+                            $nonCompEvents = $events->where('type', 'non_competition');
+                        @endphp
+
+                        @if($compEvents->isNotEmpty())
+                            <optgroup label="Kompetisi / Lomba">
+                                @foreach($compEvents as $event)
+                                    <option value="{{ $event->id }}" @selected($filterEventId === $event->id)>
+                                        {{ $event->title }}
+                                    </option>
+                                @endforeach
+                            </optgroup>
+                        @endif
+
+                        @if($nonCompEvents->isNotEmpty())
+                            <optgroup label="Kegiatan / Non-Kompetisi">
+                                @foreach($nonCompEvents as $event)
+                                    <option value="{{ $event->id }}" @selected($filterEventId === $event->id)>
+                                        {{ $event->title }}
+                                    </option>
+                                @endforeach
+                            </optgroup>
+                        @endif
                     </select>
                 </form>
 
@@ -213,7 +235,8 @@
                                 </p>
                             </td>
                             <td class="px-6 py-4">
-                                <span class="inline-flex rounded border border-indigo-100 bg-indigo-50 px-2 py-1 text-[11px] font-bold uppercase text-indigo-700">
+                                <span class="inline-flex items-center gap-1 rounded border px-2 py-1 text-[11px] font-bold uppercase {{ $team->event?->type === 'non_competition' ? 'border-amber-200 bg-amber-50 text-amber-800' : 'border-indigo-100 bg-indigo-50 text-indigo-700' }}">
+                                    <span class="h-1.5 w-1.5 rounded-full {{ $team->event?->type === 'non_competition' ? 'bg-amber-500' : 'bg-indigo-600' }}"></span>
                                     {{ $team->event->title ?? $team->competition_id }}
                                 </span>
                             </td>

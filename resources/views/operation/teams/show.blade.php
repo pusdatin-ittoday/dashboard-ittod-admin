@@ -1,5 +1,5 @@
 @php
-    $isIndividual = $team->event?->participation_type === 'individual';
+    $isIndividual = $team->event?->participation_type === 'individual' || $team->max_member === 1;
     $primaryMember = $team->members->firstWhere('role', 'leader') ?? $team->members->first();
     $participantName = $primaryMember?->user?->full_name ?? 'Peserta';
 @endphp
