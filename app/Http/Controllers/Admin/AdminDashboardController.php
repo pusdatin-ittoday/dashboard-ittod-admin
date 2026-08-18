@@ -272,6 +272,11 @@ class AdminDashboardController extends Controller
         $query = Team::with(['event', 'paymentProof', 'members.user'])
             ->where('is_document_verified', 'approved');
 
+        $filterCompetition = $request->input('competition_id');
+        if ($filterCompetition) {
+            $query->where('competition_id', $filterCompetition);
+        }
+
         $filterStatus = $request->input('status', 'default');
         
         if ($filterStatus === 'default') {
@@ -304,11 +309,16 @@ class AdminDashboardController extends Controller
         });
 
         $statsQuery = Team::where('is_document_verified', 'approved');
+        if ($filterCompetition) {
+            $statsQuery->where('competition_id', $filterCompetition);
+        }
         $pendingCount = (clone $statsQuery)->where('is_verified', 'pending')->count();
         $acceptedCount = (clone $statsQuery)->where('is_verified', 'approved')->count();
         $rejectedCount = (clone $statsQuery)->where('is_verified', 'rejected')->count();
 
-        return view('admin.transactions.index', compact('teams', 'pendingCount', 'acceptedCount', 'rejectedCount', 'filterStatus', 'search'));
+        $competitions = \App\Models\Event::orderBy('title')->get();
+
+        return view('admin.transactions.index', compact('teams', 'pendingCount', 'acceptedCount', 'rejectedCount', 'filterStatus', 'search', 'competitions', 'filterCompetition'));
     }
 
     public function acceptTransaction(Team $team): RedirectResponse
