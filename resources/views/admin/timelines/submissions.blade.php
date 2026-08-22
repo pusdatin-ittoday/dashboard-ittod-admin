@@ -179,7 +179,7 @@
             </div>
 
             <div class="mt-5" x-data="{
-                fields: ({{ json_encode($singleEvent->submission_fields ?? []) }} || []).map(f => ({ label: f.label || '', type: 'url' })),
+                fields: ({{ json_encode($singleEvent->submission_fields ?? []) }} || []).map(f => ({ label: f.label || '', type: f.type || 'url' })),
                 addField() {
                     this.fields.push({ label: '', type: 'url' });
                 },
@@ -195,11 +195,14 @@
                             <div class="flex-1 grid grid-cols-2 gap-4">
                                 <label class="block">
                                     <span class="text-sm font-semibold text-gray-700">Label (Nama Isian) <span class="text-red-500">*</span></span>
-                                    <input type="text" x-model="field.label" required class="mt-1 w-full rounded-md border-gray-300 text-sm shadow-sm focus:border-blue-500 focus:ring-blue-500" placeholder="Misal: Link GDrive Karya">
+                                    <input type="text" x-model="field.label" required class="mt-1 w-full rounded-md border-gray-300 text-sm shadow-sm focus:border-blue-500 focus:ring-blue-500" placeholder="Misal: Link GDrive / Proposal PDF">
                                 </label>
                                 <label class="block">
                                     <span class="text-sm font-semibold text-gray-700">Tipe Input <span class="text-red-500">*</span></span>
-                                    <input type="text" value="Link / URL" disabled class="mt-1 w-full rounded-md border-gray-300 bg-gray-100 text-sm shadow-sm text-gray-500 cursor-not-allowed">
+                                    <select x-model="field.type" required class="mt-1 w-full rounded-md border-gray-300 text-sm shadow-sm focus:border-blue-500 focus:ring-blue-500 bg-white">
+                                        <option value="url">Link / URL (Drive, Youtube, web, dll)</option>
+                                        <option value="file">Upload File (PDF, JPG, PNG - Max 20MB)</option>
+                                    </select>
                                 </label>
                             </div>
                             <button type="button" @click="removeField(index)" class="mt-6 text-red-600 hover:text-red-800 text-sm font-bold bg-white px-3 py-2 rounded border border-red-200 hover:bg-red-50" title="Hapus field">
