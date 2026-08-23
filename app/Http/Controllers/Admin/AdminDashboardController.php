@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Event;
+use App\Models\CompetitionSubmission;
 use App\Models\EventAnnouncement;
 use App\Models\CompetitionTimeline;
 use App\Models\EventTimeline;
@@ -544,12 +545,58 @@ class AdminDashboardController extends Controller
 
         abort_unless($event->requires_submission, 404, 'Event ini tidak membutuhkan pengumpulan karya.');
 
-        $event->load('submissions.team');
+        $event->load(['submissions.team', 'timelines']);
 
         return view('admin.timelines.submissions', [
             'singleEvent' => $event,
             'canManageTimelines' => in_array($user?->role, ['superadmin', 'panitia_lomba', 'admin_biasa'], true),
         ]);
+    }
+
+    public function setSubmissionDeadline(Request $request, Event $event): RedirectResponse
+    {
+        $user = auth()->user();
+        abort_unless(in_array($user?->role, ['superadmin', 'panitia_lomba', 'admin_biasa']), 403);
+
+        if ($user->role === 'panitia_lomba') {
+            abort_unless($user->events->contains('id', $event->id), 403);
+        }
+
+        $request->validate([
+            'timeline_id' => ['nullable', 'string', \Illuminate\Validation\Rule::exists('event_timeline', 'id')->where('event_id', $event->id)],
+        ]);
+
+        \DB::transaction(function () use ($event, $request) {
+            // Set all timelines to false for this event
+            EventTimeline::where('event_id', $event->id)->update(['is_submission' => false]);
+            
+            // If a timeline was selected, set it to true
+            if ($request->timeline_id) {
+                EventTimeline::where('id', $request->timeline_id)->update(['is_submission' => true]);
+            }
+        });
+
+        return back()->with('status', 'Batas waktu pengumpulan karya berhasil diatur.');
+    }
+
+    public function destroySubmission(Event $event, string $team_id): RedirectResponse
+    {
+        $user = auth()->user();
+        abort_unless(in_array($user?->role, ['superadmin', 'panitia_lomba', 'admin_biasa']), 403);
+
+        if ($user->role === 'panitia_lomba') {
+            abort_unless($user->events->contains('id', $event->id), 403);
+        }
+
+        $submission = CompetitionSubmission::where('competition_id', $event->id)
+            ->where('team_id', $team_id)
+            ->firstOrFail();
+
+        CompetitionSubmission::where('competition_id', $event->id)
+            ->where('team_id', $team_id)
+            ->delete();
+
+        return back()->with('status', 'Data pengumpulan karya berhasil dihapus.');
     }
 
     public function storeCompetition(Request $request): RedirectResponse
@@ -672,7 +719,12 @@ class AdminDashboardController extends Controller
         $validated = $this->validateCompetitionTimeline($request);
         $this->abortIfUnassignedPanitia($validated['event_id']);
 
-        EventTimeline::create($validated);
+        DB::transaction(function () use ($validated) {
+            if (!empty($validated['is_submission'])) {
+                EventTimeline::where('event_id', $validated['event_id'])->update(['is_submission' => false]);
+            }
+            EventTimeline::create($validated);
+        });
 
         return back()->with('status', 'Agenda kegiatan berhasil ditambahkan.');
     }
@@ -685,7 +737,12 @@ class AdminDashboardController extends Controller
         $validated = $this->validateCompetitionTimeline($request);
         $this->abortIfUnassignedPanitia($validated['event_id']);
 
-        $timeline->update($validated);
+        DB::transaction(function () use ($validated, $timeline) {
+            if (!empty($validated['is_submission'])) {
+                EventTimeline::where('event_id', $validated['event_id'])->update(['is_submission' => false]);
+            }
+            $timeline->update($validated);
+        });
 
         return back()->with('status', 'Agenda kegiatan berhasil diperbarui.');
     }
@@ -870,7 +927,7 @@ class AdminDashboardController extends Controller
 
     private function validateCompetitionTimeline(Request $request): array
     {
-        return $request->validate([
+        $validated = $request->validate([
             'event_id' => [
                 'required',
                 'string',
@@ -879,7 +936,12 @@ class AdminDashboardController extends Controller
             'title' => ['required', 'string', 'max:191'],
             'date' => ['required', 'date'],
             'end_date' => ['nullable', 'date', 'after_or_equal:date'],
+            'is_submission' => ['nullable', 'boolean'],
         ]);
+
+        $validated['is_submission'] = $request->has('is_submission');
+
+        return $validated;
     }
 
     private function validateCompetition(Request $request): array

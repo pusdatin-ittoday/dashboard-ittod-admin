@@ -61,6 +61,10 @@
                 </button>
 
                 @if ($canManageTimelines)
+                    <button type="button" x-data x-on:click="$dispatch('open-modal', 'edit-deadline-{{ $singleEvent->id }}')" class="inline-flex items-center justify-center rounded-md border border-emerald-300 bg-emerald-50 px-4 py-2 text-sm font-semibold text-emerald-700 hover:bg-emerald-100 transition-all duration-150 shadow-sm">
+                        <svg class="mr-2 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                        Atur Deadline
+                    </button>
                     <button type="button" x-data x-on:click="$dispatch('open-modal', 'edit-panitia_lomba-submission-{{ $singleEvent->id }}')" class="inline-flex items-center justify-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50 transition-all duration-150 shadow-sm">
                         <svg class="mr-2 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
                         Kelola Format
@@ -85,6 +89,42 @@
                     </div>
                 </div>
             @endif
+
+            @php
+                $submissionTimeline = $singleEvent->timelines->where('is_submission', true)->first();
+            @endphp
+            <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg mb-6">
+                <div class="p-6 text-gray-900 border-b border-gray-200">
+                    <h3 class="text-lg font-bold mb-2">Status Submisi</h3>
+                    @if($submissionTimeline)
+                        <div class="flex flex-col sm:flex-row sm:items-center text-sm gap-2">
+                            <div>
+                                <span class="font-semibold text-gray-700 mr-2">Dibuka mulai:</span>
+                                <span class="text-gray-900">{{ $submissionTimeline->date->format('d M Y, H:i') }}</span>
+                            </div>
+                            <span class="hidden sm:inline font-semibold text-gray-400">|</span>
+                            <div>
+                                <span class="font-semibold text-gray-700 mr-2">Deadline:</span>
+                                <span class="text-gray-900">{{ $submissionTimeline->end_date ? $submissionTimeline->end_date->format('d M Y, H:i') : 'Tidak ditentukan' }}</span>
+                            </div>
+                        </div>
+                        @if(now()->between($submissionTimeline->date, $submissionTimeline->end_date ?? now()->addYears(100)))
+                            <div class="mt-3 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-100 text-emerald-800">
+                                Submisi Terbuka
+                            </div>
+                        @else
+                            <div class="mt-3 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                                Submisi Ditutup
+                            </div>
+                        @endif
+                    @else
+                        <p class="text-sm text-gray-500">Belum ada deadline submisi yang diatur. Peserta tidak dapat mengumpulkan karya saat ini.</p>
+                        <div class="mt-3 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                            Submisi Terkunci
+                        </div>
+                    @endif
+                </div>
+            </div>
 
             <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
                 <div class="p-6 text-gray-900 border-b border-gray-200">
@@ -123,6 +163,7 @@
                                         @foreach ($allKeys as $key => $label)
                                             <th scope="col" class="px-6 py-3 text-left text-xs font-bold uppercase tracking-wider text-gray-500 whitespace-nowrap">{{ $label }}</th>
                                         @endforeach
+                                        <th scope="col" class="px-6 py-3 text-right text-xs font-bold uppercase tracking-wider text-gray-500 whitespace-nowrap">Aksi</th>
                                     </tr>
                                 </thead>
                                 <tbody class="bg-white divide-y divide-gray-200">
@@ -154,6 +195,11 @@
                                                     @endif
                                                 </td>
                                             @endforeach
+                                            <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                                <button type="button" x-data x-on:click="$dispatch('open-modal', 'confirm-delete-{{ $submission->team_id }}')" class="text-red-600 hover:text-red-900 bg-red-50 hover:bg-red-100 px-3 py-1 rounded-md border border-red-200 transition-colors">
+                                                    Hapus
+                                                </button>
+                                            </td>
                                         </tr>
                                     @endforeach
                                 </tbody>
@@ -164,6 +210,35 @@
             </div>
         </div>
     </div>
+
+    {{-- Delete Modals --}}
+    @foreach ($singleEvent->submissions as $submission)
+        <x-modal name="confirm-delete-{{ $submission->team_id }}" maxWidth="md" focusable>
+            <form action="{{ route('admin.competitions.submissions.destroy', ['event' => $singleEvent->id, 'team_id' => $submission->team_id]) }}" method="POST" class="p-6 text-center">
+                @csrf
+                @method('DELETE')
+                <div class="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-red-100">
+                    <svg class="h-8 w-8 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+                    </svg>
+                </div>
+                <h2 class="text-lg font-bold text-gray-900 mb-2">
+                    Hapus Submisi Tim <span class="text-red-600">{{ $submission->team->team_name ?? 'Tidak Diketahui' }}</span>?
+                </h2>
+                <p class="text-sm text-gray-500 mb-6">
+                    Apakah Anda yakin ingin menghapus data submisi ini?<br>Tindakan ini tidak dapat dibatalkan dan file/link yang telah dikirimkan akan terhapus dari sistem.
+                </p>
+                <div class="flex justify-center gap-3">
+                    <button type="button" x-on:click="$dispatch('close-modal', 'confirm-delete-{{ $submission->team_id }}')" class="rounded-md border border-gray-300 px-6 py-2.5 text-sm font-semibold text-gray-700 hover:bg-gray-50 transition-colors">
+                        Batal
+                    </button>
+                    <button type="submit" class="rounded-md bg-red-600 px-6 py-2.5 text-sm font-bold text-white hover:bg-red-700 shadow-sm transition-colors">
+                        Ya, Hapus
+                    </button>
+                </div>
+            </form>
+        </x-modal>
+    @endforeach
 
     <x-modal name="edit-panitia_lomba-submission-{{ $singleEvent->id }}" maxWidth="2xl" focusable>
         <form method="POST" action="{{ route('admin.competitions.panitia_lomba-details', $singleEvent) }}" class="p-6">
@@ -219,6 +294,42 @@
             <div class="mt-6 flex justify-end gap-3 border-t border-gray-200 pt-4">
                 <button type="button" x-on:click="$dispatch('close-modal', 'edit-panitia_lomba-submission-{{ $singleEvent->id }}')" class="rounded-md border border-gray-300 px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50">Batal</button>
                 <button type="submit" class="rounded-md bg-blue-700 px-4 py-2 text-sm font-bold text-white hover:bg-blue-800">Simpan Format</button>
+            </div>
+        </form>
+    </x-modal>
+
+    <x-modal name="edit-deadline-{{ $singleEvent->id }}" maxWidth="lg" focusable>
+        <form method="POST" action="{{ route('admin.competitions.submission-deadline', $singleEvent) }}" class="p-6">
+            @csrf
+            @method('PATCH')
+            <div class="border-b border-gray-200 pb-4">
+                <h3 class="text-lg font-semibold text-gray-950">Atur Deadline Submisi & Revisi</h3>
+                <p class="mt-1 text-sm text-gray-600">Pilih timeline yang akan digunakan sebagai batas waktu pengumpulan karya.</p>
+            </div>
+            
+            <div class="mt-5 space-y-4">
+                @php
+                    $activeTimeline = $singleEvent->timelines->where('is_submission', true)->first();
+                @endphp
+                <label class="block">
+                    <span class="text-sm font-semibold text-gray-700">Pilih Timeline <span class="text-red-500">*</span></span>
+                    <select
+                        name="timeline_id"
+                        class="mt-1 w-full rounded-md border-gray-300 text-sm shadow-sm focus:border-blue-500 focus:ring-blue-500 bg-white"
+                    >
+                        <option value="">-- Tidak ada (Tutup Submisi) --</option>
+                        @foreach($singleEvent->timelines as $timeline)
+                            <option value="{{ $timeline->id }}" {{ $activeTimeline?->id === $timeline->id ? 'selected' : '' }}>
+                                {{ $timeline->title }} ({{ $timeline->date->format('d M Y') }} - {{ $timeline->end_date ? $timeline->end_date->format('d M Y') : 'Selesai' }})
+                            </option>
+                        @endforeach
+                    </select>
+                </label>
+            </div>
+            
+            <div class="mt-6 flex justify-end gap-3 border-t border-gray-200 pt-4">
+                <button type="button" x-on:click="$dispatch('close-modal', 'edit-deadline-{{ $singleEvent->id }}')" class="rounded-md border border-gray-300 px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50">Batal</button>
+                <button type="submit" class="rounded-md bg-emerald-700 px-4 py-2 text-sm font-bold text-white hover:bg-emerald-800">Simpan Deadline</button>
             </div>
         </form>
     </x-modal>

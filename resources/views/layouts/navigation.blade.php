@@ -25,7 +25,7 @@
                     @endif
 
                     <!-- Peserta Kegiatan / Event -->
-                    @if(Auth::check() && in_array(Auth::user()->role, ['superadmin', 'admin_biasa', 'panitia_lomba']))
+                    @if(Auth::check() && in_array(Auth::user()->role, ['superadmin', 'admin_biasa']))
                         <x-nav-link :href="route('admin.event-participants.index')" :active="request()->routeIs('admin.event-participants.*')">
                             {{ __('Peserta Event') }}
                         </x-nav-link>
@@ -140,9 +140,11 @@
                 <x-responsive-nav-link :href="route('admin.users.index')" :active="request()->routeIs('admin.users.*')">
                     {{ __('List Peserta') }}
                 </x-responsive-nav-link>
-                <x-responsive-nav-link :href="route('admin.event-participants.index')" :active="request()->routeIs('admin.event-participants.*')">
-                    {{ __('Peserta Event') }}
-                </x-responsive-nav-link>
+                @if(in_array(Auth::user()->role, ['superadmin', 'admin_biasa']))
+                    <x-responsive-nav-link :href="route('admin.event-participants.index')" :active="request()->routeIs('admin.event-participants.*')">
+                        {{ __('Peserta Event') }}
+                    </x-responsive-nav-link>
+                @endif
                 <x-responsive-nav-link :href="route('admin.teams-list.index')" :active="request()->routeIs('admin.teams-list.*')">
                     {{ __('List Tim') }}
                 </x-responsive-nav-link>

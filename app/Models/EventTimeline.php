@@ -24,11 +24,13 @@ class EventTimeline extends Model
         'title',
         'date',
         'end_date',
+        'is_submission',
     ];
 
     protected $casts = [
         'date' => 'datetime',
         'end_date' => 'datetime',
+        'is_submission' => 'boolean',
     ];
 
     /**
