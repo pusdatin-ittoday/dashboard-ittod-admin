@@ -128,14 +128,39 @@
 
             <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
                 <div class="p-6 text-gray-900 border-b border-gray-200">
-                    
-                    @if ($singleEvent->submissions->isEmpty())
+                    <div class="mb-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                        <form method="GET" action="{{ route('admin.competitions.submissions', $singleEvent->id) }}" class="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
+                            <div class="relative">
+                                <span class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3 text-gray-400">
+                                    <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m21 21-4.35-4.35m1.35-5.65a7 7 0 1 1-14 0 7 7 0 0 1 14 0z"></path>
+                                    </svg>
+                                </span>
+                                <input
+                                    type="search"
+                                    name="search"
+                                    value="{{ request('search') }}"
+                                    placeholder="Cari tim/peserta..."
+                                    class="block w-full sm:w-56 pl-9 rounded-md border-gray-300 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                                >
+                            </div>
+                            <div>
+                                <select name="status" onchange="this.form.submit()" class="block w-full sm:w-48 rounded-md border-gray-300 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                                    <option value="" @selected(request('status') === null || request('status') === '')>Semua Status</option>
+                                    <option value="submitted" @selected(request('status') === 'submitted')>Sudah Submit</option>
+                                    <option value="not_submitted" @selected(request('status') === 'not_submitted')>Belum Submit</option>
+                                </select>
+                            </div>
+                            <button type="submit" class="hidden">Cari</button>
+                        </form>
+                    </div>
+
+                    @if ($teams->isEmpty())
                         <div class="text-center py-12">
                             <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 13h6m-3-3v6m-9 1V7a2 2 0 012-2h6l2 2h6a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2z" />
                             </svg>
-                            <h3 class="mt-2 text-sm font-semibold text-gray-900">Belum ada submission</h3>
-                            <p class="mt-1 text-sm text-gray-500">Belum ada tim yang mengumpulkan karya untuk kompetisi ini.</p>
+                            <h3 class="mt-2 text-sm font-semibold text-gray-900">Belum ada tim/submission yang sesuai kriteria pencarian.</h3>
                         </div>
                     @else
                         @php
@@ -145,11 +170,13 @@
                                     $allKeys[$field['label']] = $field['label'];
                                 }
                             }
-                            foreach ($singleEvent->submissions as $submission) {
-                                $subObj = is_string($submission->submission_object) ? json_decode($submission->submission_object, true) : $submission->submission_object;
-                                if (is_array($subObj)) {
-                                    foreach (array_keys($subObj) as $key) {
-                                        $allKeys[$key] = \Illuminate\Support\Str::title(str_replace('_', ' ', $key));
+                            foreach ($teams as $team) {
+                                foreach ($team->submissions as $submission) {
+                                    $subObj = is_string($submission->submission_object) ? json_decode($submission->submission_object, true) : $submission->submission_object;
+                                    if (is_array($subObj)) {
+                                        foreach (array_keys($subObj) as $key) {
+                                            $allKeys[$key] = \Illuminate\Support\Str::title(str_replace('_', ' ', $key));
+                                        }
                                     }
                                 }
                             }
@@ -167,21 +194,29 @@
                                     </tr>
                                 </thead>
                                 <tbody class="bg-white divide-y divide-gray-200">
-                                    @foreach ($singleEvent->submissions as $submission)
+                                    @foreach ($teams as $team)
                                         @php
-                                            $subObj = is_string($submission->submission_object) ? json_decode($submission->submission_object, true) : $submission->submission_object;
+                                            $submission = $team->submissions->first();
+                                            $subObj = $submission ? (is_string($submission->submission_object) ? json_decode($submission->submission_object, true) : $submission->submission_object) : [];
                                             if (!is_array($subObj)) $subObj = [];
                                         @endphp
                                         <tr class="hover:bg-gray-50">
                                             <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                                                {{ $submission->team->team_name ?? 'Tim Tidak Diketahui' }}
+                                                {{ $team->team_name ?? 'Tim Tidak Diketahui' }}
+                                                <div class="text-xs text-gray-500 font-normal">{{ $team->team_code }}</div>
                                             </td>
                                             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                                {{ $submission->created_at->format('d M Y, H:i') }}
+                                                @if($submission)
+                                                    {{ $submission->created_at->format('d M Y, H:i') }}
+                                                @else
+                                                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-800">
+                                                        Belum Submit
+                                                    </span>
+                                                @endif
                                             </td>
                                             @foreach ($allKeys as $key => $label)
                                                 <td class="px-6 py-4 text-sm text-gray-700 max-w-xs truncate">
-                                                    @if (isset($subObj[$key]))
+                                                    @if ($submission && isset($subObj[$key]))
                                                         @if (filter_var($subObj[$key], FILTER_VALIDATE_URL))
                                                             <a href="{{ $subObj[$key] }}" target="_blank" class="text-blue-600 hover:text-blue-800 hover:underline inline-flex items-center">
                                                                 Buka Link
@@ -196,15 +231,25 @@
                                                 </td>
                                             @endforeach
                                             <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                                <button type="button" x-data x-on:click="$dispatch('open-modal', 'confirm-delete-{{ $submission->team_id }}')" class="text-red-600 hover:text-red-900 bg-red-50 hover:bg-red-100 px-3 py-1 rounded-md border border-red-200 transition-colors">
-                                                    Hapus
-                                                </button>
+                                                @if($submission)
+                                                    <button type="button" x-data x-on:click="$dispatch('open-modal', 'confirm-delete-{{ $team->id }}')" class="text-red-600 hover:text-red-900 bg-red-50 hover:bg-red-100 px-3 py-1 rounded-md border border-red-200 transition-colors">
+                                                        Hapus
+                                                    </button>
+                                                @else
+                                                    <span class="text-gray-400 italic">-</span>
+                                                @endif
                                             </td>
                                         </tr>
                                     @endforeach
                                 </tbody>
                             </table>
                         </div>
+
+                        @if($teams->hasPages())
+                            <div class="mt-4 px-2">
+                                {{ $teams->links() }}
+                            </div>
+                        @endif
                     @endif
                 </div>
             </div>
@@ -212,32 +257,34 @@
     </div>
 
     {{-- Delete Modals --}}
-    @foreach ($singleEvent->submissions as $submission)
-        <x-modal name="confirm-delete-{{ $submission->team_id }}" maxWidth="md" focusable>
-            <form action="{{ route('admin.competitions.submissions.destroy', ['event' => $singleEvent->id, 'team_id' => $submission->team_id]) }}" method="POST" class="p-6 text-center">
-                @csrf
-                @method('DELETE')
-                <div class="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-red-100">
-                    <svg class="h-8 w-8 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
-                    </svg>
-                </div>
-                <h2 class="text-lg font-bold text-gray-900 mb-2">
-                    Hapus Submisi Tim <span class="text-red-600">{{ $submission->team->team_name ?? 'Tidak Diketahui' }}</span>?
-                </h2>
-                <p class="text-sm text-gray-500 mb-6">
-                    Apakah Anda yakin ingin menghapus data submisi ini?<br>Tindakan ini tidak dapat dibatalkan dan file/link yang telah dikirimkan akan terhapus dari sistem.
-                </p>
-                <div class="flex justify-center gap-3">
-                    <button type="button" x-on:click="$dispatch('close-modal', 'confirm-delete-{{ $submission->team_id }}')" class="rounded-md border border-gray-300 px-6 py-2.5 text-sm font-semibold text-gray-700 hover:bg-gray-50 transition-colors">
-                        Batal
-                    </button>
-                    <button type="submit" class="rounded-md bg-red-600 px-6 py-2.5 text-sm font-bold text-white hover:bg-red-700 shadow-sm transition-colors">
-                        Ya, Hapus
-                    </button>
-                </div>
-            </form>
-        </x-modal>
+    @foreach ($teams as $team)
+        @if($team->submissions->isNotEmpty())
+            <x-modal name="confirm-delete-{{ $team->id }}" maxWidth="md" focusable>
+                <form action="{{ route('admin.competitions.submissions.destroy', ['event' => $singleEvent->id, 'team_id' => $team->id]) }}" method="POST" class="p-6 text-center">
+                    @csrf
+                    @method('DELETE')
+                    <div class="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-red-100">
+                        <svg class="h-8 w-8 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+                        </svg>
+                    </div>
+                    <h2 class="text-lg font-bold text-gray-900 mb-2">
+                        Hapus Submisi Tim <span class="text-red-600">{{ $team->team_name ?? 'Tidak Diketahui' }}</span>?
+                    </h2>
+                    <p class="text-sm text-gray-500 mb-6">
+                        Apakah Anda yakin ingin menghapus data submisi ini?<br>Tindakan ini tidak dapat dibatalkan dan file/link yang telah dikirimkan akan terhapus dari sistem.
+                    </p>
+                    <div class="flex justify-center gap-3">
+                        <button type="button" x-on:click="$dispatch('close-modal', 'confirm-delete-{{ $team->id }}')" class="rounded-md border border-gray-300 px-6 py-2.5 text-sm font-semibold text-gray-700 hover:bg-gray-50 transition-colors">
+                            Batal
+                        </button>
+                        <button type="submit" class="rounded-md bg-red-600 px-6 py-2.5 text-sm font-bold text-white hover:bg-red-700 shadow-sm transition-colors">
+                            Ya, Hapus
+                        </button>
+                    </div>
+                </form>
+            </x-modal>
+        @endif
     @endforeach
 
     <x-modal name="edit-panitia_lomba-submission-{{ $singleEvent->id }}" maxWidth="2xl" focusable>

@@ -545,10 +545,38 @@ class AdminDashboardController extends Controller
 
         abort_unless($event->requires_submission, 404, 'Event ini tidak membutuhkan pengumpulan karya.');
 
-        $event->load(['submissions.team', 'timelines']);
+        $event->load(['timelines']);
+
+        $request = request();
+        $query = \App\Models\Team::where('competition_id', $event->id)
+            ->with(['submissions', 'members.user']);
+
+        if ($search = $request->input('search')) {
+            $search = strtolower(trim($search));
+            $query->where(function ($q) use ($search) {
+                $q->whereRaw('LOWER(team_name) LIKE ?', ["%{$search}%"])
+                  ->orWhereRaw('LOWER(team_code) LIKE ?', ["%{$search}%"])
+                  ->orWhereHas('members.user', function ($uq) use ($search) {
+                      $uq->whereRaw('LOWER(full_name) LIKE ?', ["%{$search}%"])
+                         ->orWhereRaw('LOWER(email) LIKE ?', ["%{$search}%"])
+                         ->orWhereRaw('LOWER(nama_sekolah) LIKE ?', ["%{$search}%"]);
+                  });
+            });
+        }
+
+        if ($status = $request->input('status')) {
+            if ($status === 'submitted') {
+                $query->has('submissions');
+            } elseif ($status === 'not_submitted') {
+                $query->doesntHave('submissions');
+            }
+        }
+
+        $teams = $query->latest('created_at')->paginate(10)->withQueryString();
 
         return view('admin.timelines.submissions', [
             'singleEvent' => $event,
+            'teams' => $teams,
             'canManageTimelines' => in_array($user?->role, ['superadmin', 'panitia_lomba', 'admin_biasa'], true),
         ]);
     }
