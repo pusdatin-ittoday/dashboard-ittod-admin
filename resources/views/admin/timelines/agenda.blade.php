@@ -117,7 +117,12 @@
                         >
                             <td class="px-6 py-4">
                                 <p class="font-semibold text-gray-950">{{ $agenda->title }}</p>
-                                <p class="mt-1 text-xs text-gray-500">ID: {{ $agenda->id }}</p>
+                                <div class="flex items-center gap-2 mt-1">
+                                    <p class="text-xs text-gray-500">ID: {{ $agenda->id }}</p>
+                                    @if($agenda->is_submission)
+                                        <span class="rounded bg-emerald-100 px-2 py-0.5 text-[10px] font-bold text-emerald-800">Timeline Submisi</span>
+                                    @endif
+                                </div>
                             </td>
                             @if ($event->type === 'competition')
                                 <td class="px-6 py-4 text-sm font-semibold text-gray-700">{{ $agenda->date?->format('d M Y H:i') }}</td>
@@ -201,6 +206,10 @@
                                 class="mt-1 w-full rounded-md border-gray-300 text-sm shadow-sm focus:border-emerald-500 focus:ring-emerald-500"
                             >
                         </label>
+                        <div class="mt-3 flex items-start gap-2">
+                            <input type="checkbox" name="is_submission" id="is_submission_create" value="1" class="mt-1 rounded border-gray-300 text-emerald-600 focus:ring-emerald-500">
+                            <label for="is_submission_create" class="text-sm text-gray-700 leading-tight">Jadikan sebagai Timeline Pengumpulan / Revisi Submisi</label>
+                        </div>
                     @else
                         <label class="block">
                             <span class="text-sm font-semibold text-gray-700">Tanggal & Waktu</span>
@@ -266,6 +275,10 @@
                                     class="mt-1 w-full rounded-md border-gray-300 text-sm shadow-sm focus:border-emerald-500 focus:ring-emerald-500"
                                 >
                             </label>
+                            <div class="mt-3 flex items-start gap-2">
+                                <input type="checkbox" name="is_submission" id="is_submission_edit_{{ $agenda->id }}" value="1" {{ $agenda->is_submission ? 'checked' : '' }} class="mt-1 rounded border-gray-300 text-emerald-600 focus:ring-emerald-500">
+                                <label for="is_submission_edit_{{ $agenda->id }}" class="text-sm text-gray-700 leading-tight">Jadikan sebagai Timeline Pengumpulan / Revisi Submisi</label>
+                            </div>
                         @else
                             <label class="block">
                                 <span class="text-sm font-semibold text-gray-700">Tanggal & Waktu</span>
