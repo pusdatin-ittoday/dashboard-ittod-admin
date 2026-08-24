@@ -12,41 +12,31 @@ return new class extends Migration
      */
     public function up(): void
     {
-        // 1. Add temporary column to store the mapped enum values
+        // 1. Rename old column
         Schema::table('team', function (Blueprint $table) {
-            $table->enum('new_is_document_verified', ['pending', 'approved', 'rejected'])->default('pending')->after('is_document_verified');
+            $table->renameColumn('is_document_verified', 'is_document_verified_old');
         });
 
-        // 2. Map existing data
-        // 0 with verification_error -> 'rejected'
-        DB::table('team')
-            ->where('is_document_verified', 0)
-            ->whereNotNull('verification_error')
-            ->where('verification_error', '!=', '')
-            ->update(['new_is_document_verified' => 'rejected']);
-            
-        // 0 without verification_error -> 'pending' (already default, but let's be explicit)
-        DB::table('team')
-            ->where('is_document_verified', 0)
-            ->where(function($query) {
-                $query->whereNull('verification_error')
-                      ->orWhere('verification_error', '');
-            })
-            ->update(['new_is_document_verified' => 'pending']);
-
-        // 1 -> 'approved'
-        DB::table('team')
-            ->where('is_document_verified', 1)
-            ->update(['new_is_document_verified' => 'approved']);
-
-        // 3. Drop the old column
+        // 2. Create new enum column
         Schema::table('team', function (Blueprint $table) {
-            $table->dropColumn('is_document_verified');
+            $table->enum('is_document_verified', ['pending', 'approved', 'rejected'])
+                  ->default('pending')
+                  ->after('is_document_verified_old');
         });
 
-        // 4. Rename new column to old name
+        // 3. Migrate data
+        DB::statement("
+            UPDATE team
+            SET is_document_verified = CASE
+                WHEN is_document_verified_old = 1 THEN 'approved'
+                WHEN is_document_verified_old = 0 AND verification_error IS NOT NULL AND verification_error != '' THEN 'rejected'
+                ELSE 'pending'
+            END
+        ");
+
+        // 4. Drop the old column
         Schema::table('team', function (Blueprint $table) {
-            $table->renameColumn('new_is_document_verified', 'is_document_verified');
+            $table->dropColumn('is_document_verified_old');
         });
     }
 
@@ -55,24 +45,22 @@ return new class extends Migration
      */
     public function down(): void
     {
+        DB::statement("ALTER TABLE team CHANGE is_document_verified is_document_verified_new ENUM('pending', 'approved', 'rejected') DEFAULT 'pending'");
+
         Schema::table('team', function (Blueprint $table) {
-            $table->tinyInteger('old_is_document_verified')->default(0)->after('is_document_verified');
+            $table->tinyInteger('is_document_verified')->default(0)->after('is_document_verified_new');
         });
 
-        DB::table('team')
-            ->where('is_document_verified', 'approved')
-            ->update(['old_is_document_verified' => 1]);
-
-        DB::table('team')
-            ->whereIn('is_document_verified', ['pending', 'rejected'])
-            ->update(['old_is_document_verified' => 0]);
-
-        Schema::table('team', function (Blueprint $table) {
-            $table->dropColumn('is_document_verified');
-        });
+        DB::statement("
+            UPDATE team
+            SET is_document_verified = CASE
+                WHEN is_document_verified_new = 'approved' THEN 1
+                ELSE 0
+            END
+        ");
 
         Schema::table('team', function (Blueprint $table) {
-            $table->renameColumn('old_is_document_verified', 'is_document_verified');
+            $table->dropColumn('is_document_verified_new');
         });
     }
 };
