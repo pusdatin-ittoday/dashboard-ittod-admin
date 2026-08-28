@@ -29,6 +29,13 @@ class EventParticipantController extends Controller
                 'user.nama_sekolah',
                 'event.title as event_title',
                 'event.type as event_type',
+                DB::raw('(
+                    SELECT m.created_at 
+                    FROM media m 
+                    WHERE m.url = event_participant.payment_proof 
+                    ORDER BY m.created_at DESC 
+                    LIMIT 1
+                ) as payment_proof_submitted_at'),
                 DB::raw('EXISTS (
                     SELECT 1 
                     FROM team_member 
@@ -97,6 +104,30 @@ class EventParticipantController extends Controller
             } else {
                 $p->payment_proof_url = null;
             }
+
+            // Format registration date
+            if ($p->date_added) {
+                if (is_numeric($p->date_added)) {
+                    $ts = strlen((string)$p->date_added) >= 13 ? (int)($p->date_added / 1000) : (int)$p->date_added;
+                    $p->date_added_formatted = \Carbon\Carbon::createFromTimestamp($ts)->format('d M Y H:i');
+                } else {
+                    $p->date_added_formatted = \Carbon\Carbon::parse($p->date_added)->format('d M Y H:i');
+                }
+            } else {
+                $p->date_added_formatted = '-';
+            }
+
+            // Format payment proof submit date
+            if (!empty($p->payment_proof_submitted_at)) {
+                if (is_numeric($p->payment_proof_submitted_at)) {
+                    $ts = strlen((string)$p->payment_proof_submitted_at) >= 13 ? (int)($p->payment_proof_submitted_at / 1000) : (int)$p->payment_proof_submitted_at;
+                    $p->payment_proof_submitted_at_formatted = \Carbon\Carbon::createFromTimestamp($ts)->format('d M Y H:i');
+                } else {
+                    $p->payment_proof_submitted_at_formatted = \Carbon\Carbon::parse($p->payment_proof_submitted_at)->format('d M Y H:i');
+                }
+            } else {
+                $p->payment_proof_submitted_at_formatted = null;
+            }
         }
 
         $statsQuery = DB::table('event_participant')
@@ -147,7 +178,7 @@ class EventParticipantController extends Controller
         if ($request->hasFile('payment_proof_file')) {
             $file = $request->file('payment_proof_file');
             $path = $file->store('uploads/admin_manual', 'public');
-            $paymentProofKey = Storage::url($path);
+            $paymentProofKey = Storage::disk('public')->url($path);
         }
 
         DB::table('event_participant')->updateOrInsert(

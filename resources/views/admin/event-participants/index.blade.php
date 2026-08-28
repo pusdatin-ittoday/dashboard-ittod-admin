@@ -112,7 +112,7 @@
                                         <p class="text-[11px] text-gray-500 mt-0.5 italic truncate max-w-xs">{{ $participant->nama_sekolah }}</p>
                                     @endif
                                     <p class="text-[10px] text-gray-400 mt-1">
-                                        Terdaftar: {{ \Carbon\Carbon::parse($participant->date_added)->format('d M Y H:i') }}
+                                        Terdaftar: {{ $participant->date_added_formatted }}
                                     </p>
                                 </td>
 
@@ -163,7 +163,13 @@
                                                     </svg>
                                                     Lihat Foto
                                                 </button>
-                                                <span class="text-[10px] text-gray-400 font-mono">Klik untuk perbesar</span>
+                                                @if($participant->payment_proof_submitted_at_formatted)
+                                                    <span class="text-[10px] text-gray-500 font-mono">
+                                                        Submit: {{ $participant->payment_proof_submitted_at_formatted }}
+                                                    </span>
+                                                @else
+                                                    <span class="text-[10px] text-gray-400 font-mono">Klik untuk perbesar</span>
+                                                @endif
                                             </div>
                                         </div>
                                     @else

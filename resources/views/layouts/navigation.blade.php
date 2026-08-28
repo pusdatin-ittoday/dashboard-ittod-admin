@@ -24,13 +24,6 @@
                         </x-nav-link>
                     @endif
 
-                    <!-- Peserta Kegiatan / Event -->
-                    @if(Auth::check() && in_array(Auth::user()->role, ['superadmin', 'admin_biasa']))
-                        <x-nav-link :href="route('admin.event-participants.index')" :active="request()->routeIs('admin.event-participants.*')">
-                            {{ __('Peserta Event') }}
-                        </x-nav-link>
-                    @endif
-
                     <!-- List Tim (Read-Only Overview) -->
                     @if(Auth::check() && in_array(Auth::user()->role, ['superadmin', 'admin_biasa', 'panitia_lomba']))
                         <x-nav-link :href="route('admin.teams-list.index')" :active="request()->routeIs('admin.teams-list.*')">
@@ -54,7 +47,7 @@
 
                     <!-- Verifikasi Pembayaran -->
                     @if(Auth::check() && in_array(Auth::user()->role, ['superadmin', 'admin_biasa']))
-                        <x-nav-link :href="route('admin.transactions.index')" :active="request()->routeIs('admin.transactions.*')">
+                        <x-nav-link :href="route('admin.event-participants.index')" :active="request()->routeIs('admin.event-participants.*') || request()->routeIs('admin.transactions.*')">
                             {{ __('Pembayaran') }}
                         </x-nav-link>
                     @endif
@@ -140,11 +133,6 @@
                 <x-responsive-nav-link :href="route('admin.users.index')" :active="request()->routeIs('admin.users.*')">
                     {{ __('List Peserta') }}
                 </x-responsive-nav-link>
-                @if(in_array(Auth::user()->role, ['superadmin', 'admin_biasa']))
-                    <x-responsive-nav-link :href="route('admin.event-participants.index')" :active="request()->routeIs('admin.event-participants.*')">
-                        {{ __('Peserta Event') }}
-                    </x-responsive-nav-link>
-                @endif
                 <x-responsive-nav-link :href="route('admin.teams-list.index')" :active="request()->routeIs('admin.teams-list.*')">
                     {{ __('List Tim') }}
                 </x-responsive-nav-link>
@@ -163,8 +151,8 @@
             @endif
 
             @if(Auth::check() && in_array(Auth::user()->role, ['superadmin', 'admin_biasa']))
-                <x-responsive-nav-link :href="route('admin.transactions.index')" :active="request()->routeIs('admin.transactions.*')">
-                    {{ __('Verifikasi Pembayaran') }}
+                <x-responsive-nav-link :href="route('admin.event-participants.index')" :active="request()->routeIs('admin.event-participants.*') || request()->routeIs('admin.transactions.*')">
+                    {{ __('Pembayaran') }}
                 </x-responsive-nav-link>
             @endif
 

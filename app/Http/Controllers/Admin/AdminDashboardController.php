@@ -905,7 +905,12 @@ class AdminDashboardController extends Controller
             return $path;
         }
 
-        return Storage::url($path);
+        $r2Public = env('R2_PUBLIC');
+        if ($r2Public) {
+            return rtrim($r2Public, '/') . '/' . ltrim($path, '/');
+        }
+
+        return Storage::disk('public')->url($path);
     }
 
     private function ensureSuperadmin(): void
