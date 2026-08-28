@@ -58,7 +58,7 @@ Route::middleware(['auth'])->group(function () {
         Route::delete('/staff/{staff}', [AdminDashboardController::class, 'destroyStaff'])->name('staff.destroy');
         Route::get('/users', [AdminDashboardController::class, 'users'])->name('users.index');
         Route::delete('/users/{userIdentity}', [AdminDashboardController::class, 'destroyUser'])->name('users.destroy');
-        Route::get('/transactions', [AdminDashboardController::class, 'transactions'])->name('transactions.index');
+        Route::get('/transactions', [\App\Http\Controllers\Admin\EventParticipantController::class, 'index'])->name('transactions.index');
         Route::patch('/transactions/{team}/accept', [AdminDashboardController::class, 'acceptTransaction'])->name('transactions.accept');
         Route::patch('/transactions/{team}/reject', [AdminDashboardController::class, 'rejectTransaction'])->name('transactions.reject');
         
