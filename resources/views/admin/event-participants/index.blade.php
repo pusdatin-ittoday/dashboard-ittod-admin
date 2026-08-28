@@ -1,6 +1,6 @@
 <x-admin.layout
-    title="Peserta Kegiatan & Bootcamp"
-    subtitle="Monitoring pendaftar, validasi bukti transfer, dan pengelolaan peserta event non-kompetisi."
+    title="Verifikasi Pembayaran"
+    subtitle="Monitoring pendaftar, validasi bukti transfer, dan pengelolaan pembayaran untuk semua kompetisi, bootcamp, dan kegiatan event."
 >
     <div
         x-data="{ 
@@ -8,11 +8,16 @@
             lightboxImg: '', 
             lightboxTitle: '', 
             addModalOpen: false,
-            userSearch: '',
-            selectedUserId: '',
-            selectedUserName: ''
+            rejectModalOpen: false,
+            rejectEntityType: '',
+            rejectTeamId: '',
+            rejectUserId: '',
+            rejectEventId: '',
+            rejectTargetName: '',
+            rejectReason: '',
+            userSearch: ''
         }"
-        x-init="$watch('lightboxOpen', v => { if (v) { document.body.classList.add('overflow-y-hidden'); } else { document.body.classList.remove('overflow-y-hidden'); } })"
+        x-init="$watch('lightboxOpen', v => { if (v) { document.body.classList.add('overflow-y-hidden'); } else { document.body.classList.remove('overflow-y-hidden'); } }); $watch('rejectModalOpen', v => { if (v) { document.body.classList.add('overflow-y-hidden'); } else { document.body.classList.remove('overflow-y-hidden'); } })"
         x-on:open-lightbox.window="lightboxOpen = true; lightboxImg = $event.detail.img; lightboxTitle = $event.detail.title"
         class="flex flex-col gap-6"
     >
@@ -28,8 +33,8 @@
             <div class="border-b border-gray-200 px-6 py-5">
                 <div class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
                     <div>
-                        <h2 class="text-lg font-bold text-gray-950">Daftar Peserta Kegiatan</h2>
-                        <p class="text-xs text-gray-500 mt-0.5">Kelola verifikasi pembayaran dan partisipasi event.</p>
+                        <h2 class="text-lg font-bold text-gray-950">Daftar Transaksi & Pendaftar</h2>
+                        <p class="text-xs text-gray-500 mt-0.5">Kelola verifikasi pembayaran kompetisi, event, dan bootcamp secara terpusat.</p>
                     </div>
 
                     <div class="flex flex-wrap items-center gap-3">
@@ -57,20 +62,42 @@
                                     type="search"
                                     name="search"
                                     value="{{ request('search') }}"
-                                    placeholder="Cari nama/email/institusi..."
-                                    class="block w-full sm:w-56 pl-9 rounded-md border-gray-300 text-xs shadow-xs focus:border-indigo-500 focus:ring-indigo-500"
+                                    placeholder="Cari nama/tim/email..."
+                                    class="block w-full sm:w-48 pl-9 rounded-md border-gray-300 text-xs shadow-xs focus:border-indigo-500 focus:ring-indigo-500"
                                 >
                             </div>
 
+                            <!-- Filter Tipe Kegiatan -->
                             <div>
-                                <select name="event_id" onchange="this.form.submit()" class="block w-full rounded-md border-gray-300 text-xs shadow-xs focus:border-indigo-500 focus:ring-indigo-500">
-                                    <option value="">Semua Event</option>
-                                    @foreach($events as $event)
-                                        <option value="{{ $event->id }}" @selected(request('event_id') === $event->id)>{{ $event->title }}</option>
-                                    @endforeach
+                                <select name="type" onchange="this.form.submit()" class="block w-full rounded-md border-gray-300 text-xs shadow-xs focus:border-indigo-500 focus:ring-indigo-500 font-medium">
+                                    <option value="" @selected(empty($typeFilter))>Semua Tipe</option>
+                                    <option value="non_competition" @selected($typeFilter === 'non_competition')>Kegiatan & Bootcamp</option>
+                                    <option value="competition" @selected($typeFilter === 'competition')>Kompetisi & Lomba</option>
                                 </select>
                             </div>
 
+                            <!-- Filter Event -->
+                            <div>
+                                <select name="event_id" onchange="this.form.submit()" class="block w-full rounded-md border-gray-300 text-xs shadow-xs focus:border-indigo-500 focus:ring-indigo-500">
+                                    <option value="">Semua Event & Lomba</option>
+                                    @if($eventsNonCompetition->isNotEmpty())
+                                        <optgroup label="Kegiatan & Bootcamp">
+                                            @foreach($eventsNonCompetition as $event)
+                                                <option value="{{ $event->id }}" @selected(request('event_id') === $event->id)>{{ $event->title }}</option>
+                                            @endforeach
+                                        </optgroup>
+                                    @endif
+                                    @if($eventsCompetition->isNotEmpty())
+                                        <optgroup label="Kompetisi & Lomba">
+                                            @foreach($eventsCompetition as $event)
+                                                <option value="{{ $event->id }}" @selected(request('event_id') === $event->id)>{{ $event->title }}</option>
+                                            @endforeach
+                                        </optgroup>
+                                    @endif
+                                </select>
+                            </div>
+
+                            <!-- Filter Status -->
                             <div>
                                 <select name="status" onchange="this.form.submit()" class="block w-full rounded-md border-gray-300 text-xs shadow-xs focus:border-indigo-500 focus:ring-indigo-500">
                                     <option value="all" @selected($filterStatus === 'all')>Semua Status</option>
@@ -90,7 +117,7 @@
                 <table class="min-w-full divide-y divide-gray-200">
                     <thead class="bg-gray-50">
                         <tr>
-                            <th class="px-6 py-3.5 text-left text-xs font-bold uppercase tracking-wider text-gray-600">Peserta</th>
+                            <th class="px-6 py-3.5 text-left text-xs font-bold uppercase tracking-wider text-gray-600">Peserta / Tim</th>
                             <th class="px-6 py-3.5 text-left text-xs font-bold uppercase tracking-wider text-gray-600">Kategori</th>
                             <th class="px-6 py-3.5 text-left text-xs font-bold uppercase tracking-wider text-gray-600">Kegiatan</th>
                             <th class="px-6 py-3.5 text-left text-xs font-bold uppercase tracking-wider text-gray-600">Bukti Pembayaran</th>
@@ -101,9 +128,12 @@
                     <tbody class="divide-y divide-gray-200 bg-white">
                         @forelse ($participants as $participant)
                             <tr class="hover:bg-gray-50/80 transition-colors">
-                                <!-- Peserta info -->
+                                <!-- Peserta / Tim info -->
                                 <td class="px-6 py-4">
                                     <p class="font-bold text-gray-950">{{ $participant->full_name }}</p>
+                                    @if($participant->entity_type === 'competition' && $participant->team_code)
+                                        <p class="text-[11px] font-mono text-indigo-600 font-semibold mt-0.5">Kode: {{ $participant->team_code }} ({{ $participant->member_count }} anggota)</p>
+                                    @endif
                                     <p class="text-xs text-gray-600">{{ $participant->email }}</p>
                                     @if($participant->phone_number)
                                         <p class="text-xs font-mono text-gray-500 mt-0.5">{{ $participant->phone_number }}</p>
@@ -114,11 +144,21 @@
                                     <p class="text-[10px] text-gray-400 mt-1">
                                         Terdaftar: {{ $participant->date_added_formatted }}
                                     </p>
+                                    @if($participant->verification_error)
+                                        <p class="text-[11px] text-red-600 mt-1 font-semibold">
+                                            Alasan Tolak: {{ $participant->verification_error }}
+                                        </p>
+                                    @endif
                                 </td>
 
                                 <!-- Kategori Badge -->
                                 <td class="px-6 py-4">
-                                    @if($participant->category === 'MineToday')
+                                    @if($participant->entity_type === 'competition')
+                                        <span class="inline-flex items-center gap-1 rounded-full bg-purple-50 px-2.5 py-1 text-xs font-extrabold text-purple-700 border border-purple-200 shadow-xs">
+                                            <span class="h-1.5 w-1.5 rounded-full bg-purple-600"></span>
+                                            Tim Kompetisi
+                                        </span>
+                                    @elseif($participant->category === 'MineToday')
                                         <span class="inline-flex items-center gap-1 rounded-full bg-amber-50 px-2.5 py-1 text-xs font-extrabold text-amber-800 border border-amber-300 shadow-xs">
                                             <span class="h-1.5 w-1.5 rounded-full bg-amber-500"></span>
                                             Peserta MineToday
@@ -194,8 +234,13 @@
                                         @if($participant->payment_verification !== 'accepted')
                                             <form method="POST" action="{{ route('admin.event-participants.verify') }}">
                                                 @csrf
-                                                <input type="hidden" name="user_id" value="{{ $participant->user_id }}">
-                                                <input type="hidden" name="event_id" value="{{ $participant->event_id }}">
+                                                <input type="hidden" name="entity_type" value="{{ $participant->entity_type }}">
+                                                @if($participant->entity_type === 'competition')
+                                                    <input type="hidden" name="team_id" value="{{ $participant->team_id }}">
+                                                @else
+                                                    <input type="hidden" name="user_id" value="{{ $participant->user_id }}">
+                                                    <input type="hidden" name="event_id" value="{{ $participant->event_id }}">
+                                                @endif
                                                 <button
                                                     type="submit"
                                                     name="action"
@@ -212,39 +257,46 @@
                                         @endif
 
                                         @if($participant->payment_verification !== 'rejected')
-                                            <form method="POST" action="{{ route('admin.event-participants.verify') }}">
-                                                @csrf
-                                                <input type="hidden" name="user_id" value="{{ $participant->user_id }}">
-                                                <input type="hidden" name="event_id" value="{{ $participant->event_id }}">
-                                                <button
-                                                    type="submit"
-                                                    name="action"
-                                                    value="reject"
-                                                    class="inline-flex items-center gap-1 rounded-md bg-rose-600 px-2.5 py-1.5 text-xs font-bold text-white hover:bg-rose-500 shadow-xs transition-colors cursor-pointer"
-                                                    title="Tolak Pembayaran"
-                                                >
-                                                    <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-                                                    </svg>
-                                                    Tolak
-                                                </button>
-                                            </form>
+                                            <button
+                                                type="button"
+                                                @click="
+                                                    rejectModalOpen = true;
+                                                    rejectEntityType = '{{ $participant->entity_type }}';
+                                                    rejectTeamId = '{{ $participant->team_id }}';
+                                                    rejectUserId = '{{ $participant->user_id }}';
+                                                    rejectEventId = '{{ $participant->event_id }}';
+                                                    rejectTargetName = {{ \Illuminate\Support\Js::from($participant->full_name . ' (' . $participant->event_title . ')') }};
+                                                    rejectReason = '';
+                                                "
+                                                class="inline-flex items-center gap-1 rounded-md bg-rose-600 px-2.5 py-1.5 text-xs font-bold text-white hover:bg-rose-500 shadow-xs transition-colors cursor-pointer"
+                                                title="Tolak Pembayaran"
+                                            >
+                                                <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                                                </svg>
+                                                Tolak
+                                            </button>
                                         @endif
 
-                                        <!-- Button Hapus Peserta -->
+                                        <!-- Button Hapus Peserta/Tim -->
                                         <form
                                             method="POST"
                                             action="{{ route('admin.event-participants.destroy') }}"
-                                            onsubmit="return confirm('Apakah Anda yakin ingin menghapus peserta {{ addslashes($participant->full_name) }} dari kegiatan ini?');"
+                                            onsubmit="return confirm('Apakah Anda yakin ingin menghapus data {{ addslashes($participant->full_name) }}?');"
                                         >
                                             @csrf
                                             @method('DELETE')
-                                            <input type="hidden" name="user_id" value="{{ $participant->user_id }}">
-                                            <input type="hidden" name="event_id" value="{{ $participant->event_id }}">
+                                            <input type="hidden" name="entity_type" value="{{ $participant->entity_type }}">
+                                            @if($participant->entity_type === 'competition')
+                                                <input type="hidden" name="team_id" value="{{ $participant->team_id }}">
+                                            @else
+                                                <input type="hidden" name="user_id" value="{{ $participant->user_id }}">
+                                                <input type="hidden" name="event_id" value="{{ $participant->event_id }}">
+                                            @endif
                                             <button
                                                 type="submit"
                                                 class="inline-flex items-center rounded-md border border-gray-300 bg-white p-1.5 text-xs font-medium text-gray-500 hover:bg-red-50 hover:text-red-600 hover:border-red-300 shadow-xs transition-colors cursor-pointer"
-                                                title="Hapus Peserta dari Kegiatan"
+                                                title="Hapus Data"
                                             >
                                                 <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
@@ -261,7 +313,7 @@
                                         <svg class="h-10 w-10 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
                                         </svg>
-                                        <p class="font-medium">Belum ada peserta yang terdaftar sesuai filter.</p>
+                                        <p class="font-medium">Belum ada data transaksi yang sesuai filter.</p>
                                     </div>
                                 </td>
                             </tr>
@@ -277,6 +329,103 @@
             @endif
         </section>
 
+        <!-- Modal Tolak Pembayaran -->
+        <div
+            x-show="rejectModalOpen"
+            x-cloak
+            class="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6"
+            role="dialog"
+            aria-modal="true"
+            @keydown.escape.window="rejectModalOpen = false"
+        >
+            <div
+                x-show="rejectModalOpen"
+                x-transition:enter="ease-out duration-200"
+                x-transition:enter-start="opacity-0"
+                x-transition:enter-end="opacity-100"
+                x-transition:leave="ease-in duration-150"
+                x-transition:leave-start="opacity-100"
+                x-transition:leave-end="opacity-0"
+                class="fixed inset-0 bg-black/75 backdrop-blur-xs transition-opacity"
+                @click="rejectModalOpen = false"
+            ></div>
+
+            <div
+                x-show="rejectModalOpen"
+                x-transition:enter="ease-out duration-200"
+                x-transition:enter-start="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+                x-transition:enter-end="opacity-100 translate-y-0 sm:scale-100"
+                x-transition:leave="ease-in duration-150"
+                x-transition:leave-start="opacity-100 translate-y-0 sm:scale-100"
+                x-transition:leave-end="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+                class="relative w-full max-w-md bg-white rounded-xl shadow-2xl border border-gray-200 overflow-hidden flex flex-col transform transition-all z-10 my-auto"
+            >
+                <form method="POST" action="{{ route('admin.event-participants.verify') }}">
+                    @csrf
+                    <input type="hidden" name="action" value="reject">
+                    <input type="hidden" name="entity_type" :value="rejectEntityType">
+                    <input type="hidden" name="team_id" :value="rejectTeamId">
+                    <input type="hidden" name="user_id" :value="rejectUserId">
+                    <input type="hidden" name="event_id" :value="rejectEventId">
+
+                    <div class="flex items-center justify-between border-b border-gray-200 px-6 py-4 bg-rose-50">
+                        <div class="flex items-center gap-2">
+                            <div class="flex h-8 w-8 items-center justify-center rounded-lg bg-rose-600 text-white">
+                                <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                                </svg>
+                            </div>
+                            <div>
+                                <h3 class="text-base font-bold text-gray-950">Tolak Pembayaran</h3>
+                                <p class="text-xs text-rose-700 truncate max-w-xs" x-text="rejectTargetName"></p>
+                            </div>
+                        </div>
+                        <button
+                            type="button"
+                            @click="rejectModalOpen = false"
+                            class="rounded-lg p-1.5 text-gray-400 hover:bg-gray-200 hover:text-gray-600 transition-colors cursor-pointer"
+                        >
+                            <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                        </button>
+                    </div>
+
+                    <div class="p-6 space-y-4">
+                        <div>
+                            <label class="block text-xs font-bold uppercase tracking-wider text-gray-700 mb-1">
+                                Alasan Penolakan (Opsional / Ditampilkan ke Peserta)
+                            </label>
+                            <textarea
+                                name="verification_error"
+                                x-model="rejectReason"
+                                rows="3"
+                                placeholder="Contoh: Bukti transfer buram / nominal tidak sesuai / nama pengirim berbeda..."
+                                class="w-full rounded-md border-gray-300 text-xs shadow-xs focus:border-rose-500 focus:ring-rose-500"
+                            ></textarea>
+                            <p class="mt-1 text-[11px] text-gray-500">Catatan ini akan tersimpan dan dapat dibaca oleh peserta / admin.</p>
+                        </div>
+                    </div>
+
+                    <div class="px-6 py-4 bg-gray-50 border-t border-gray-200 flex justify-end gap-2.5">
+                        <button
+                            type="button"
+                            @click="rejectModalOpen = false"
+                            class="rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-100 shadow-xs cursor-pointer transition-colors"
+                        >
+                            Batal
+                        </button>
+                        <button
+                            type="submit"
+                            class="rounded-md bg-rose-600 px-4 py-2 text-sm font-semibold text-white hover:bg-rose-500 shadow-xs cursor-pointer transition-colors"
+                        >
+                            Konfirmasi Tolak
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
         <!-- Lightbox Modal Preview Bukti Pembayaran -->
         <div
             x-show="lightboxOpen"
@@ -286,7 +435,6 @@
             aria-modal="true"
             @keydown.escape.window="lightboxOpen = false"
         >
-            <!-- Backdrop -->
             <div
                 x-show="lightboxOpen"
                 x-transition:enter="ease-out duration-200"
@@ -299,7 +447,6 @@
                 @click="lightboxOpen = false"
             ></div>
 
-            <!-- Modal Content -->
             <div
                 x-show="lightboxOpen"
                 x-transition:enter="ease-out duration-200"
@@ -365,7 +512,6 @@
             aria-modal="true"
             @keydown.escape.window="addModalOpen = false"
         >
-            <!-- Backdrop -->
             <div
                 x-show="addModalOpen"
                 x-transition:enter="ease-out duration-200"
@@ -378,7 +524,6 @@
                 @click="addModalOpen = false"
             ></div>
 
-            <!-- Modal Panel -->
             <div
                 x-show="addModalOpen"
                 x-transition:enter="ease-out duration-200"
@@ -454,7 +599,7 @@
                                 required
                                 class="w-full rounded-md border-gray-300 text-xs shadow-xs focus:border-indigo-500 focus:ring-indigo-500"
                             >
-                                @foreach($events as $event)
+                                @foreach($eventsNonCompetition as $event)
                                     <option value="{{ $event->id }}" @selected(str_contains(strtolower($event->title), 'bootcamp'))>
                                         {{ $event->title }} ({{ $event->type }})
                                     </option>
