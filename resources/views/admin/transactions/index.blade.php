@@ -213,6 +213,7 @@
                             rows="5"
                             x-ref="rejectReason"
                             x-model="rejectReason"
+                            maxlength="191"
                             required
                             class="mt-2 block w-full rounded-md border-gray-300 shadow-sm focus:border-rose-500 focus:ring-rose-500"
                             placeholder="Contoh: nominal transfer tidak sesuai atau bukti transfer tidak terbaca."
