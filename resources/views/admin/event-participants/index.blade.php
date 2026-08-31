@@ -400,6 +400,7 @@
                                 name="verification_error"
                                 x-model="rejectReason"
                                 rows="3"
+                                maxlength="191"
                                 placeholder="Contoh: Bukti transfer buram / nominal tidak sesuai / nama pengirim berbeda..."
                                 class="w-full rounded-md border-gray-300 text-xs shadow-xs focus:border-rose-500 focus:ring-rose-500"
                             ></textarea>

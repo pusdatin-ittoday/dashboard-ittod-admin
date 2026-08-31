@@ -317,7 +317,8 @@
                                             x-ref="reason"
                                             x-model="reason"
                                             x-on:input="error = ''"
-                                            placeholder="Isi catatan jika berkas anggota ditolak"
+                                            maxlength="191"
+                                            placeholder="Isi catatan jika berkas anggota ditolak (maksimal 191 karakter)"
                                             x-bind:class="error ? 'border-rose-300 focus:border-rose-500 focus:ring-rose-500' : 'border-gray-300 focus:border-emerald-500 focus:ring-emerald-500'"
                                             class="mt-2 h-20 w-full resize-none rounded-md text-sm shadow-sm"
                                         ></textarea>
@@ -506,7 +507,8 @@
                             x-ref="rejectionReason"
                             x-model="rejectionReason"
                             x-on:input="rejectionError = ''"
-                            placeholder="Sebutkan kesalahan pada data atau berkas tim..."
+                            maxlength="191"
+                            placeholder="Sebutkan kesalahan pada data atau berkas tim (maksimal 191 karakter)..."
                             x-bind:class="rejectionError ? 'border-rose-300 focus:border-rose-500 focus:ring-rose-500' : 'border-gray-300 focus:border-emerald-500 focus:ring-emerald-500'"
                             class="mt-2 h-28 w-full resize-none rounded-md text-sm shadow-sm"
                         ></textarea>
