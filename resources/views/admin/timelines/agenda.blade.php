@@ -141,13 +141,14 @@
                                         >
                                             Edit
                                         </button>
-                                        <form method="POST" action="{{ route('admin.timelines.destroy', $agenda) }}" onsubmit="return confirm('Hapus agenda ini?')">
-                                            @csrf
-                                            @method('DELETE')
-                                            <button type="submit" class="rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm font-semibold text-red-700 hover:bg-red-100">
-                                                Hapus
-                                            </button>
-                                        </form>
+                                        <button
+                                            type="button"
+                                            x-data
+                                            x-on:click="$dispatch('open-modal', 'confirm-delete-{{ $agenda->id }}')"
+                                            class="rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm font-semibold text-red-700 hover:bg-red-100"
+                                        >
+                                            Hapus
+                                        </button>
                                     </div>
                                 </td>
                             @endif
@@ -296,6 +297,33 @@
                     <div class="mt-6 flex justify-end gap-3">
                         <button type="button" x-on:click="$dispatch('close-modal', 'edit-agenda-{{ $agenda->id }}')" class="rounded-md border border-gray-300 px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50">Batal</button>
                         <button type="submit" class="rounded-md bg-emerald-700 px-4 py-2 text-sm font-bold text-white hover:bg-emerald-800">Simpan Perubahan</button>
+                    </div>
+                </form>
+            </x-modal>
+
+            <x-modal name="confirm-delete-{{ $agenda->id }}" maxWidth="md" focusable>
+                <form method="POST" action="{{ route('admin.timelines.destroy', $agenda) }}" class="p-6 text-center">
+                    @csrf
+                    @method('DELETE')
+                    
+                    <div class="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-red-100">
+                        <svg class="h-8 w-8 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                        </svg>
+                    </div>
+                    <h2 class="text-lg font-bold text-gray-900 mb-2">
+                        Hapus Agenda <span class="text-red-600">{{ $agenda->title }}</span>?
+                    </h2>
+                    <p class="text-sm text-gray-500 mb-6">
+                        Apakah Anda yakin ingin menghapus agenda ini?<br>Tindakan ini tidak dapat dibatalkan.
+                    </p>
+                    <div class="flex justify-center gap-3">
+                        <button type="button" x-on:click="$dispatch('close-modal', 'confirm-delete-{{ $agenda->id }}')" class="rounded-md border border-gray-300 px-6 py-2.5 text-sm font-semibold text-gray-700 hover:bg-gray-50 transition-colors">
+                            Batal
+                        </button>
+                        <button type="submit" class="rounded-md bg-red-600 px-6 py-2.5 text-sm font-bold text-white hover:bg-red-700 shadow-sm transition-colors">
+                            Ya, Hapus
+                        </button>
                     </div>
                 </form>
             </x-modal>
