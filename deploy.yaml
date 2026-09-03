@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - main
+      - staging
   workflow_dispatch:
 
 jobs:
@@ -17,9 +18,12 @@ jobs:
       - name: Deploy to Dokploy
         run: |
           echo "🚀 Triggering deployment on Dokploy for dashboard-ittod-admin..."
+          echo "Branch: ${{ github.ref }}"
           if [ -n "${{ secrets.DOKPLOY_WEBHOOK_URL }}" ]; then
             echo "Triggering via Dokploy Webhook URL..."
-            RESPONSE=$(curl -s -w "\n%{http_code}" -X POST "${{ secrets.DOKPLOY_WEBHOOK_URL }}" -H "Content-Type: application/json")
+            RESPONSE=$(curl -s -w "\n%{http_code}" -X POST "${{ secrets.DOKPLOY_WEBHOOK_URL }}" \
+              -H "Content-Type: application/json" \
+              -d "{\"ref\": \"${{ github.ref }}\"}")
             HTTP_CODE=$(echo "$RESPONSE" | tail -n1)
             BODY=$(echo "$RESPONSE" | sed '$d')
             echo "HTTP Status: $HTTP_CODE"
