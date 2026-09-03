@@ -76,6 +76,8 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/competitions/{event}/submissions', [AdminDashboardController::class, 'submissions'])->name('competitions.submissions');
         Route::delete('/competitions/{event}/submissions/{team_id}', [AdminDashboardController::class, 'destroySubmission'])->name('competitions.submissions.destroy');
         Route::patch('/competitions/{event}/submission-deadline', [AdminDashboardController::class, 'setSubmissionDeadline'])->name('competitions.submission-deadline');
+        Route::patch('/competitions/{event}/registration-deadline', [AdminDashboardController::class, 'setRegistrationDeadline'])->name('competitions.registration-deadline');
+        Route::patch('/timelines/{event}/registration-deadline', [AdminDashboardController::class, 'setRegistrationDeadline'])->name('timelines.registration-deadline');
         Route::patch('/competitions/{event}/status', [AdminDashboardController::class, 'toggleCompetitionStatus'])->name('competitions.status');
         Route::delete('/competitions/{event}', [AdminDashboardController::class, 'destroyCompetition'])->name('competitions.destroy');
         Route::get('/timelines', [AdminDashboardController::class, 'timelines'])->name('timelines.index');

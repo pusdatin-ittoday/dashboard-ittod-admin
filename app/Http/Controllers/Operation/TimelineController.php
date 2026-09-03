@@ -97,13 +97,26 @@ class TimelineController extends Controller
             'event_id' => $eventRules,
             'title' => 'required|string|max:255',
             'date' => 'required|date',
+            'is_registration' => 'nullable|boolean',
         ]);
 
-        EventTimeline::create([
-            'event_id' => $request->event_id,
-            'title' => $request->title,
-            'date' => $request->date,
-        ]);
+        \Illuminate\Support\Facades\DB::transaction(function () use ($request) {
+            $isReg = $request->boolean('is_registration');
+            if ($isReg) {
+                EventTimeline::where('event_id', $request->event_id)->update(['is_registration' => false]);
+                $deadline = \Illuminate\Support\Carbon::parse($request->date);
+                if (now()->greaterThan($deadline)) {
+                    Event::where('id', $request->event_id)->update(['is_active' => false]);
+                }
+            }
+
+            EventTimeline::create([
+                'event_id' => $request->event_id,
+                'title' => $request->title,
+                'date' => $request->date,
+                'is_registration' => $isReg,
+            ]);
+        });
 
         return redirect()->route('timeline.index')->with('success', 'Lini masa berhasil ditambahkan!');
     }
@@ -150,13 +163,26 @@ class TimelineController extends Controller
             'event_id' => $eventRules,
             'title' => 'required|string|max:255',
             'date' => 'required|date',
+            'is_registration' => 'nullable|boolean',
         ]);
 
-        $timeline->update([
-            'event_id' => $request->event_id,
-            'title' => $request->title,
-            'date' => $request->date,
-        ]);
+        \Illuminate\Support\Facades\DB::transaction(function () use ($request, $timeline) {
+            $isReg = $request->boolean('is_registration');
+            if ($isReg) {
+                EventTimeline::where('event_id', $request->event_id)->update(['is_registration' => false]);
+                $deadline = \Illuminate\Support\Carbon::parse($request->date);
+                if (now()->greaterThan($deadline)) {
+                    Event::where('id', $request->event_id)->update(['is_active' => false]);
+                }
+            }
+
+            $timeline->update([
+                'event_id' => $request->event_id,
+                'title' => $request->title,
+                'date' => $request->date,
+                'is_registration' => $isReg,
+            ]);
+        });
 
         return redirect()->route('timeline.index')->with('success', 'Lini masa berhasil diperbarui!');
     }

@@ -34,6 +34,14 @@
                 <span class="inline-flex rounded-full px-2 py-0.5 text-xs font-bold uppercase {{ $singleEvent->is_active ? 'bg-emerald-100 text-emerald-700' : 'bg-gray-100 text-gray-600' }}">
                     {{ $singleEvent->is_active ? 'Aktif' : 'Nonaktif' }}
                 </span>
+                @php
+                    $singleRegTl = $singleEvent->timelines->firstWhere('is_registration', true);
+                @endphp
+                @if($singleRegTl)
+                    <span class="inline-flex rounded-full bg-blue-100 px-2 py-0.5 text-xs font-bold text-blue-700">
+                        Reg s.d. {{ $singleRegTl->end_date ? $singleRegTl->end_date->format('d M Y, H:i') : ($singleRegTl->date ? $singleRegTl->date->format('d M Y, H:i') : '-') }}
+                    </span>
+                @endif
             </div>
 
             <!-- Action Buttons -->
@@ -392,6 +400,14 @@
                                     <span class="inline-flex rounded border px-2 py-1 text-[11px] font-bold uppercase {{ $event->is_active ? 'border-emerald-200 bg-emerald-50 text-emerald-700' : 'border-gray-200 bg-gray-50 text-gray-500' }}">
                                         {{ $event->is_active ? 'Aktif' : 'Nonaktif' }}
                                     </span>
+                                    @php
+                                        $regTl = $event->timelines->firstWhere('is_registration', true);
+                                    @endphp
+                                    @if($regTl)
+                                        <p class="mt-1 text-[11px] text-gray-500">
+                                            Reg: s.d. {{ $regTl->end_date ? $regTl->end_date->format('d M Y') : ($regTl->date ? $regTl->date->format('d M Y') : '-') }}
+                                        </p>
+                                    @endif
                                 </td>
                                 <td class="px-6 py-4">
                                     <div class="flex flex-col gap-1.5">
