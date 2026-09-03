@@ -15,6 +15,7 @@ use App\Models\UserIdentity;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
@@ -416,6 +417,7 @@ class AdminDashboardController extends Controller
 
         $user = auth()->user();
         $query = Event::withCount(['teams', 'participants', 'timelines'])
+            ->with(['timelines' => fn ($query) => $query->where('is_registration', true)])
             ->orderBy('title');
 
         if ($user->role === 'panitia_lomba') {
@@ -425,6 +427,9 @@ class AdminDashboardController extends Controller
         }
 
         $events = $query->get();
+        foreach ($events as $item) {
+            $item->checkAndCloseIfRegistrationExpired();
+        }
         $canManageCompetitions = in_array($user->role, ['superadmin', 'admin_biasa']);
 
         if (!$canManageCompetitions && $events->count() === 1) {
@@ -511,6 +516,8 @@ class AdminDashboardController extends Controller
         } elseif ($user->role === 'panitia_lomba') {
             abort_unless($user->events->contains('id', $event->id), 403);
         }
+
+        $event->checkAndCloseIfRegistrationExpired();
 
         $eventsQuery = Event::orderBy('title');
         if ($user->role === 'panitia_lomba') {
@@ -605,6 +612,41 @@ class AdminDashboardController extends Controller
         });
 
         return back()->with('status', 'Batas waktu pengumpulan karya berhasil diatur.');
+    }
+
+    public function setRegistrationDeadline(Request $request, Event $event): RedirectResponse
+    {
+        $user = auth()->user();
+        abort_unless(in_array($user?->role, ['superadmin', 'panitia_lomba', 'admin_biasa']), 403);
+
+        if ($user->role === 'admin_biasa') {
+            abort_unless($event->type === 'non_competition', 403);
+        } elseif ($user->role === 'panitia_lomba') {
+            abort_unless($user->events->contains('id', $event->id), 403);
+        }
+
+        $request->validate([
+            'timeline_id' => ['nullable', 'string', \Illuminate\Validation\Rule::exists('event_timeline', 'id')->where('event_id', $event->id)],
+        ]);
+
+        DB::transaction(function () use ($event, $request) {
+            // Set all timelines to false for this event
+            EventTimeline::where('event_id', $event->id)->update(['is_registration' => false]);
+
+            // If a timeline was selected, set it to true
+            if ($request->timeline_id) {
+                $timeline = EventTimeline::where('id', $request->timeline_id)->first();
+                if ($timeline) {
+                    $timeline->update(['is_registration' => true]);
+                    $deadline = $timeline->end_date ?? $timeline->date;
+                    if ($deadline && now()->greaterThan($deadline)) {
+                        $event->update(['is_active' => false]);
+                    }
+                }
+            }
+        });
+
+        return back()->with('status', 'Batas waktu pendaftaran berhasil diatur.');
     }
 
     public function destroySubmission(Event $event, string $team_id): RedirectResponse
@@ -751,6 +793,13 @@ class AdminDashboardController extends Controller
             if (!empty($validated['is_submission'])) {
                 EventTimeline::where('event_id', $validated['event_id'])->update(['is_submission' => false]);
             }
+            if (!empty($validated['is_registration'])) {
+                EventTimeline::where('event_id', $validated['event_id'])->update(['is_registration' => false]);
+                $deadline = !empty($validated['end_date']) ? Carbon::parse($validated['end_date']) : (!empty($validated['date']) ? Carbon::parse($validated['date']) : null);
+                if ($deadline && now()->greaterThan($deadline)) {
+                    Event::where('id', $validated['event_id'])->update(['is_active' => false]);
+                }
+            }
             EventTimeline::create($validated);
         });
 
@@ -768,6 +817,13 @@ class AdminDashboardController extends Controller
         DB::transaction(function () use ($validated, $timeline) {
             if (!empty($validated['is_submission'])) {
                 EventTimeline::where('event_id', $validated['event_id'])->update(['is_submission' => false]);
+            }
+            if (!empty($validated['is_registration'])) {
+                EventTimeline::where('event_id', $validated['event_id'])->update(['is_registration' => false]);
+                $deadline = !empty($validated['end_date']) ? Carbon::parse($validated['end_date']) : (!empty($validated['date']) ? Carbon::parse($validated['date']) : null);
+                if ($deadline && now()->greaterThan($deadline)) {
+                    Event::where('id', $validated['event_id'])->update(['is_active' => false]);
+                }
             }
             $timeline->update($validated);
         });
@@ -970,9 +1026,11 @@ class AdminDashboardController extends Controller
             'date' => ['required', 'date'],
             'end_date' => ['nullable', 'date', 'after_or_equal:date'],
             'is_submission' => ['nullable', 'boolean'],
+            'is_registration' => ['nullable', 'boolean'],
         ]);
 
         $validated['is_submission'] = $request->has('is_submission');
+        $validated['is_registration'] = $request->has('is_registration');
 
         return $validated;
     }

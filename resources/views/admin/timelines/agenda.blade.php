@@ -8,15 +8,73 @@
         </a>
 
         @if ($canManageTimelines)
-            <button
-                type="button"
-                x-data
-                x-on:click="$dispatch('open-modal', 'create-agenda')"
-                class="inline-flex items-center justify-center rounded-md bg-emerald-700 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-800"
-            >
-                Tambah Agenda
-            </button>
+            <div class="flex flex-wrap items-center gap-2">
+                <button
+                    type="button"
+                    x-data
+                    x-on:click="$dispatch('open-modal', 'edit-registration-deadline-{{ $event->id }}')"
+                    class="inline-flex items-center justify-center rounded-md border border-blue-200 bg-blue-50 px-4 py-2 text-sm font-semibold text-blue-700 hover:bg-blue-100"
+                >
+                    Atur Batas Pendaftaran
+                </button>
+                <button
+                    type="button"
+                    x-data
+                    x-on:click="$dispatch('open-modal', 'create-agenda')"
+                    class="inline-flex items-center justify-center rounded-md bg-emerald-700 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-800"
+                >
+                    Tambah Agenda
+                </button>
+            </div>
         @endif
+    </div>
+
+    @php
+        $regTimeline = $event->timelines->firstWhere('is_registration', true);
+    @endphp
+    <div class="mb-6 overflow-hidden rounded-lg border border-gray-200 bg-white p-5 shadow-sm">
+        <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+                <div class="flex items-center gap-2">
+                    <h3 class="text-base font-bold text-gray-900">Status Pendaftaran Event</h3>
+                    @if($event->is_active)
+                        <span class="rounded-full bg-emerald-100 px-2.5 py-0.5 text-xs font-semibold text-emerald-800">Pendaftaran Aktif</span>
+                    @else
+                        <span class="rounded-full bg-red-100 px-2.5 py-0.5 text-xs font-semibold text-red-800">Pendaftaran Ditutup</span>
+                    @endif
+                </div>
+                @if($regTimeline)
+                    <div class="mt-2 flex flex-wrap items-center gap-2 text-xs text-gray-600">
+                        <span>Timeline Acuan: <strong class="text-gray-900">{{ $regTimeline->title }}</strong></span>
+                        <span>•</span>
+                        <span>Mulai: <strong class="text-gray-900">{{ $regTimeline->date?->format('d M Y, H:i') }}</strong></span>
+                        <span>•</span>
+                        <span>Deadline: <strong class="text-gray-900">{{ $regTimeline->end_date ? $regTimeline->end_date->format('d M Y, H:i') : ($regTimeline->date ? $regTimeline->date->format('d M Y, H:i') : '-') }}</strong></span>
+                        @php
+                            $deadline = $regTimeline->end_date ?? $regTimeline->date;
+                            $isExpired = $deadline && now()->greaterThan($deadline);
+                        @endphp
+                        @if($isExpired)
+                            <span class="rounded bg-red-50 border border-red-200 px-2 py-0.5 text-[11px] font-bold text-red-700">Tutup Otomatis (Deadline Terlewati)</span>
+                        @else
+                            <span class="rounded bg-blue-50 border border-blue-200 px-2 py-0.5 text-[11px] font-bold text-blue-700">Auto-close Aktif</span>
+                        @endif
+                    </div>
+                @else
+                    <p class="mt-1 text-xs text-gray-500">Belum ada timeline yang dijadikan acuan auto-close pendaftaran. Pendaftaran saat ini dikontrol secara manual.</p>
+                @endif
+            </div>
+            @if($canManageTimelines)
+                <button
+                    type="button"
+                    x-data
+                    x-on:click="$dispatch('open-modal', 'edit-registration-deadline-{{ $event->id }}')"
+                    class="inline-flex items-center justify-center rounded-md border border-blue-200 bg-blue-50 px-3.5 py-2 text-xs font-bold text-blue-700 hover:bg-blue-100 shrink-0"
+                >
+                    Atur Timeline Pendaftaran
+                </button>
+            @endif
+        </div>
     </div>
 
     @if ($canManageTimelines && $errors->any())
@@ -119,6 +177,9 @@
                                 <p class="font-semibold text-gray-950">{{ $agenda->title }}</p>
                                 <div class="flex items-center gap-2 mt-1">
                                     <p class="text-xs text-gray-500">ID: {{ $agenda->id }}</p>
+                                    @if($agenda->is_registration)
+                                        <span class="rounded bg-blue-100 px-2 py-0.5 text-[10px] font-bold text-blue-800">Timeline Pendaftaran</span>
+                                    @endif
                                     @if($agenda->is_submission)
                                         <span class="rounded bg-emerald-100 px-2 py-0.5 text-[10px] font-bold text-emerald-800">Timeline Submisi</span>
                                     @endif
@@ -223,6 +284,11 @@
                             >
                         </label>
                     @endif
+
+                    <div class="mt-3 flex items-start gap-2">
+                        <input type="checkbox" name="is_registration" id="is_registration_create" value="1" class="mt-1 rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+                        <label for="is_registration_create" class="text-sm text-gray-700 leading-tight">Jadikan sebagai Timeline Pendaftaran (Auto-close pendaftaran saat deadline berakhir)</label>
+                    </div>
                 </div>
 
                 <div class="mt-6 flex justify-end gap-3">
@@ -292,6 +358,11 @@
                                 >
                             </label>
                         @endif
+
+                        <div class="mt-3 flex items-start gap-2">
+                            <input type="checkbox" name="is_registration" id="is_registration_edit_{{ $agenda->id }}" value="1" {{ $agenda->is_registration ? 'checked' : '' }} class="mt-1 rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+                            <label for="is_registration_edit_{{ $agenda->id }}" class="text-sm text-gray-700 leading-tight">Jadikan sebagai Timeline Pendaftaran (Auto-close pendaftaran saat deadline berakhir)</label>
+                        </div>
                     </div>
 
                     <div class="mt-6 flex justify-end gap-3">
@@ -328,5 +399,49 @@
                 </form>
             </x-modal>
         @endforeach
+
+        <x-modal name="edit-registration-deadline-{{ $event->id }}" maxWidth="lg" focusable>
+            <form method="POST" action="{{ route('admin.timelines.registration-deadline', $event) }}" class="p-6">
+                @csrf
+                @method('PATCH')
+                <div class="border-b border-gray-200 pb-4">
+                    <h3 class="text-lg font-semibold text-gray-950">Atur Timeline Penutupan Pendaftaran</h3>
+                    <p class="mt-1 text-sm text-gray-600">Pilih agenda timeline yang akan digunakan sebagai acuan auto-close pendaftaran untuk {{ $event->title }}.</p>
+                </div>
+                
+                <div class="mt-5 space-y-4">
+                    @php
+                        $activeRegTimeline = $event->timelines->where('is_registration', true)->first();
+                    @endphp
+                    <label class="block">
+                        <span class="text-sm font-semibold text-gray-700">Pilih Timeline Acuan</span>
+                        <select
+                            name="timeline_id"
+                            class="mt-1 w-full rounded-md border-gray-300 text-sm shadow-sm focus:border-blue-500 focus:ring-blue-500 bg-white"
+                        >
+                            <option value="">-- Tidak ada (Kontrol Manual) --</option>
+                            @foreach($event->timelines as $timeline)
+                                <option value="{{ $timeline->id }}" {{ $activeRegTimeline?->id === $timeline->id ? 'selected' : '' }}>
+                                    {{ $timeline->title }} ({{ $timeline->date?->format('d M Y H:i') }} s.d. {{ $timeline->end_date ? $timeline->end_date->format('d M Y H:i') : 'Selesai' }})
+                                </option>
+                            @endforeach
+                        </select>
+                    </label>
+                    <div class="rounded-md bg-blue-50 p-3 text-xs text-blue-700 border border-blue-200">
+                        <p class="font-semibold mb-1">Cara Kerja Auto Tutup Pendaftaran:</p>
+                        <ul class="list-disc pl-4 space-y-0.5 text-blue-600">
+                            <li>Batas waktu dihitung dari <strong>Waktu Selesai (Deadline)</strong> agenda terpilih.</li>
+                            <li>Ketika waktu tersebut telah terlewati, status pendaftaran event akan otomatis dinonaktifkan.</li>
+                            <li>Jika memilih "Tidak ada (Kontrol Manual)", pendaftaran event dibuka/tutup secara manual melalui tombol aktifkan/nonaktifkan.</li>
+                        </ul>
+                    </div>
+                </div>
+                
+                <div class="mt-6 flex justify-end gap-3 border-t border-gray-200 pt-4">
+                    <button type="button" x-on:click="$dispatch('close-modal', 'edit-registration-deadline-{{ $event->id }}')" class="rounded-md border border-gray-300 px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50">Batal</button>
+                    <button type="submit" class="rounded-md bg-emerald-700 px-4 py-2 text-sm font-bold text-white hover:bg-emerald-800">Simpan Pengaturan</button>
+                </div>
+            </form>
+        </x-modal>
     @endif
 </x-admin.layout>

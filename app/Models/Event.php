@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 class Event extends Model
@@ -63,6 +64,41 @@ class Event extends Model
     public function timelines(): HasMany
     {
         return $this->hasMany(EventTimeline::class, 'event_id', 'id');
+    }
+
+    /**
+     * Get the registration timeline for this event.
+     */
+    public function registrationTimeline(): HasOne
+    {
+        return $this->hasOne(EventTimeline::class, 'event_id', 'id')->where('is_registration', true);
+    }
+
+    /**
+     * Check if registration deadline has passed and auto-close if needed.
+     */
+    public function checkAndCloseIfRegistrationExpired(): bool
+    {
+        if (!$this->is_active) {
+            return false;
+        }
+
+        $regTimeline = $this->relationLoaded('timelines')
+            ? $this->timelines->firstWhere('is_registration', true)
+            : $this->registrationTimeline;
+
+        if (!$regTimeline) {
+            return false;
+        }
+
+        $deadline = $regTimeline->end_date ?? $regTimeline->date;
+        if ($deadline && now()->greaterThan($deadline)) {
+            $this->update(['is_active' => false]);
+            $this->is_active = false;
+            return true;
+        }
+
+        return false;
     }
 
     /**
