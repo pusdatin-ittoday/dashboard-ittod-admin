@@ -54,6 +54,93 @@ class TeamController extends Controller
         return view('operation.teams.index', compact('teams', 'events', 'filterEventId'));
     }
 
+    // Menyetujui seluruh berkas secara langsung (Superadmin Only)
+    public function approveAllDocuments(Request $request) {
+        abort_unless(auth()->user()->role === 'superadmin', 403, 'Aksi ini hanya dapat dilakukan oleh Superadmin.');
+
+        $filterEventId = $request->input('event_id');
+        $query = Team::with(['event', 'members.user'])->where('is_document_verified', '!=', 'approved');
+
+        if ($filterEventId) {
+            if ($filterEventId === 'all_teams') {
+                $query->whereHas('event', function($q) {
+                    $q->where('type', 'competition');
+                });
+            } elseif ($filterEventId === 'all_participants') {
+                $query->whereHas('event', function($q) {
+                    $q->where('type', 'non_competition');
+                });
+            } elseif ($filterEventId === 'all_global') {
+                // Semua pendaftaran global
+            } else {
+                $query->where('competition_id', $filterEventId);
+            }
+        }
+
+        $teams = $query->get();
+        $count = $teams->count();
+
+        if ($count === 0) {
+            return back()->with('success', 'Semua berkas pada cakupan filter ini sudah terverifikasi.');
+        }
+
+        DB::transaction(function () use ($teams) {
+            foreach ($teams as $team) {
+                $teamUpdates = [
+                    'is_document_verified' => 'approved',
+                    'verification_error' => null,
+                ];
+
+                if ($team->is_verified !== 'approved') {
+                    $teamUpdates['is_verified'] = 'pending';
+                }
+
+                $team->update($teamUpdates);
+
+                foreach ($team->members as $member) {
+                    $member->update([
+                        'is_verified' => true,
+                        'verification_error' => null,
+                    ]);
+
+                    TeamMember::where('user_id', $member->user_id)->update([
+                        'is_verified' => true,
+                        'verification_error' => null,
+                    ]);
+
+                    Team::whereHas('members', function ($q) use ($member) {
+                        $q->where('user_id', $member->user_id);
+                    })
+                    ->where('max_member', 1)
+                    ->update([
+                        'is_document_verified' => 'approved',
+                        'verification_error' => null,
+                    ]);
+
+                    $user = $member->user;
+                    if ($user) {
+                        $sch = strtolower($user->nama_sekolah ?? '');
+                        $eml = strtolower($user->email ?? '');
+                        $isIpb = str_contains($sch, 'ipb') || str_contains($sch, 'institut pertanian bogor') || str_ends_with($eml, 'ipb.ac.id') || str_contains($eml, '@apps.ipb.ac.id');
+                        if ($isIpb) {
+                            DB::table('event_participant')
+                                ->join('event', 'event_participant.event_id', '=', 'event.id')
+                                ->where('event_participant.user_id', $member->user_id)
+                                ->where('event.type', 'non_competition')
+                                ->update([
+                                    'event_participant.payment_verification' => 'accepted'
+                                ]);
+                        }
+                    }
+                }
+            }
+        });
+
+        return redirect()
+            ->route('operation.teams.index', $filterEventId ? ['event_id' => $filterEventId] : [])
+            ->with('success', "Berhasil menyetujui seluruh berkas untuk {$count} pendaftaran secara langsung!");
+    }
+
     // Melihat detail berkas identitas (REQ-08)
     public function show(string $id) {
         abort_unless(in_array(auth()->user()->role, ['superadmin', 'panitia_lomba'], true), 403);
@@ -89,11 +176,21 @@ class TeamController extends Controller
                 ->filter(fn (TeamMember $member) => !$member->is_verified);
 
             if ($unverifiedMembers->isNotEmpty()) {
-                return back()
-                    ->withErrors([
-                        'is_document_verified' => 'Berkas tim belum bisa disetujui karena masih ada anggota tim yang belum diverifikasi secara individual (Setuju/Tolak).',
-                    ])
-                    ->withInput();
+                if (auth()->user()->role !== 'superadmin') {
+                    return back()
+                        ->withErrors([
+                            'is_document_verified' => 'Berkas tim belum bisa disetujui karena masih ada anggota tim yang belum diverifikasi secara individual (Setuju/Tolak).',
+                        ])
+                        ->withInput();
+                } else {
+                    // Superadmin dapat menyetujui langsung seluruh berkas anggota
+                    foreach ($team->members as $m) {
+                        $m->update([
+                            'is_verified' => true,
+                            'verification_error' => null,
+                        ]);
+                    }
+                }
             }
         }
 

@@ -24,6 +24,7 @@ Route::middleware(['auth'])->group(function () {
 
         // REQ-07 & REQ-08: Manajemen Daftar Tim dan Verifikasi Berkas
         Route::get('/teams', [TeamController::class, 'index'])->name('operation.teams.index');
+        Route::post('/teams/approve-all-documents', [TeamController::class, 'approveAllDocuments'])->name('operation.teams.approveAllDocuments');
         Route::get('/teams/{id}', [TeamController::class, 'show'])->name('operation.teams.show');
         Route::post('/teams/{id}/verify', [TeamController::class, 'updateStatus'])->name('operation.teams.verify');
         Route::post('/teams/{teamId}/members/{userId}/verify', [TeamController::class, 'updateMemberStatus'])->name('operation.teams.verifyMember');

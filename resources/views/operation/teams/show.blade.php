@@ -24,9 +24,10 @@
     @endif
 
     @php
+        $isSuperAdmin = auth()->user()->role === 'superadmin';
         $documentMembers = $team->members;
         $membersWithErrors = $documentMembers->filter(fn ($member) => filled($member->verification_error));
-        $canApproveDocuments = $membersWithErrors->isEmpty();
+        $canApproveDocuments = $isSuperAdmin || $membersWithErrors->isEmpty();
         $initialDocumentDecision = $canApproveDocuments
             ? old('is_document_verified', $team->is_document_verified)
             : 'rejected';
@@ -448,12 +449,13 @@
                 class="rounded-lg border border-gray-200 bg-white p-6 shadow-sm"
                 x-data="{
                     verified: @js($initialDocumentDecision),
+                    isSuperAdmin: @js($isSuperAdmin),
                     hasMemberErrors: @js(! $canApproveDocuments),
                     rejectionReason: @js($team->verification_error ?? ''),
                     rejectionError: '',
                     approvalError: '',
                     submitDecision(event) {
-                        if (this.verified === 'approved' && this.hasMemberErrors) {
+                        if (this.verified === 'approved' && this.hasMemberErrors && !this.isSuperAdmin) {
                             event.preventDefault();
                             this.approvalError = 'Masih ada catatan kesalahan anggota. Kosongkan catatan anggota yang sudah diperbaiki sebelum menyetujui.';
                             return;
@@ -473,11 +475,15 @@
 
                     <div>
                         <p class="text-xs font-semibold uppercase tracking-wide text-gray-500">Status Validasi Berkas Anggota</p>
-                        @if(! $canApproveDocuments)
+                        @if(! $canApproveDocuments && ! $isSuperAdmin)
                             <div class="mt-3 rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-sm font-medium text-amber-800">
                                 Belum bisa disetujui karena masih ada catatan kesalahan pada:
                                 {{ $membersWithErrors->map(fn ($member) => $member->user->full_name)->join(', ') }}.
                                 Kosongkan catatan anggota setelah berkas revisinya dicek.
+                            </div>
+                        @elseif($isSuperAdmin && $documentMembers->filter(fn ($member) => !$member->is_verified)->isNotEmpty())
+                            <div class="mt-3 rounded-md border border-teal-200 bg-teal-50 px-3 py-2 text-xs font-medium text-teal-800">
+                                Akses Superadmin: Menyetujui tim ini akan otomatis menyetujui seluruh berkas anggota tim secara langsung.
                             </div>
                         @endif
                         @error('is_document_verified')
@@ -487,9 +493,9 @@
                         <div class="mt-3 grid grid-cols-2 gap-3">
                             <label
                                 class="rounded-lg border border-gray-200 px-3 py-3 text-center hover:bg-gray-50"
-                                x-bind:class="hasMemberErrors ? 'cursor-not-allowed bg-gray-50 opacity-60' : ''"
+                                x-bind:class="(hasMemberErrors && !isSuperAdmin) ? 'cursor-not-allowed bg-gray-50 opacity-60' : ''"
                             >
-                                <input type="radio" name="is_document_verified" value="approved" x-model="verified" x-bind:disabled="hasMemberErrors" x-on:change="approvalError = ''" class="text-emerald-600 focus:ring-emerald-500">
+                                <input type="radio" name="is_document_verified" value="approved" x-model="verified" x-bind:disabled="hasMemberErrors && !isSuperAdmin" x-on:change="approvalError = ''" class="text-emerald-600 focus:ring-emerald-500">
                                 <span class="mt-2 block text-sm font-semibold text-emerald-700">Setujui</span>
                             </label>
                             <label class="rounded-lg border border-gray-200 px-3 py-3 text-center hover:bg-gray-50">
