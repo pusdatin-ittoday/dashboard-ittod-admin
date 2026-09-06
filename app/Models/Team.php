@@ -31,6 +31,8 @@ class Team extends Model
         'is_name_changed',
         'verification_error',
         'payment_proof_id',
+        'is_finalist',
+        'rank',
     ];
 
     protected $casts = [
@@ -38,6 +40,8 @@ class Team extends Model
         'max_member' => 'integer',
         'is_name_changed' => 'boolean',
         'name_changed_at' => 'datetime',
+        'is_finalist' => 'boolean',
+        'rank' => 'integer',
     ];
 
     /**
