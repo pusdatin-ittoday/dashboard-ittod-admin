@@ -12,14 +12,6 @@
                 <button
                     type="button"
                     x-data
-                    x-on:click="$dispatch('open-modal', 'edit-registration-deadline-{{ $event->id }}')"
-                    class="inline-flex items-center justify-center rounded-md border border-blue-200 bg-blue-50 px-4 py-2 text-sm font-semibold text-blue-700 hover:bg-blue-100"
-                >
-                    Atur Batas Pendaftaran
-                </button>
-                <button
-                    type="button"
-                    x-data
                     x-on:click="$dispatch('open-modal', 'create-agenda')"
                     class="inline-flex items-center justify-center rounded-md bg-emerald-700 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-800"
                 >
@@ -31,37 +23,42 @@
 
     @php
         $regTimeline = $event->timelines->firstWhere('is_registration', true);
+        $regState = $event->registration_state;
     @endphp
     <div class="mb-6 overflow-hidden rounded-lg border border-gray-200 bg-white p-5 shadow-sm">
         <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div>
                 <div class="flex items-center gap-2">
                     <h3 class="text-base font-bold text-gray-900">Status Pendaftaran Event</h3>
-                    @if($event->is_active)
-                        <span class="rounded-full bg-emerald-100 px-2.5 py-0.5 text-xs font-semibold text-emerald-800">Pendaftaran Aktif</span>
-                    @else
+                    @if($regState === 'not_started')
+                        <span class="rounded-full bg-amber-100 px-2.5 py-0.5 text-xs font-semibold text-amber-800">Belum Dibuka</span>
+                    @elseif($regState === 'open')
+                        <span class="rounded-full bg-emerald-100 px-2.5 py-0.5 text-xs font-semibold text-emerald-800">Pendaftaran Dibuka</span>
+                    @elseif($regState === 'closed')
                         <span class="rounded-full bg-red-100 px-2.5 py-0.5 text-xs font-semibold text-red-800">Pendaftaran Ditutup</span>
+                    @else
+                        <span class="rounded-full {{ $event->is_active ? 'bg-emerald-100 text-emerald-800' : 'bg-gray-100 text-gray-800' }} px-2.5 py-0.5 text-xs font-semibold">
+                            {{ $event->is_active ? 'Aktif (Manual)' : 'Nonaktif (Manual)' }}
+                        </span>
                     @endif
                 </div>
                 @if($regTimeline)
                     <div class="mt-2 flex flex-wrap items-center gap-2 text-xs text-gray-600">
                         <span>Timeline Acuan: <strong class="text-gray-900">{{ $regTimeline->title }}</strong></span>
                         <span>•</span>
-                        <span>Mulai: <strong class="text-gray-900">{{ $regTimeline->date?->format('d M Y, H:i') }}</strong></span>
+                        <span>Waktu Buka: <strong class="text-gray-900">{{ $regTimeline->date?->format('d M Y, H:i') }}</strong></span>
                         <span>•</span>
-                        <span>Deadline: <strong class="text-gray-900">{{ $regTimeline->end_date ? $regTimeline->end_date->format('d M Y, H:i') : ($regTimeline->date ? $regTimeline->date->format('d M Y, H:i') : '-') }}</strong></span>
-                        @php
-                            $deadline = $regTimeline->end_date ?? $regTimeline->date;
-                            $isExpired = $deadline && now()->greaterThan($deadline);
-                        @endphp
-                        @if($isExpired)
+                        <span>Waktu Tutup (Deadline): <strong class="text-gray-900">{{ $regTimeline->end_date ? $regTimeline->end_date->format('d M Y, H:i') : ($regTimeline->date ? $regTimeline->date->format('d M Y, H:i') : '-') }}</strong></span>
+                        @if($regState === 'not_started')
+                            <span class="rounded bg-amber-50 border border-amber-200 px-2 py-0.5 text-[11px] font-bold text-amber-700">Menunggu Waktu Buka</span>
+                        @elseif($regState === 'closed')
                             <span class="rounded bg-red-50 border border-red-200 px-2 py-0.5 text-[11px] font-bold text-red-700">Tutup Otomatis (Deadline Terlewati)</span>
                         @else
-                            <span class="rounded bg-blue-50 border border-blue-200 px-2 py-0.5 text-[11px] font-bold text-blue-700">Auto-close Aktif</span>
+                            <span class="rounded bg-blue-50 border border-blue-200 px-2 py-0.5 text-[11px] font-bold text-blue-700">Auto Open & Close Aktif</span>
                         @endif
                     </div>
                 @else
-                    <p class="mt-1 text-xs text-gray-500">Belum ada timeline yang dijadikan acuan auto-close pendaftaran. Pendaftaran saat ini dikontrol secara manual.</p>
+                    <p class="mt-1 text-xs text-gray-500">Belum ada timeline yang dijadikan acuan jadwal pendaftaran. Pendaftaran saat ini dikontrol secara manual.</p>
                 @endif
             </div>
             @if($canManageTimelines)
@@ -155,12 +152,8 @@
                 <thead class="bg-gray-50">
                     <tr>
                         <th class="px-6 py-3 text-left text-xs font-bold uppercase text-gray-600">Agenda</th>
-                        @if ($event->type === 'competition')
-                            <th class="px-6 py-3 text-left text-xs font-bold uppercase text-gray-600">Waktu Mulai</th>
-                            <th class="px-6 py-3 text-left text-xs font-bold uppercase text-gray-600">Waktu Selesai</th>
-                        @else
-                            <th class="px-6 py-3 text-left text-xs font-bold uppercase text-gray-600">Tanggal & Waktu</th>
-                        @endif
+                        <th class="px-6 py-3 text-left text-xs font-bold uppercase text-gray-600">Waktu Mulai</th>
+                        <th class="px-6 py-3 text-left text-xs font-bold uppercase text-gray-600">Waktu Selesai</th>
                         @if ($canManageTimelines)
                             <th class="px-6 py-3 text-right text-xs font-bold uppercase text-gray-600">Aksi</th>
                         @endif
@@ -185,12 +178,8 @@
                                     @endif
                                 </div>
                             </td>
-                            @if ($event->type === 'competition')
-                                <td class="px-6 py-4 text-sm font-semibold text-gray-700">{{ $agenda->date?->format('d M Y H:i') }}</td>
-                                <td class="px-6 py-4 text-sm font-semibold text-gray-700">{{ $agenda->end_date?->format('d M Y H:i') }}</td>
-                            @else
-                                <td class="px-6 py-4 text-sm font-semibold text-gray-700">{{ $agenda->date?->format('d M Y H:i') }}</td>
-                            @endif
+                            <td class="px-6 py-4 text-sm font-semibold text-gray-700">{{ $agenda->date?->format('d M Y H:i') }}</td>
+                            <td class="px-6 py-4 text-sm font-semibold text-gray-700">{{ $agenda->end_date ? $agenda->end_date->format('d M Y H:i') : '-' }}</td>
                             @if ($canManageTimelines)
                                 <td class="px-6 py-4 text-right">
                                     <div class="flex items-center justify-end gap-2">
@@ -247,42 +236,32 @@
                         >
                     </label>
 
+                    <label class="block">
+                        <span class="text-sm font-semibold text-gray-700">Waktu Mulai (Tanggal Buka) <span class="text-red-500">*</span></span>
+                        <input
+                            type="datetime-local"
+                            name="date"
+                            value="{{ old('date') }}"
+                            required
+                            class="mt-1 w-full rounded-md border-gray-300 text-sm shadow-sm focus:border-emerald-500 focus:ring-emerald-500"
+                        >
+                    </label>
+                    <label class="block">
+                        <span class="text-sm font-semibold text-gray-700">Waktu Selesai / Deadline <span class="text-xs font-normal text-gray-500">({{ $event->type === 'competition' ? 'Wajib' : 'Opsional / Wajib jika Timeline Pendaftaran' }})</span></span>
+                        <input
+                            type="datetime-local"
+                            name="end_date"
+                            value="{{ old('end_date') }}"
+                            {{ $event->type === 'competition' ? 'required' : '' }}
+                            class="mt-1 w-full rounded-md border-gray-300 text-sm shadow-sm focus:border-emerald-500 focus:ring-emerald-500"
+                        >
+                    </label>
+
                     @if ($event->type === 'competition')
-                        <label class="block">
-                            <span class="text-sm font-semibold text-gray-700">Waktu Mulai</span>
-                            <input
-                                type="datetime-local"
-                                name="date"
-                                value="{{ old('date') }}"
-                                required
-                                class="mt-1 w-full rounded-md border-gray-300 text-sm shadow-sm focus:border-emerald-500 focus:ring-emerald-500"
-                            >
-                        </label>
-                        <label class="block">
-                            <span class="text-sm font-semibold text-gray-700">Waktu Selesai</span>
-                            <input
-                                type="datetime-local"
-                                name="end_date"
-                                value="{{ old('end_date') }}"
-                                required
-                                class="mt-1 w-full rounded-md border-gray-300 text-sm shadow-sm focus:border-emerald-500 focus:ring-emerald-500"
-                            >
-                        </label>
                         <div class="mt-3 flex items-start gap-2">
                             <input type="checkbox" name="is_submission" id="is_submission_create" value="1" class="mt-1 rounded border-gray-300 text-emerald-600 focus:ring-emerald-500">
                             <label for="is_submission_create" class="text-sm text-gray-700 leading-tight">Jadikan sebagai Timeline Pengumpulan / Revisi Submisi</label>
                         </div>
-                    @else
-                        <label class="block">
-                            <span class="text-sm font-semibold text-gray-700">Tanggal & Waktu</span>
-                            <input
-                                type="datetime-local"
-                                name="date"
-                                value="{{ old('date') }}"
-                                required
-                                class="mt-1 w-full rounded-md border-gray-300 text-sm shadow-sm focus:border-emerald-500 focus:ring-emerald-500"
-                            >
-                        </label>
                     @endif
 
                     <div class="mt-3 flex items-start gap-2">
@@ -321,42 +300,32 @@
                             >
                         </label>
 
+                        <label class="block">
+                            <span class="text-sm font-semibold text-gray-700">Waktu Mulai (Tanggal Buka) <span class="text-red-500">*</span></span>
+                            <input
+                                type="datetime-local"
+                                name="date"
+                                value="{{ old('date', $agenda->date?->format('Y-m-d\TH:i')) }}"
+                                required
+                                class="mt-1 w-full rounded-md border-gray-300 text-sm shadow-sm focus:border-emerald-500 focus:ring-emerald-500"
+                            >
+                        </label>
+                        <label class="block">
+                            <span class="text-sm font-semibold text-gray-700">Waktu Selesai / Deadline <span class="text-xs font-normal text-gray-500">({{ $event->type === 'competition' ? 'Wajib' : 'Opsional / Wajib jika Timeline Pendaftaran' }})</span></span>
+                            <input
+                                type="datetime-local"
+                                name="end_date"
+                                value="{{ old('end_date', $agenda->end_date?->format('Y-m-d\TH:i')) }}"
+                                {{ $event->type === 'competition' ? 'required' : '' }}
+                                class="mt-1 w-full rounded-md border-gray-300 text-sm shadow-sm focus:border-emerald-500 focus:ring-emerald-500"
+                            >
+                        </label>
+
                         @if ($event->type === 'competition')
-                            <label class="block">
-                                <span class="text-sm font-semibold text-gray-700">Waktu Mulai</span>
-                                <input
-                                    type="datetime-local"
-                                    name="date"
-                                    value="{{ old('date', $agenda->date?->format('Y-m-d\TH:i')) }}"
-                                    required
-                                    class="mt-1 w-full rounded-md border-gray-300 text-sm shadow-sm focus:border-emerald-500 focus:ring-emerald-500"
-                                >
-                            </label>
-                            <label class="block">
-                                <span class="text-sm font-semibold text-gray-700">Waktu Selesai</span>
-                                <input
-                                    type="datetime-local"
-                                    name="end_date"
-                                    value="{{ old('end_date', $agenda->end_date?->format('Y-m-d\TH:i')) }}"
-                                    required
-                                    class="mt-1 w-full rounded-md border-gray-300 text-sm shadow-sm focus:border-emerald-500 focus:ring-emerald-500"
-                                >
-                            </label>
                             <div class="mt-3 flex items-start gap-2">
                                 <input type="checkbox" name="is_submission" id="is_submission_edit_{{ $agenda->id }}" value="1" {{ $agenda->is_submission ? 'checked' : '' }} class="mt-1 rounded border-gray-300 text-emerald-600 focus:ring-emerald-500">
                                 <label for="is_submission_edit_{{ $agenda->id }}" class="text-sm text-gray-700 leading-tight">Jadikan sebagai Timeline Pengumpulan / Revisi Submisi</label>
                             </div>
-                        @else
-                            <label class="block">
-                                <span class="text-sm font-semibold text-gray-700">Tanggal & Waktu</span>
-                                <input
-                                    type="datetime-local"
-                                    name="date"
-                                    value="{{ old('date', $agenda->date?->format('Y-m-d\TH:i')) }}"
-                                    required
-                                    class="mt-1 w-full rounded-md border-gray-300 text-sm shadow-sm focus:border-emerald-500 focus:ring-emerald-500"
-                                >
-                            </label>
                         @endif
 
                         <div class="mt-3 flex items-start gap-2">
@@ -405,8 +374,8 @@
                 @csrf
                 @method('PATCH')
                 <div class="border-b border-gray-200 pb-4">
-                    <h3 class="text-lg font-semibold text-gray-950">Atur Timeline Penutupan Pendaftaran</h3>
-                    <p class="mt-1 text-sm text-gray-600">Pilih agenda timeline yang akan digunakan sebagai acuan auto-close pendaftaran untuk {{ $event->title }}.</p>
+                    <h3 class="text-lg font-semibold text-gray-950">Atur Timeline Jadwal Pendaftaran</h3>
+                    <p class="mt-1 text-sm text-gray-600">Pilih agenda timeline yang akan digunakan sebagai acuan tanggal buka dan penutupan otomatis pendaftaran untuk {{ $event->title }}.</p>
                 </div>
                 
                 <div class="mt-5 space-y-4">
@@ -422,17 +391,18 @@
                             <option value="">-- Tidak ada (Kontrol Manual) --</option>
                             @foreach($event->timelines as $timeline)
                                 <option value="{{ $timeline->id }}" {{ $activeRegTimeline?->id === $timeline->id ? 'selected' : '' }}>
-                                    {{ $timeline->title }} ({{ $timeline->date?->format('d M Y H:i') }} s.d. {{ $timeline->end_date ? $timeline->end_date->format('d M Y H:i') : 'Selesai' }})
+                                    {{ $timeline->title }} (Buka: {{ $timeline->date?->format('d M Y H:i') }} s.d. Tutup: {{ $timeline->end_date ? $timeline->end_date->format('d M Y H:i') : 'Selesai' }})
                                 </option>
                             @endforeach
                         </select>
                     </label>
                     <div class="rounded-md bg-blue-50 p-3 text-xs text-blue-700 border border-blue-200">
-                        <p class="font-semibold mb-1">Cara Kerja Auto Tutup Pendaftaran:</p>
+                        <p class="font-semibold mb-1">Cara Kerja Otomatisasi Jadwal Pendaftaran:</p>
                         <ul class="list-disc pl-4 space-y-0.5 text-blue-600">
-                            <li>Batas waktu dihitung dari <strong>Waktu Selesai (Deadline)</strong> agenda terpilih.</li>
-                            <li>Ketika waktu tersebut telah terlewati, status pendaftaran event akan otomatis dinonaktifkan.</li>
-                            <li>Jika memilih "Tidak ada (Kontrol Manual)", pendaftaran event dibuka/tutup secara manual melalui tombol aktifkan/nonaktifkan.</li>
+                            <li>Sebelum <strong>Waktu Mulai (Tanggal Buka)</strong> tiba, pendaftaran berstatus <strong>Belum Dibuka</strong> (nonaktif).</li>
+                            <li>Ketika memasuki rentang waktu buka hingga selesai, pendaftaran otomatis <strong>Dibuka</strong> (aktif).</li>
+                            <li>Setelah melewati <strong>Waktu Selesai (Deadline)</strong>, pendaftaran otomatis <strong>Ditutup</strong> (nonaktif).</li>
+                            <li>Jika memilih "Tidak ada (Kontrol Manual)", pendaftaran dibuka/tutup secara manual melalui tombol aktifkan/nonaktifkan.</li>
                         </ul>
                     </div>
                 </div>

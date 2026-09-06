@@ -75,14 +75,11 @@ class Event extends Model
     }
 
     /**
-     * Check if registration deadline has passed and auto-close if needed.
+     * Sync event registration status based on its registration timeline dates.
+     * Returns true if status was changed.
      */
-    public function checkAndCloseIfRegistrationExpired(): bool
+    public function syncRegistrationStatus(): bool
     {
-        if (!$this->is_active) {
-            return false;
-        }
-
         $regTimeline = $this->relationLoaded('timelines')
             ? $this->timelines->firstWhere('is_registration', true)
             : $this->registrationTimeline;
@@ -91,14 +88,62 @@ class Event extends Model
             return false;
         }
 
+        $now = now();
+        $startDate = $regTimeline->end_date ? $regTimeline->date : null;
         $deadline = $regTimeline->end_date ?? $regTimeline->date;
-        if ($deadline && now()->greaterThan($deadline)) {
-            $this->update(['is_active' => false]);
-            $this->is_active = false;
+
+        $shouldBeActive = true;
+
+        if ($startDate && $now->lessThan($startDate)) {
+            $shouldBeActive = false;
+        } elseif ($deadline && $now->greaterThan($deadline)) {
+            $shouldBeActive = false;
+        }
+
+        if ((bool)$this->is_active !== $shouldBeActive) {
+            $this->update(['is_active' => $shouldBeActive]);
+            $this->is_active = $shouldBeActive;
             return true;
         }
 
         return false;
+    }
+
+    /**
+     * Check if registration deadline has passed or opening date has not arrived, and auto-sync if needed.
+     */
+    public function checkAndCloseIfRegistrationExpired(): bool
+    {
+        return $this->syncRegistrationStatus();
+    }
+
+    /**
+     * Get the current registration status state.
+     * Values: 'not_started', 'open', 'closed', 'manual'
+     */
+    public function getRegistrationStateAttribute(): string
+    {
+        $regTimeline = $this->relationLoaded('timelines')
+            ? $this->timelines->firstWhere('is_registration', true)
+            : $this->registrationTimeline;
+
+        if (!$regTimeline) {
+            return 'manual';
+        }
+
+        $now = now();
+        $startDate = $regTimeline->end_date ? $regTimeline->date : null;
+        $deadline = $regTimeline->end_date ?? $regTimeline->date;
+
+        if ($startDate && $now->lessThan($startDate)) {
+            return 'not_started';
+        }
+
+        if ($deadline && $now->greaterThan($deadline)) {
+            return 'closed';
+        }
+
+        return 'open';
     }
 
     /**

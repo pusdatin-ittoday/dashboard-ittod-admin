@@ -32,6 +32,8 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/teams/{id}/update-name', [TeamController::class, 'updateTeamNameAdmin'])->name('operation.teams.updateName');
         Route::delete('/teams/{id}', [TeamController::class, 'destroy'])->name('operation.teams.destroy');
         Route::delete('/teams/{teamId}/members/{userId}', [TeamController::class, 'destroyMember'])->name('operation.teams.destroyMember');
+        Route::post('/teams/{id}/max-member', [TeamController::class, 'updateMaxMember'])->name('operation.teams.updateMaxMember');
+
 
         Route::post('/events', [TimelineController::class, 'storeEvent'])->name('operation.events.store');
 

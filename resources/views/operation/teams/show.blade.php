@@ -374,7 +374,23 @@
                     <div class="flex justify-between gap-4">
                         <dt class="text-gray-500">{{ $isIndividual ? 'Tipe' : 'Kapasitas' }}</dt>
                         <dd class="font-semibold text-gray-950">
-                            {{ $isIndividual ? 'Individu' : $team->members->count() . ' / ' . $team->max_member . ' Anggota' }}
+                            @if($isIndividual)
+                                Individu
+                            @else
+                                <div x-data="{ editing: false, max: {{ $team->max_member }} }" class="flex items-center justify-end gap-2">
+                                    <span x-show="!editing">{{ $team->members->count() }} / {{ $team->max_member }} Anggota</span>
+                                    @if(in_array(auth()->user()->role, ['superadmin', 'panitia_lomba']))
+                                        <button type="button" x-show="!editing" @click="editing = true" class="text-indigo-600 hover:text-indigo-900 text-xs ml-1">Edit</button>
+                                        
+                                        <form x-show="editing" action="{{ route('operation.teams.updateMaxMember', $team->id) }}" method="POST" class="flex items-center gap-2" style="display: none;">
+                                            @csrf
+                                            <input type="number" name="max_member" x-model="max" min="1" max="10" required class="w-16 rounded border-gray-300 py-0.5 text-sm focus:border-indigo-500 focus:ring-indigo-500">
+                                            <button type="submit" class="rounded bg-indigo-600 px-2 py-1 text-xs text-white hover:bg-indigo-700">Simpan</button>
+                                            <button type="button" @click="editing = false" class="text-xs text-gray-500 hover:text-gray-700">Batal</button>
+                                        </form>
+                                    @endif
+                                </div>
+                            @endif
                         </dd>
                     </div>
                     <div class="flex justify-between gap-4">
