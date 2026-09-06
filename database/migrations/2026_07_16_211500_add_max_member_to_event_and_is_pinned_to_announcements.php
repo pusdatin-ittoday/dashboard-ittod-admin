@@ -11,13 +11,17 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('event', function (Blueprint $table) {
-            $table->integer('max_member')->default(3)->after('max_noncompetition_participant');
-        });
+        if (Schema::hasTable('event') && !Schema::hasColumn('event', 'max_member')) {
+            Schema::table('event', function (Blueprint $table) {
+                $table->integer('max_member')->default(3)->after('max_noncompetition_participant');
+            });
+        }
 
-        Schema::table('event_announcement', function (Blueprint $table) {
-            $table->boolean('is_pinned')->default(false)->after('description');
-        });
+        if (Schema::hasTable('event_announcement') && !Schema::hasColumn('event_announcement', 'is_pinned')) {
+            Schema::table('event_announcement', function (Blueprint $table) {
+                $table->boolean('is_pinned')->default(false)->after('description');
+            });
+        }
     }
 
     /**
@@ -25,12 +29,16 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('event', function (Blueprint $table) {
-            $table->dropColumn('max_member');
-        });
+        if (Schema::hasTable('event') && Schema::hasColumn('event', 'max_member')) {
+            Schema::table('event', function (Blueprint $table) {
+                $table->dropColumn('max_member');
+            });
+        }
 
-        Schema::table('event_announcement', function (Blueprint $table) {
-            $table->dropColumn('is_pinned');
-        });
+        if (Schema::hasTable('event_announcement') && Schema::hasColumn('event_announcement', 'is_pinned')) {
+            Schema::table('event_announcement', function (Blueprint $table) {
+                $table->dropColumn('is_pinned');
+            });
+        }
     }
 };

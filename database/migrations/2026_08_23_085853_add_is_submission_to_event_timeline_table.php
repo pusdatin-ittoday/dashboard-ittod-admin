@@ -11,9 +11,11 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('event_timeline', function (Blueprint $table) {
-            $table->boolean('is_submission')->default(false);
-        });
+        if (Schema::hasTable('event_timeline') && !Schema::hasColumn('event_timeline', 'is_submission')) {
+            Schema::table('event_timeline', function (Blueprint $table) {
+                $table->boolean('is_submission')->default(false);
+            });
+        }
     }
 
     /**
@@ -21,8 +23,10 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('event_timeline', function (Blueprint $table) {
-            $table->dropColumn('is_submission');
-        });
+        if (Schema::hasTable('event_timeline') && Schema::hasColumn('event_timeline', 'is_submission')) {
+            Schema::table('event_timeline', function (Blueprint $table) {
+                $table->dropColumn('is_submission');
+            });
+        }
     }
 };
