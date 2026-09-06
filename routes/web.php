@@ -24,6 +24,7 @@ Route::middleware(['auth'])->group(function () {
 
         // REQ-07 & REQ-08: Manajemen Daftar Tim dan Verifikasi Berkas
         Route::get('/teams', [TeamController::class, 'index'])->name('operation.teams.index');
+        Route::post('/teams/approve-all-documents', [TeamController::class, 'approveAllDocuments'])->name('operation.teams.approveAllDocuments');
         Route::get('/teams/{id}', [TeamController::class, 'show'])->name('operation.teams.show');
         Route::post('/teams/{id}/verify', [TeamController::class, 'updateStatus'])->name('operation.teams.verify');
         Route::post('/teams/{teamId}/members/{userId}/verify', [TeamController::class, 'updateMemberStatus'])->name('operation.teams.verifyMember');
@@ -32,6 +33,8 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/teams/{id}/update-name', [TeamController::class, 'updateTeamNameAdmin'])->name('operation.teams.updateName');
         Route::delete('/teams/{id}', [TeamController::class, 'destroy'])->name('operation.teams.destroy');
         Route::delete('/teams/{teamId}/members/{userId}', [TeamController::class, 'destroyMember'])->name('operation.teams.destroyMember');
+        Route::post('/teams/{id}/max-member', [TeamController::class, 'updateMaxMember'])->name('operation.teams.updateMaxMember');
+
 
         Route::post('/events', [TimelineController::class, 'storeEvent'])->name('operation.events.store');
 
@@ -59,12 +62,14 @@ Route::middleware(['auth'])->group(function () {
         Route::delete('/staff/{staff}', [AdminDashboardController::class, 'destroyStaff'])->name('staff.destroy');
         Route::get('/users', [AdminDashboardController::class, 'users'])->name('users.index');
         Route::delete('/users/{userIdentity}', [AdminDashboardController::class, 'destroyUser'])->name('users.destroy');
-        Route::get('/transactions', [AdminDashboardController::class, 'transactions'])->name('transactions.index');
+        Route::get('/transactions', [\App\Http\Controllers\Admin\EventParticipantController::class, 'index'])->name('transactions.index');
         Route::patch('/transactions/{team}/accept', [AdminDashboardController::class, 'acceptTransaction'])->name('transactions.accept');
         Route::patch('/transactions/{team}/reject', [AdminDashboardController::class, 'rejectTransaction'])->name('transactions.reject');
         
         Route::get('/event-participants', [\App\Http\Controllers\Admin\EventParticipantController::class, 'index'])->name('event-participants.index');
+        Route::post('/event-participants', [\App\Http\Controllers\Admin\EventParticipantController::class, 'store'])->name('event-participants.store');
         Route::post('/event-participants/verify', [\App\Http\Controllers\Admin\EventParticipantController::class, 'verify'])->name('event-participants.verify');
+        Route::delete('/event-participants', [\App\Http\Controllers\Admin\EventParticipantController::class, 'destroy'])->name('event-participants.destroy');
 
         Route::get('/files-participants', [AdminDashboardController::class, 'filesParticipants'])->name('files-participants.index');
         Route::get('/files', [AdminDashboardController::class, 'files'])->name('files.index');
@@ -72,6 +77,10 @@ Route::middleware(['auth'])->group(function () {
         Route::patch('/competitions/{event}', [AdminDashboardController::class, 'updateCompetition'])->name('competitions.update');
         Route::patch('/competitions/{event}/panitia_lomba-details', [AdminDashboardController::class, 'updatePanitiaDetails'])->name('competitions.panitia_lomba-details');
         Route::get('/competitions/{event}/submissions', [AdminDashboardController::class, 'submissions'])->name('competitions.submissions');
+        Route::delete('/competitions/{event}/submissions/{team_id}', [AdminDashboardController::class, 'destroySubmission'])->name('competitions.submissions.destroy');
+        Route::patch('/competitions/{event}/submission-deadline', [AdminDashboardController::class, 'setSubmissionDeadline'])->name('competitions.submission-deadline');
+        Route::patch('/competitions/{event}/registration-deadline', [AdminDashboardController::class, 'setRegistrationDeadline'])->name('competitions.registration-deadline');
+        Route::patch('/timelines/{event}/registration-deadline', [AdminDashboardController::class, 'setRegistrationDeadline'])->name('timelines.registration-deadline');
         Route::patch('/competitions/{event}/status', [AdminDashboardController::class, 'toggleCompetitionStatus'])->name('competitions.status');
         Route::delete('/competitions/{event}', [AdminDashboardController::class, 'destroyCompetition'])->name('competitions.destroy');
         Route::get('/timelines', [AdminDashboardController::class, 'timelines'])->name('timelines.index');
@@ -99,7 +108,6 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/transaction/{teamId}/verify', [TransactionController::class, 'verify']);
     Route::get('/transaction/recap', [TransactionController::class, 'getRecap']);
 });
-
 
 Route::middleware('auth')->prefix('export')->name('export.')->group(function () {
     // Per-event/kompetisi

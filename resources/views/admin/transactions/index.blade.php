@@ -58,6 +58,15 @@
                         >
                     </div>
                     <div>
+                        <label class="sr-only">Filter Kompetisi</label>
+                        <select name="competition_id" onchange="this.form.submit()" class="block w-full sm:w-auto rounded-md border-gray-300 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                            <option value="">Semua Kompetisi</option>
+                            @foreach($competitions as $competition)
+                                <option value="{{ $competition->id }}" @selected($filterCompetition == $competition->id)>{{ $competition->title }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div>
                         <label class="sr-only">Filter Status</label>
                         <select name="status" onchange="this.form.submit()" class="block w-full sm:w-auto rounded-md border-gray-300 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
                             <option value="default" @selected($filterStatus === 'default')>Pending & Rejected</option>
@@ -204,6 +213,7 @@
                             rows="5"
                             x-ref="rejectReason"
                             x-model="rejectReason"
+                            maxlength="191"
                             required
                             class="mt-2 block w-full rounded-md border-gray-300 shadow-sm focus:border-rose-500 focus:ring-rose-500"
                             placeholder="Contoh: nominal transfer tidak sesuai atau bukti transfer tidak terbaca."

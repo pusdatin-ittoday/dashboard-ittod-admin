@@ -2,7 +2,7 @@
     <!-- Primary Navigation Menu -->
     <div class="max-w-[1750px] mx-auto px-4 sm:px-6 lg:px-8">
         <div class="flex justify-between h-16">
-            <div class="flex items-center">
+            <div class="flex items-center flex-1 min-w-0">
                 <!-- Logo -->
                 <div class="shrink-0 flex items-center me-4 sm:me-6">
                     <a href="{{ route('admin.dashboard') }}">
@@ -11,7 +11,7 @@
                 </div>
 
                 <!-- Navigation Links -->
-                <div class="hidden space-x-1 lg:space-x-2 xl:space-x-3 sm:-my-px sm:flex items-center">
+                <div class="hidden space-x-1 lg:space-x-2 xl:space-x-3 sm:-my-px sm:flex items-center overflow-x-auto whitespace-nowrap flex-nowrap" style="scrollbar-width: thin;">
                     <!-- Dashboard -->
                     <x-nav-link :href="route('admin.dashboard')" :active="request()->routeIs('dashboard') || request()->routeIs('admin.dashboard')">
                         {{ __('Dashboard') }}
@@ -47,7 +47,7 @@
 
                     <!-- Verifikasi Pembayaran -->
                     @if(Auth::check() && in_array(Auth::user()->role, ['superadmin', 'admin_biasa']))
-                        <x-nav-link :href="route('admin.transactions.index')" :active="request()->routeIs('admin.transactions.*')">
+                        <x-nav-link :href="route('admin.event-participants.index')" :active="request()->routeIs('admin.event-participants.*') || request()->routeIs('admin.transactions.*')">
                             {{ __('Pembayaran') }}
                         </x-nav-link>
                     @endif
@@ -151,8 +151,8 @@
             @endif
 
             @if(Auth::check() && in_array(Auth::user()->role, ['superadmin', 'admin_biasa']))
-                <x-responsive-nav-link :href="route('admin.transactions.index')" :active="request()->routeIs('admin.transactions.*')">
-                    {{ __('Verifikasi Pembayaran') }}
+                <x-responsive-nav-link :href="route('admin.event-participants.index')" :active="request()->routeIs('admin.event-participants.*') || request()->routeIs('admin.transactions.*')">
+                    {{ __('Pembayaran') }}
                 </x-responsive-nav-link>
             @endif
 

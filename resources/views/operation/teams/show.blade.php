@@ -1,5 +1,5 @@
 @php
-    $isIndividual = $team->event?->participation_type === 'individual';
+    $isIndividual = $team->event?->participation_type === 'individual' || $team->max_member === 1;
     $primaryMember = $team->members->firstWhere('role', 'leader') ?? $team->members->first();
     $participantName = $primaryMember?->user?->full_name ?? 'Peserta';
 @endphp
@@ -24,9 +24,10 @@
     @endif
 
     @php
+        $isSuperAdmin = auth()->user()->role === 'superadmin';
         $documentMembers = $team->members;
         $membersWithErrors = $documentMembers->filter(fn ($member) => filled($member->verification_error));
-        $canApproveDocuments = $membersWithErrors->isEmpty();
+        $canApproveDocuments = $isSuperAdmin || $membersWithErrors->isEmpty();
         $initialDocumentDecision = $canApproveDocuments
             ? old('is_document_verified', $team->is_document_verified)
             : 'rejected';
@@ -317,7 +318,8 @@
                                             x-ref="reason"
                                             x-model="reason"
                                             x-on:input="error = ''"
-                                            placeholder="Isi catatan jika berkas anggota ditolak"
+                                            maxlength="191"
+                                            placeholder="Isi catatan jika berkas anggota ditolak (maksimal 191 karakter)"
                                             x-bind:class="error ? 'border-rose-300 focus:border-rose-500 focus:ring-rose-500' : 'border-gray-300 focus:border-emerald-500 focus:ring-emerald-500'"
                                             class="mt-2 h-20 w-full resize-none rounded-md text-sm shadow-sm"
                                         ></textarea>
@@ -372,7 +374,23 @@
                     <div class="flex justify-between gap-4">
                         <dt class="text-gray-500">{{ $isIndividual ? 'Tipe' : 'Kapasitas' }}</dt>
                         <dd class="font-semibold text-gray-950">
-                            {{ $isIndividual ? 'Individu' : $team->members->count() . ' / ' . $team->max_member . ' Anggota' }}
+                            @if($isIndividual)
+                                Individu
+                            @else
+                                <div x-data="{ editing: false, max: {{ $team->max_member }} }" class="flex items-center justify-end gap-2">
+                                    <span x-show="!editing">{{ $team->members->count() }} / {{ $team->max_member }} Anggota</span>
+                                    @if(in_array(auth()->user()->role, ['superadmin', 'panitia_lomba']))
+                                        <button type="button" x-show="!editing" @click="editing = true" class="text-indigo-600 hover:text-indigo-900 text-xs ml-1">Edit</button>
+                                        
+                                        <form x-show="editing" action="{{ route('operation.teams.updateMaxMember', $team->id) }}" method="POST" class="flex items-center gap-2" style="display: none;">
+                                            @csrf
+                                            <input type="number" name="max_member" x-model="max" min="1" max="10" required class="w-16 rounded border-gray-300 py-0.5 text-sm focus:border-indigo-500 focus:ring-indigo-500">
+                                            <button type="submit" class="rounded bg-indigo-600 px-2 py-1 text-xs text-white hover:bg-indigo-700">Simpan</button>
+                                            <button type="button" @click="editing = false" class="text-xs text-gray-500 hover:text-gray-700">Batal</button>
+                                        </form>
+                                    @endif
+                                </div>
+                            @endif
                         </dd>
                     </div>
                     <div class="flex justify-between gap-4">
@@ -447,12 +465,13 @@
                 class="rounded-lg border border-gray-200 bg-white p-6 shadow-sm"
                 x-data="{
                     verified: @js($initialDocumentDecision),
+                    isSuperAdmin: @js($isSuperAdmin),
                     hasMemberErrors: @js(! $canApproveDocuments),
                     rejectionReason: @js($team->verification_error ?? ''),
                     rejectionError: '',
                     approvalError: '',
                     submitDecision(event) {
-                        if (this.verified === 'approved' && this.hasMemberErrors) {
+                        if (this.verified === 'approved' && this.hasMemberErrors && !this.isSuperAdmin) {
                             event.preventDefault();
                             this.approvalError = 'Masih ada catatan kesalahan anggota. Kosongkan catatan anggota yang sudah diperbaiki sebelum menyetujui.';
                             return;
@@ -472,11 +491,15 @@
 
                     <div>
                         <p class="text-xs font-semibold uppercase tracking-wide text-gray-500">Status Validasi Berkas Anggota</p>
-                        @if(! $canApproveDocuments)
+                        @if(! $canApproveDocuments && ! $isSuperAdmin)
                             <div class="mt-3 rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-sm font-medium text-amber-800">
                                 Belum bisa disetujui karena masih ada catatan kesalahan pada:
                                 {{ $membersWithErrors->map(fn ($member) => $member->user->full_name)->join(', ') }}.
                                 Kosongkan catatan anggota setelah berkas revisinya dicek.
+                            </div>
+                        @elseif($isSuperAdmin && $documentMembers->filter(fn ($member) => !$member->is_verified)->isNotEmpty())
+                            <div class="mt-3 rounded-md border border-teal-200 bg-teal-50 px-3 py-2 text-xs font-medium text-teal-800">
+                                Akses Superadmin: Menyetujui tim ini akan otomatis menyetujui seluruh berkas anggota tim secara langsung.
                             </div>
                         @endif
                         @error('is_document_verified')
@@ -486,9 +509,9 @@
                         <div class="mt-3 grid grid-cols-2 gap-3">
                             <label
                                 class="rounded-lg border border-gray-200 px-3 py-3 text-center hover:bg-gray-50"
-                                x-bind:class="hasMemberErrors ? 'cursor-not-allowed bg-gray-50 opacity-60' : ''"
+                                x-bind:class="(hasMemberErrors && !isSuperAdmin) ? 'cursor-not-allowed bg-gray-50 opacity-60' : ''"
                             >
-                                <input type="radio" name="is_document_verified" value="approved" x-model="verified" x-bind:disabled="hasMemberErrors" x-on:change="approvalError = ''" class="text-emerald-600 focus:ring-emerald-500">
+                                <input type="radio" name="is_document_verified" value="approved" x-model="verified" x-bind:disabled="hasMemberErrors && !isSuperAdmin" x-on:change="approvalError = ''" class="text-emerald-600 focus:ring-emerald-500">
                                 <span class="mt-2 block text-sm font-semibold text-emerald-700">Setujui</span>
                             </label>
                             <label class="rounded-lg border border-gray-200 px-3 py-3 text-center hover:bg-gray-50">
@@ -506,7 +529,8 @@
                             x-ref="rejectionReason"
                             x-model="rejectionReason"
                             x-on:input="rejectionError = ''"
-                            placeholder="Sebutkan kesalahan pada data atau berkas tim..."
+                            maxlength="191"
+                            placeholder="Sebutkan kesalahan pada data atau berkas tim (maksimal 191 karakter)..."
                             x-bind:class="rejectionError ? 'border-rose-300 focus:border-rose-500 focus:ring-rose-500' : 'border-gray-300 focus:border-emerald-500 focus:ring-emerald-500'"
                             class="mt-2 h-28 w-full resize-none rounded-md text-sm shadow-sm"
                         ></textarea>

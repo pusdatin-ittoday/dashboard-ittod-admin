@@ -48,9 +48,7 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('team', function (Blueprint $table) {
-            $table->renameColumn('is_verified', 'is_verified_new');
-        });
+        DB::statement("ALTER TABLE team CHANGE is_verified is_verified_new ENUM('pending', 'approved', 'rejected') DEFAULT 'pending'");
 
         Schema::table('team', function (Blueprint $table) {
             $table->tinyInteger('is_verified')->default(0)->after('is_document_verified');

@@ -34,6 +34,14 @@
                 <span class="inline-flex rounded-full px-2 py-0.5 text-xs font-bold uppercase {{ $singleEvent->is_active ? 'bg-emerald-100 text-emerald-700' : 'bg-gray-100 text-gray-600' }}">
                     {{ $singleEvent->is_active ? 'Aktif' : 'Nonaktif' }}
                 </span>
+                @php
+                    $singleRegTl = $singleEvent->timelines->firstWhere('is_registration', true);
+                @endphp
+                @if($singleRegTl)
+                    <span class="inline-flex rounded-full bg-blue-100 px-2 py-0.5 text-xs font-bold text-blue-700">
+                        Reg s.d. {{ $singleRegTl->end_date ? $singleRegTl->end_date->format('d M Y, H:i') : ($singleRegTl->date ? $singleRegTl->date->format('d M Y, H:i') : '-') }}
+                    </span>
+                @endif
             </div>
 
             <!-- Action Buttons -->
@@ -376,20 +384,67 @@
                                 </td>
                                 <td class="px-6 py-4 text-sm font-semibold text-gray-700">
                                     @if($event->type === 'competition')
-                                        {{ $event->teams_count }} tim
+                                        <a href="{{ route('admin.teams-list.index', ['competition' => $event->id]) }}" class="text-indigo-600 hover:text-indigo-900 hover:underline">
+                                            {{ $event->teams_count }} tim
+                                        </a>
                                     @else
-                                        {{ $event->participants_count }} peserta
+                                        <a href="{{ route('admin.event-participants.index', ['event_id' => $event->id]) }}" class="inline-flex items-center gap-1 text-indigo-600 hover:text-indigo-900 hover:underline">
+                                            <span>{{ $event->participants_count }} peserta</span>
+                                            <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                                            </svg>
+                                        </a>
                                     @endif
                                 </td>
                                 <td class="px-6 py-4">
-                                    <span class="inline-flex rounded border px-2 py-1 text-[11px] font-bold uppercase {{ $event->is_active ? 'border-emerald-200 bg-emerald-50 text-emerald-700' : 'border-gray-200 bg-gray-50 text-gray-500' }}">
-                                        {{ $event->is_active ? 'Aktif' : 'Nonaktif' }}
-                                    </span>
+                                    @php
+                                        $regTl = $event->timelines->firstWhere('is_registration', true);
+                                        $regState = $event->registration_state;
+                                    @endphp
+                                    @if ($regState === 'not_started')
+                                        <span class="inline-flex rounded border border-amber-200 bg-amber-50 px-2 py-1 text-[11px] font-bold uppercase text-amber-700">
+                                            Belum Dibuka
+                                        </span>
+                                        @if($regTl)
+                                            <p class="mt-1 text-[11px] text-gray-500">
+                                                Buka: {{ $regTl->date ? $regTl->date->format('d M Y H:i') : '-' }}
+                                            </p>
+                                        @endif
+                                    @elseif ($regState === 'closed')
+                                        <span class="inline-flex rounded border border-red-200 bg-red-50 px-2 py-1 text-[11px] font-bold uppercase text-red-700">
+                                            Ditutup
+                                        </span>
+                                        @if($regTl)
+                                            <p class="mt-1 text-[11px] text-gray-500">
+                                                Deadline: {{ $regTl->end_date ? $regTl->end_date->format('d M Y H:i') : ($regTl->date ? $regTl->date->format('d M Y H:i') : '-') }}
+                                            </p>
+                                        @endif
+                                    @elseif ($regState === 'open')
+                                        <span class="inline-flex rounded border border-emerald-200 bg-emerald-50 px-2 py-1 text-[11px] font-bold uppercase text-emerald-700">
+                                            Dibuka
+                                        </span>
+                                        @if($regTl)
+                                            <p class="mt-1 text-[11px] text-gray-500">
+                                                s.d. {{ $regTl->end_date ? $regTl->end_date->format('d M Y H:i') : ($regTl->date ? $regTl->date->format('d M Y H:i') : '-') }}
+                                            </p>
+                                        @endif
+                                    @else
+                                        <span class="inline-flex rounded border px-2 py-1 text-[11px] font-bold uppercase {{ $event->is_active ? 'border-emerald-200 bg-emerald-50 text-emerald-700' : 'border-gray-200 bg-gray-50 text-gray-500' }}">
+                                            {{ $event->is_active ? 'Aktif (Manual)' : 'Nonaktif (Manual)' }}
+                                        </span>
+                                    @endif
                                 </td>
                                 <td class="px-6 py-4">
+                                    <div class="flex flex-col gap-1.5">
                                         <a href="{{ route('admin.timelines.agenda', $event) }}" class="inline-flex items-center justify-center rounded-md border border-gray-300 px-3 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50">
                                             {{ $event->type === 'competition' ? 'Kelola Agenda Spesifik' : 'Kelola Agenda' }}
                                         </a>
+                                        @if($event->type !== 'competition')
+                                            <a href="{{ route('admin.event-participants.index', ['event_id' => $event->id]) }}" class="inline-flex items-center justify-center rounded-md border border-indigo-200 bg-indigo-50 px-3 py-1.5 text-xs font-bold text-indigo-700 hover:bg-indigo-100">
+                                                Kelola Peserta ({{ $event->participants_count }})
+                                            </a>
+                                        @endif
+                                    </div>
                                 </td>
                                 @if ($canManageCompetitions || $canManageTimelines)
                                     <td class="px-6 py-4 text-right">
@@ -455,7 +510,7 @@
 
     @if ($canManageCompetitions)
     <x-modal name="create-competition" maxWidth="2xl" focusable>
-        <form x-data="{ type: '{{ Auth::user()->role === 'admin_biasa' ? 'non_competition' : old('type', 'competition') }}', participationType: '{{ old('participation_type', '') }}' }" method="POST" action="{{ route('admin.competitions.store') }}" enctype="multipart/form-data" class="p-6">
+        <form x-data="{ type: '{{ Auth::user()->role === 'admin_biasa' ? 'non_competition' : old('type', 'competition') }}', participationType: '{{ old('participation_type', '') }}', regMode: '{{ old('reg_timeline_mode', (isset($competitionTimelines) && $competitionTimelines->isNotEmpty() ? 'global' : 'custom')) }}' }" method="POST" action="{{ route('admin.competitions.store') }}" enctype="multipart/form-data" class="p-6">
             @csrf
             <div class="border-b border-gray-200 pb-4">
                 <h3 class="text-lg font-semibold text-gray-950">Tambah Event</h3>
@@ -535,6 +590,77 @@
                         <input type="number" name="max_noncompetition_participant" placeholder="Kosongkan jika tidak ada batas" value="{{ old('max_noncompetition_participant') }}" class="mt-1 w-full rounded-md border-gray-300 text-sm shadow-sm focus:border-emerald-500 focus:ring-emerald-500">
                     </label>
                 </div>
+                <div class="sm:col-span-2 border-t border-gray-200 pt-4 mt-2">
+                    <h4 class="text-sm font-bold text-gray-900">Jadwal / Timeline Pendaftaran</h4>
+                    <p class="text-xs text-gray-500 mt-0.5">Kaitkan pendaftaran ke timeline agar tanggal buka dan penutupan aktif secara otomatis.</p>
+
+                    <div class="mt-3 space-y-3">
+                        <div class="flex flex-wrap gap-4">
+                            @if(isset($competitionTimelines) && $competitionTimelines->isNotEmpty())
+                            <label x-show="type === 'competition'" class="inline-flex items-center gap-2 cursor-pointer">
+                                <input type="radio" name="reg_timeline_mode" value="global" x-model="regMode" class="text-emerald-600 focus:ring-emerald-500">
+                                <span class="text-xs font-semibold text-gray-700">Hubungkan Agenda Global Kompetisi</span>
+                            </label>
+                            @endif
+                            <label class="inline-flex items-center gap-2 cursor-pointer">
+                                <input type="radio" name="reg_timeline_mode" value="custom" x-model="regMode" class="text-emerald-600 focus:ring-emerald-500">
+                                <span class="text-xs font-semibold text-gray-700">Tentukan Tanggal Buka & Tutup Sendiri</span>
+                            </label>
+                            <label class="inline-flex items-center gap-2 cursor-pointer">
+                                <input type="radio" name="reg_timeline_mode" value="none" x-model="regMode" class="text-emerald-600 focus:ring-emerald-500">
+                                <span class="text-xs font-semibold text-gray-700">Tanpa Timeline (Kontrol Manual)</span>
+                            </label>
+                        </div>
+
+                        <!-- Opsi Global Timeline -->
+                        @if(isset($competitionTimelines) && $competitionTimelines->isNotEmpty())
+                        <div x-show="regMode === 'global' && type === 'competition'" x-cloak class="rounded-md border border-blue-200 bg-blue-50/50 p-3">
+                            <label class="block">
+                                <span class="text-xs font-bold text-blue-900">Pilih Agenda Global Acuan <span class="text-red-500">*</span></span>
+                                <select name="global_timeline_id" class="mt-1 w-full rounded-md border-gray-300 text-sm shadow-sm focus:border-emerald-500 focus:ring-emerald-500 bg-white">
+                                    <option value="">-- Pilih Agenda Global --</option>
+                                    @foreach($competitionTimelines as $gtl)
+                                        <option value="{{ $gtl->id }}" @selected(old('global_timeline_id') === $gtl->id)>
+                                            {{ $gtl->title }} (Buka: {{ \Carbon\Carbon::parse($gtl->start_date)->translatedFormat('d M Y H:i') }} - Tutup: {{ \Carbon\Carbon::parse($gtl->end_date)->translatedFormat('d M Y H:i') }})
+                                        </option>
+                                    @endforeach
+                                </select>
+                            </label>
+                            <p class="mt-1.5 text-[11px] text-blue-700">Agenda ini akan otomatis disalin ke timeline event sebagai acuan tanggal buka dan penutupan pendaftaran.</p>
+                        </div>
+                        @endif
+
+                        <!-- Opsi Custom Timeline -->
+                        <div x-show="regMode === 'custom'" x-cloak class="rounded-md border border-emerald-200 bg-emerald-50/40 p-3 grid gap-3 sm:grid-cols-2">
+                            <div class="sm:col-span-2">
+                                <label class="block">
+                                    <span class="text-xs font-semibold text-gray-700">Nama Agenda Pendaftaran</span>
+                                    <input type="text" name="reg_title" placeholder="Contoh: Pendaftaran Gelombang 1" value="{{ old('reg_title', 'Pendaftaran') }}" class="mt-1 w-full rounded-md border-gray-300 text-sm shadow-sm focus:border-emerald-500 focus:ring-emerald-500 bg-white">
+                                </label>
+                            </div>
+                            <div>
+                                <label class="block">
+                                    <span class="text-xs font-semibold text-gray-700">Tanggal & Jam Buka <span class="text-red-500">*</span></span>
+                                    <input type="datetime-local" name="reg_start_date" value="{{ old('reg_start_date') }}" class="mt-1 w-full rounded-md border-gray-300 text-sm shadow-sm focus:border-emerald-500 focus:ring-emerald-500 bg-white">
+                                </label>
+                                <p class="mt-1 text-[11px] text-gray-500">Pendaftaran berstatus "Belum Dibuka" sebelum waktu ini.</p>
+                            </div>
+                            <div>
+                                <label class="block">
+                                    <span class="text-xs font-semibold text-gray-700">Tanggal & Jam Tutup (Deadline) <span class="text-red-500">*</span></span>
+                                    <input type="datetime-local" name="reg_end_date" value="{{ old('reg_end_date') }}" class="mt-1 w-full rounded-md border-gray-300 text-sm shadow-sm focus:border-emerald-500 focus:ring-emerald-500 bg-white">
+                                </label>
+                                <p class="mt-1 text-[11px] text-gray-500">Pendaftaran otomatis ditutup setelah waktu ini.</p>
+                            </div>
+                        </div>
+
+                        <!-- Opsi None -->
+                        <div x-show="regMode === 'none'" x-cloak class="rounded-md border border-gray-200 bg-gray-50 p-3 text-xs text-gray-600">
+                            Event akan dibuat dengan status pendaftaran langsung aktif, dan dapat dikelola atau dikaitkan ke timeline nanti di menu Kelola Agenda.
+                        </div>
+                    </div>
+                </div>
+
                 <div class="sm:col-span-2 grid gap-4 sm:grid-cols-2 mt-2 border-t border-gray-200 pt-4">
                     <label class="block">
                         <span class="text-sm font-semibold text-gray-700">Contact Person 1 <span class="text-red-500">*</span></span>

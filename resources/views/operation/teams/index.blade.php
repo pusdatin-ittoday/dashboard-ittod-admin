@@ -12,6 +12,12 @@
         </div>
     @endif
 
+    @if(session('error'))
+        <div class="mb-6 rounded-lg border border-rose-200 bg-rose-50 px-4 py-3 text-sm font-medium text-rose-800">
+            {{ session('error') }}
+        </div>
+    @endif
+
     <div x-data="{
         search: '',
         isExporting: false,
@@ -92,17 +98,39 @@
                     <label class="sr-only">Filter Event</label>
                     <select name="event_id" onchange="this.form.submit()" class="rounded-md border-gray-300 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
                         @if(in_array(auth()->user()->role, ['superadmin', 'admin_biasa']))
-                            <option value="all_teams" @selected($filterEventId === 'all_teams' || !$filterEventId)>Semua Tim (Global)</option>
-                            <option value="all_participants" @selected($filterEventId === 'all_participants')>Semua Peserta Seminar (Global)</option>
+                            <optgroup label="Global">
+                                <option value="all_global" @selected($filterEventId === 'all_global')>Semua Pendaftaran (Global)</option>
+                                <option value="all_teams" @selected($filterEventId === 'all_teams' || !$filterEventId)>Semua Tim Lomba (Kompetisi)</option>
+                                <option value="all_participants" @selected($filterEventId === 'all_participants')>Semua Peserta Kegiatan (Non-Kompetisi)</option>
+                            </optgroup>
                         @else
                             <option value="" @selected(!$filterEventId)>Pilih Event</option>
                         @endif
                         
-                        @foreach($events as $event)
-                            <option value="{{ $event->id }}" @selected($filterEventId === $event->id)>
-                                {{ $event->type === 'competition' ? 'Lomba' : 'Seminar' }}: {{ $event->title }}
-                            </option>
-                        @endforeach
+                        @php
+                            $compEvents = $events->where('type', 'competition');
+                            $nonCompEvents = $events->where('type', 'non_competition');
+                        @endphp
+
+                        @if($compEvents->isNotEmpty())
+                            <optgroup label="Kompetisi / Lomba">
+                                @foreach($compEvents as $event)
+                                    <option value="{{ $event->id }}" @selected($filterEventId === $event->id)>
+                                        {{ $event->title }}
+                                    </option>
+                                @endforeach
+                            </optgroup>
+                        @endif
+
+                        @if($nonCompEvents->isNotEmpty())
+                            <optgroup label="Kegiatan / Non-Kompetisi">
+                                @foreach($nonCompEvents as $event)
+                                    <option value="{{ $event->id }}" @selected($filterEventId === $event->id)>
+                                        {{ $event->title }}
+                                    </option>
+                                @endforeach
+                            </optgroup>
+                        @endif
                     </select>
                 </form>
 
@@ -126,6 +154,25 @@
                         <span>Export Google Sheets</span>
                     </template>
                 </button>
+                @endif
+
+                @if(auth()->user()->role === 'superadmin')
+                    @php
+                        $unverifiedCount = $teams->where('is_document_verified', '!=', 'approved')->count();
+                    @endphp
+                    <button 
+                        type="button"
+                        x-data
+                        x-on:click="$dispatch('open-modal', 'confirm-approve-all-documents')"
+                        @disabled($unverifiedCount === 0)
+                        class="inline-flex items-center justify-center rounded-md bg-teal-600 px-4 py-2 text-sm font-bold uppercase text-white shadow-sm hover:bg-teal-700 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                        title="{{ $unverifiedCount === 0 ? 'Semua berkas pada filter ini sudah terverifikasi' : 'Setujui semua berkas secara langsung' }}"
+                    >
+                        <svg class="-ml-0.5 mr-2 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7" />
+                        </svg>
+                        Setujui Semua Berkas ({{ $unverifiedCount }})
+                    </button>
                 @endif
             </div>
         </div>
@@ -214,7 +261,8 @@
                                 </p>
                             </td>
                             <td class="px-6 py-4">
-                                <span class="inline-flex rounded border border-indigo-100 bg-indigo-50 px-2 py-1 text-[11px] font-bold uppercase text-indigo-700">
+                                <span class="inline-flex items-center gap-1 rounded border px-2 py-1 text-[11px] font-bold uppercase {{ $team->event?->type === 'non_competition' ? 'border-amber-200 bg-amber-50 text-amber-800' : 'border-indigo-100 bg-indigo-50 text-indigo-700' }}">
+                                    <span class="h-1.5 w-1.5 rounded-full {{ $team->event?->type === 'non_competition' ? 'bg-amber-500' : 'bg-indigo-600' }}"></span>
                                     {{ $team->event->title ?? $team->competition_id }}
                                 </span>
                             </td>
@@ -345,4 +393,47 @@
         </div>
     </section>
 </div>
+
+@if(auth()->user()->role === 'superadmin')
+    @php
+        $currentFilterName = 'Semua Tim Lomba (Kompetisi)';
+        if ($filterEventId === 'all_global') {
+            $currentFilterName = 'Semua Pendaftaran (Global)';
+        } elseif ($filterEventId === 'all_participants') {
+            $currentFilterName = 'Semua Peserta Kegiatan (Non-Kompetisi)';
+        } elseif ($filterEventId && $e = $events->firstWhere('id', $filterEventId)) {
+            $currentFilterName = $e->title;
+        }
+    @endphp
+    <x-modal name="confirm-approve-all-documents" maxWidth="md" focusable>
+        <form method="POST" action="{{ route('operation.teams.approveAllDocuments') }}" class="p-6 text-center">
+            @csrf
+            <input type="hidden" name="event_id" value="{{ $filterEventId }}">
+
+            <div class="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-teal-100">
+                <svg class="h-8 w-8 text-teal-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+            </div>
+            <h2 class="text-lg font-bold text-gray-900 mb-2">
+                Setujui Semua Berkas Langsung?
+            </h2>
+            <div class="text-sm text-gray-600 mb-6 text-left bg-gray-50 border border-gray-200 rounded-lg p-3 space-y-1.5">
+                <p><strong>Cakupan Filter:</strong> <span class="text-indigo-600 font-semibold">{{ $currentFilterName }}</span></p>
+                <p><strong>Jumlah:</strong> <span class="font-bold text-teal-700">{{ $unverifiedCount }} tim/peserta</span> yang belum terverifikasi.</p>
+                <p class="text-xs text-gray-500 pt-1 border-t border-gray-200">
+                    *Tindakan ini hanya dapat dilakukan oleh Superadmin dan akan langsung menyetujui berkas tim beserta seluruh berkas anggota tim di dalamnya.
+                </p>
+            </div>
+            <div class="flex justify-center gap-3">
+                <button type="button" x-on:click="$dispatch('close-modal', 'confirm-approve-all-documents')" class="rounded-md border border-gray-300 px-5 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50 transition-colors">
+                    Batal
+                </button>
+                <button type="submit" class="rounded-md bg-teal-600 px-5 py-2 text-sm font-bold text-white hover:bg-teal-700 shadow-sm transition-colors">
+                    Ya, Setujui Semua
+                </button>
+            </div>
+        </form>
+    </x-modal>
+@endif
 </x-admin.layout>
