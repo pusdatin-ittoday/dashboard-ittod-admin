@@ -45,6 +45,19 @@
                         </x-nav-link>
                     @endif
 
+                    {{-- Finalist: hanya kompetisi --}}
+                    @if(Auth::check() && in_array(Auth::user()->role, ['superadmin', 'panitia_lomba']))
+                        @php
+                            $hasCompetitionEvent = Auth::user()->role === 'superadmin'
+                                || Auth::user()->events->where('type', 'competition')->isNotEmpty();
+                        @endphp
+                        @if($hasCompetitionEvent)
+                        <x-nav-link :href="route('operation.finalist.index')" :active="request()->routeIs('operation.finalist.*')">
+                            {{ __('Finalist') }}
+                        </x-nav-link>
+                        @endif
+                    @endif
+
                     <!-- Verifikasi Pembayaran -->
                     @if(Auth::check() && in_array(Auth::user()->role, ['superadmin', 'admin_biasa']))
                         <x-nav-link :href="route('admin.event-participants.index')" :active="request()->routeIs('admin.event-participants.*') || request()->routeIs('admin.transactions.*')">
@@ -148,6 +161,15 @@
                 <x-responsive-nav-link :href="route('operation.teams.index')" :active="request()->routeIs('operation.teams.*') || request()->routeIs('admin.files-participants.*')">
                     {{ __('Berkas & Tim') }}
                 </x-responsive-nav-link>
+                @php
+                    $hasCompetitionEventMobile = Auth::user()->role === 'superadmin'
+                        || Auth::user()->events->where('type', 'competition')->isNotEmpty();
+                @endphp
+                @if($hasCompetitionEventMobile)
+                <x-responsive-nav-link :href="route('operation.finalist.index')" :active="request()->routeIs('operation.finalist.*')">
+                    {{ __('Finalist') }}
+                </x-responsive-nav-link>
+                @endif
             @endif
 
             @if(Auth::check() && in_array(Auth::user()->role, ['superadmin', 'admin_biasa']))

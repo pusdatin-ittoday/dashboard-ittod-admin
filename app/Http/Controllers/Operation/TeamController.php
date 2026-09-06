@@ -335,6 +335,18 @@ class TeamController extends Controller
         $isFinalist = (bool) $request->is_finalist;
         $rank       = $isFinalist ? ($request->rank ?: null) : null;
 
+        // Validasi agar rank (Juara 1, 2, 3, dst) tidak boleh ganda di 1 kompetisi
+        if ($rank !== null) {
+            $existingRank = Team::where('competition_id', $team->competition_id)
+                ->where('rank', $rank)
+                ->where('id', '!=', $team->id)
+                ->exists();
+
+            if ($existingRank) {
+                return back()->with('error', "Juara ke-{$rank} sudah ditetapkan untuk tim lain di kompetisi ini. Silakan hapus status juara pada tim tersebut terlebih dahulu.");
+            }
+        }
+
         $team->update([
             'is_finalist' => $isFinalist,
             'rank'        => $rank,

@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Admin\AdminDashboardController;
+use App\Http\Controllers\Operation\FinalistController;
 use App\Http\Controllers\Operation\TeamController;
 use App\Http\Controllers\Operation\TimelineController;
 use App\Http\Controllers\ExportController;
@@ -34,6 +35,9 @@ Route::middleware(['auth'])->group(function () {
         Route::delete('/teams/{id}', [TeamController::class, 'destroy'])->name('operation.teams.destroy');
         Route::delete('/teams/{teamId}/members/{userId}', [TeamController::class, 'destroyMember'])->name('operation.teams.destroyMember');
         Route::post('/teams/{id}/max-member', [TeamController::class, 'updateMaxMember'])->name('operation.teams.updateMaxMember');
+
+        // Halaman Finalist (hanya kompetisi)
+        Route::get('/finalist', [FinalistController::class, 'index'])->name('operation.finalist.index');
 
 
         Route::post('/events', [TimelineController::class, 'storeEvent'])->name('operation.events.store');

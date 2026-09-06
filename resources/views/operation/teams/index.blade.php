@@ -219,7 +219,6 @@
                         <th class="px-6 py-3 text-left text-xs font-bold uppercase text-gray-600">Ketua & Anggota / Peserta</th>
                         <th class="px-6 py-3 text-left text-xs font-bold uppercase text-gray-600">Status</th>
                         <th class="px-6 py-3 text-right text-xs font-bold uppercase text-gray-600">Aksi</th>
-                        <th class="px-6 py-3 text-left text-xs font-bold uppercase text-gray-600">Finalis & Juara</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-gray-200 bg-white">
@@ -305,82 +304,6 @@
                                          </button>
                                      @endif
                                 </div>
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                @if($team->event?->type === 'competition')
-                                <div x-data="{ open: false, isFinalist: @js((bool) $team->is_finalist), rank: @js($team->rank) }" class="inline-block text-left whitespace-normal">
-                                    <button @click="open = true" type="button" class="inline-flex items-center justify-center whitespace-nowrap rounded border border-amber-200 bg-amber-50 px-3 py-1.5 text-xs font-bold uppercase text-amber-700 transition hover:border-amber-300 hover:bg-amber-100 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-offset-2">
-                                        @if($team->rank)
-                                            🏆 Juara {{ $team->rank }}
-                                        @elseif($team->is_finalist)
-                                            ⭐ Finalis
-                                        @else
-                                            Set Finalis
-                                        @endif
-                                    </button>
-
-                                    <div x-show="open" style="display: none;" class="fixed inset-0 z-[100] overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
-                                        <div class="flex min-h-screen items-end justify-center px-4 pb-20 pt-4 text-center sm:block sm:p-0">
-                                            <div x-show="open" x-transition.opacity class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" @click="open = false" aria-hidden="true"></div>
-                                            <span class="hidden sm:inline-block sm:h-screen sm:align-middle" aria-hidden="true">&#8203;</span>
-                                            <div x-show="open" x-transition class="inline-block transform overflow-hidden rounded-lg bg-white text-left align-bottom shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg sm:align-middle">
-                                                <div class="bg-white px-4 pb-4 pt-5 sm:p-6 sm:pb-4">
-                                                    <div class="sm:flex sm:items-start">
-                                                        <div class="mx-auto flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full bg-amber-100 sm:mx-0 sm:h-10 sm:w-10">
-                                                            <span class="text-xl">🏆</span>
-                                                        </div>
-                                                        <div class="mt-3 text-center sm:ml-4 sm:mt-0 sm:text-left w-full">
-                                                            <h3 class="text-base font-semibold leading-6 text-gray-900" id="modal-title">Set Finalis: {{ $displayName }}</h3>
-                                                            <div class="mt-2">
-                                                                <p class="text-sm text-gray-500">Tandai tim ini sebagai finalis kompetisi. Jika juara, isi peringkatnya.</p>
-                                                                <form action="{{ route('operation.teams.finalist', $team->id) }}" method="POST" class="mt-4 space-y-4">
-                                                                    @csrf
-                                                                    <div>
-                                                                        <p class="text-xs font-semibold uppercase tracking-wide text-gray-500">Status Finalis</p>
-                                                                        <div class="mt-2 grid grid-cols-2 gap-3">
-                                                                            <label class="cursor-pointer rounded-lg border px-3 py-3 text-center hover:bg-amber-50" x-bind:class="isFinalist ? 'border-amber-400 bg-amber-50' : 'border-gray-200'">
-                                                                                <input type="radio" name="is_finalist" value="1" x-model.number="isFinalist" class="sr-only">
-                                                                                <span class="mt-2 block text-sm font-semibold text-amber-700">⭐ Finalis</span>
-                                                                            </label>
-                                                                            <label class="cursor-pointer rounded-lg border px-3 py-3 text-center hover:bg-gray-50" x-bind:class="!isFinalist ? 'border-gray-400 bg-gray-50' : 'border-gray-200'">
-                                                                                <input type="radio" name="is_finalist" value="0" x-model.number="isFinalist" class="sr-only">
-                                                                                <span class="mt-2 block text-sm font-semibold text-gray-600">Bukan Finalis</span>
-                                                                            </label>
-                                                                        </div>
-                                                                    </div>
-                                                                    <div x-show="isFinalist" x-transition>
-                                                                        <label class="block text-xs font-semibold uppercase tracking-wide text-gray-500">
-                                                                            Peringkat Juara <span class="font-normal normal-case text-gray-400">(kosongkan jika hanya finalis)</span>
-                                                                        </label>
-                                                                        <div class="mt-2 grid grid-cols-4 gap-2">
-                                                                            @foreach([['', 'Finalis'], ['1', '🥇 1'], ['2', '🥈 2'], ['3', '🥉 3']] as [$val, $label])
-                                                                                <label class="cursor-pointer rounded-lg border px-2 py-2 text-center text-sm font-bold hover:bg-amber-50"
-                                                                                    x-bind:class="rank == @js($val === '' ? null : (int)$val) ? 'border-amber-400 bg-amber-50 text-amber-800' : 'border-gray-200 text-gray-600'">
-                                                                                    <input type="radio" name="rank" value="{{ $val }}"
-                                                                                        class="sr-only"
-                                                                                        x-on:change="rank = @js($val === '' ? null : (int)$val)"
-                                                                                        {{ $team->rank == ($val ?: null) && ($val !== '' || !$team->rank) ? 'checked' : '' }}>
-                                                                                    {{ $label }}
-                                                                                </label>
-                                                                            @endforeach
-                                                                        </div>
-                                                                    </div>
-                                                                    <div class="mt-5 sm:mt-4 sm:flex sm:flex-row-reverse gap-3">
-                                                                        <button type="submit" class="inline-flex w-full justify-center rounded-md bg-amber-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-amber-500 sm:w-auto">Simpan</button>
-                                                                        <button type="button" @click="open = false" class="mt-3 inline-flex w-full justify-center rounded-md bg-white px-4 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 sm:mt-0 sm:w-auto">Batal</button>
-                                                                    </div>
-                                                                </form>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                                @else
-                                <span class="text-xs text-gray-400 italic">-</span>
-                                @endif
                             </td>
                         </tr>
                     @empty
