@@ -108,7 +108,6 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/transaction/recap', [TransactionController::class, 'getRecap']);
 });
 
-
 Route::middleware('auth')->prefix('export')->name('export.')->group(function () {
     // Per-event/kompetisi
     Route::get('/teams', [ExportController::class, 'exportTeams'])->name('teams');
