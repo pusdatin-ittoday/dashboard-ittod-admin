@@ -423,4 +423,24 @@ class TeamController extends Controller
 
         return back()->with('success', 'Nama tim berhasil diperbarui oleh Admin!');
     }
+
+    // Mengubah kapasitas maksimal anggota tim
+    public function updateMaxMember(Request $request, string $id) {
+        abort_unless(in_array(auth()->user()->role, ['superadmin', 'panitia_lomba'], true), 403);
+        $team = Team::findOrFail($id);
+        
+        if (auth()->user()->role === 'panitia_lomba') {
+            abort_unless(auth()->user()->events->contains('id', $team->competition_id), 403);
+        }
+
+        $request->validate([
+            'max_member' => 'required|integer|min:1|max:10',
+        ]);
+
+        $team->update([
+            'max_member' => $request->max_member,
+        ]);
+
+        return back()->with('success', 'Kapasitas maksimal anggota tim berhasil diperbarui!');
+    }
 }

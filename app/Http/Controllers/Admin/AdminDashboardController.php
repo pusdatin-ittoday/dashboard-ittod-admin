@@ -638,15 +638,21 @@ class AdminDashboardController extends Controller
                 $timeline = EventTimeline::where('id', $request->timeline_id)->first();
                 if ($timeline) {
                     $timeline->update(['is_registration' => true]);
+                    $startDate = $timeline->end_date ? $timeline->date : null;
                     $deadline = $timeline->end_date ?? $timeline->date;
-                    if ($deadline && now()->greaterThan($deadline)) {
+                    $now = now();
+                    if ($startDate && $now->lessThan($startDate)) {
                         $event->update(['is_active' => false]);
+                    } elseif ($deadline && $now->greaterThan($deadline)) {
+                        $event->update(['is_active' => false]);
+                    } else {
+                        $event->update(['is_active' => true]);
                     }
                 }
             }
         });
 
-        return back()->with('status', 'Batas waktu pendaftaran berhasil diatur.');
+        return back()->with('status', 'Pengaturan timeline pendaftaran berhasil disimpan.');
     }
 
     public function destroySubmission(Event $event, string $team_id): RedirectResponse
@@ -688,15 +694,75 @@ class AdminDashboardController extends Controller
         }
         unset($validated['logo']);
 
-        Event::create([
-            ...$validated,
-            'id' => (string) Str::uuid(),
-            'slug' => Str::slug($validated['title']),
-            'is_active' => true,
-            'logo_url' => $logoUrl,
-        ]);
+        $regMode = $request->input('reg_timeline_mode', 'none');
+        $regTimelineData = null;
+        $isActive = true;
 
-        return back()->with('status', 'Kompetisi berhasil ditambahkan.');
+        if ($regMode === 'global' && $validated['type'] === 'competition') {
+            $regValidated = $request->validate([
+                'global_timeline_id' => ['required', 'string', Rule::exists('competition_timeline', 'id')],
+            ]);
+            $globalTimeline = CompetitionTimeline::findOrFail($regValidated['global_timeline_id']);
+            $startDate = Carbon::parse($globalTimeline->start_date);
+            $endDate = Carbon::parse($globalTimeline->end_date);
+            $regTimelineData = [
+                'title' => $globalTimeline->title,
+                'start_date' => $startDate,
+                'end_date' => $endDate,
+                'description' => $globalTimeline->description,
+            ];
+        } elseif ($regMode === 'custom') {
+            $regValidated = $request->validate([
+                'reg_title' => ['nullable', 'string', 'max:191'],
+                'reg_start_date' => ['required', 'date'],
+                'reg_end_date' => ['required', 'date', 'after_or_equal:reg_start_date'],
+            ]);
+            $startDate = Carbon::parse($regValidated['reg_start_date']);
+            $endDate = Carbon::parse($regValidated['reg_end_date']);
+            $regTimelineData = [
+                'title' => $regValidated['reg_title'] ?: 'Pendaftaran',
+                'start_date' => $startDate,
+                'end_date' => $endDate,
+                'description' => null,
+            ];
+        }
+
+        if ($regTimelineData) {
+            $now = Carbon::now();
+            if ($now->lessThan($regTimelineData['start_date'])) {
+                $isActive = false;
+            } elseif ($now->greaterThan($regTimelineData['end_date'])) {
+                $isActive = false;
+            } else {
+                $isActive = true;
+            }
+        }
+
+        $eventId = (string) Str::uuid();
+        DB::transaction(function () use ($validated, $eventId, $logoUrl, $isActive, $regTimelineData) {
+            Event::create([
+                ...$validated,
+                'id' => $eventId,
+                'slug' => Str::slug($validated['title']),
+                'is_active' => $isActive,
+                'logo_url' => $logoUrl,
+            ]);
+
+            if ($regTimelineData) {
+                EventTimeline::create([
+                    'id' => (string) Str::uuid(),
+                    'event_id' => $eventId,
+                    'title' => $regTimelineData['title'],
+                    'date' => $regTimelineData['start_date'],
+                    'end_date' => $regTimelineData['end_date'],
+                    'description' => $regTimelineData['description'] ?? null,
+                    'is_registration' => true,
+                    'is_submission' => false,
+                ]);
+            }
+        });
+
+        return back()->with('status', 'Event berhasil ditambahkan.');
     }
 
     public function updateCompetition(Request $request, Event $event): RedirectResponse
@@ -795,9 +861,15 @@ class AdminDashboardController extends Controller
             }
             if (!empty($validated['is_registration'])) {
                 EventTimeline::where('event_id', $validated['event_id'])->update(['is_registration' => false]);
+                $startDate = !empty($validated['end_date']) && !empty($validated['date']) ? Carbon::parse($validated['date']) : null;
                 $deadline = !empty($validated['end_date']) ? Carbon::parse($validated['end_date']) : (!empty($validated['date']) ? Carbon::parse($validated['date']) : null);
-                if ($deadline && now()->greaterThan($deadline)) {
+                $now = now();
+                if ($startDate && $now->lessThan($startDate)) {
                     Event::where('id', $validated['event_id'])->update(['is_active' => false]);
+                } elseif ($deadline && $now->greaterThan($deadline)) {
+                    Event::where('id', $validated['event_id'])->update(['is_active' => false]);
+                } else {
+                    Event::where('id', $validated['event_id'])->update(['is_active' => true]);
                 }
             }
             EventTimeline::create($validated);
@@ -820,9 +892,15 @@ class AdminDashboardController extends Controller
             }
             if (!empty($validated['is_registration'])) {
                 EventTimeline::where('event_id', $validated['event_id'])->update(['is_registration' => false]);
+                $startDate = !empty($validated['end_date']) && !empty($validated['date']) ? Carbon::parse($validated['date']) : null;
                 $deadline = !empty($validated['end_date']) ? Carbon::parse($validated['end_date']) : (!empty($validated['date']) ? Carbon::parse($validated['date']) : null);
-                if ($deadline && now()->greaterThan($deadline)) {
+                $now = now();
+                if ($startDate && $now->lessThan($startDate)) {
                     Event::where('id', $validated['event_id'])->update(['is_active' => false]);
+                } elseif ($deadline && $now->greaterThan($deadline)) {
+                    Event::where('id', $validated['event_id'])->update(['is_active' => false]);
+                } else {
+                    Event::where('id', $validated['event_id'])->update(['is_active' => true]);
                 }
             }
             $timeline->update($validated);
