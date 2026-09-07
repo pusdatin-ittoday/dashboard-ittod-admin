@@ -103,35 +103,7 @@ class TeamController extends Controller
                         'verification_error' => null,
                     ]);
 
-                    TeamMember::where('user_id', $member->user_id)->update([
-                        'is_verified' => true,
-                        'verification_error' => null,
-                    ]);
-
-                    Team::whereHas('members', function ($q) use ($member) {
-                        $q->where('user_id', $member->user_id);
-                    })
-                    ->where('max_member', 1)
-                    ->update([
-                        'is_document_verified' => 'approved',
-                        'verification_error' => null,
-                    ]);
-
-                    $user = $member->user;
-                    if ($user) {
-                        $sch = strtolower($user->nama_sekolah ?? '');
-                        $eml = strtolower($user->email ?? '');
-                        $isIpb = str_contains($sch, 'ipb') || str_contains($sch, 'institut pertanian bogor') || str_ends_with($eml, 'ipb.ac.id') || str_contains($eml, '@apps.ipb.ac.id');
-                        if ($isIpb) {
-                            DB::table('event_participant')
-                                ->join('event', 'event_participant.event_id', '=', 'event.id')
-                                ->where('event_participant.user_id', $member->user_id)
-                                ->where('event.type', 'non_competition')
-                                ->update([
-                                    'event_participant.payment_verification' => 'accepted'
-                                ]);
-                        }
-                    }
+                    $this->syncUserVerification($member->user_id);
                 }
             }
         });
@@ -208,20 +180,7 @@ class TeamController extends Controller
         // Auto-sync verification across user's other teams/events when team is approved
         if ($request->is_document_verified === 'approved') {
             foreach ($team->members as $m) {
-                TeamMember::where('user_id', $m->user_id)->update([
-                    'is_verified' => true,
-                    'verification_error' => null,
-                ]);
-
-                // Auto-approve individual participant registrations of this member
-                Team::whereHas('members', function ($q) use ($m) {
-                    $q->where('user_id', $m->user_id);
-                })
-                ->where('max_member', 1)
-                ->update([
-                    'is_document_verified' => 'approved',
-                    'verification_error' => null,
-                ]);
+                $this->syncUserVerification($m->user_id);
             }
         }
 
@@ -265,46 +224,7 @@ class TeamController extends Controller
             ]);
 
             if ($isApproved) {
-                // Auto-sync: Update all other team_members of this user across other events/teams
-                TeamMember::where('user_id', $userId)->update([
-                    'is_verified' => true,
-                    'verification_error' => null,
-                ]);
-
-                // Auto-approve individual participant teams of this user
-                $individualTeams = Team::whereHas('members', function ($q) use ($userId) {
-                    $q->where('user_id', $userId);
-                })
-                ->where('max_member', 1)
-                ->get();
-
-                foreach ($individualTeams as $indTeam) {
-                    if ($indTeam->is_document_verified !== 'approved') {
-                        $indTeam->update([
-                            'is_document_verified' => 'approved',
-                            'verification_error' => null,
-                        ]);
-                    }
-                }
-
-                // If the user is registered in non_competition events and is IPB or free, auto-sync event_participant payment_verification
-                $user = User::find($userId);
-                $isIpb = false;
-                if ($user) {
-                    $sch = strtolower($user->nama_sekolah ?? '');
-                    $eml = strtolower($user->email ?? '');
-                    $isIpb = str_contains($sch, 'ipb') || str_contains($sch, 'institut pertanian bogor') || str_ends_with($eml, 'ipb.ac.id') || str_contains($eml, '@apps.ipb.ac.id');
-                }
-
-                if ($isIpb) {
-                    DB::table('event_participant')
-                        ->join('event', 'event_participant.event_id', '=', 'event.id')
-                        ->where('event_participant.user_id', $userId)
-                        ->where('event.type', 'non_competition')
-                        ->update([
-                            'event_participant.payment_verification' => 'accepted'
-                        ]);
-                }
+                $this->syncUserVerification($userId);
             } else {
                 if (filled($verificationError) && $team->is_document_verified === 'approved') {
                     $team->update([
@@ -483,5 +403,56 @@ class TeamController extends Controller
         ]);
 
         return back()->with('success', 'Kapasitas maksimal anggota tim berhasil diperbarui!');
+    }
+
+    /**
+     * Auto-sync verifikasi dokumen user ke seluruh tim dan event lain.
+     * Jika seluruh anggota pada suatu tim sudah terverifikasi, status dokumen tim otomatis menjadi approved.
+     */
+    private function syncUserVerification(string $userId): void
+    {
+        // Update seluruh record team_member user ini di tim lain
+        TeamMember::where('user_id', $userId)->update([
+            'is_verified' => true,
+            'verification_error' => null,
+        ]);
+
+        // Cari semua tim yang diikuti user ini
+        $teams = Team::whereHas('members', function ($q) use ($userId) {
+            $q->where('user_id', $userId);
+        })->get();
+
+        foreach ($teams as $t) {
+            if ($t->is_document_verified !== 'approved') {
+                $hasUnverified = $t->members()->where('is_verified', false)->exists();
+                if (!$hasUnverified) {
+                    $updates = [
+                        'is_document_verified' => 'approved',
+                        'verification_error' => null,
+                    ];
+                    if ($t->is_verified !== 'approved') {
+                        $updates['is_verified'] = 'pending';
+                    }
+                    $t->update($updates);
+                }
+            }
+        }
+
+        // Jika peserta IPB, auto-verifikasi pendaftaran event non-kompetisi
+        $user = User::find($userId);
+        if ($user) {
+            $sch = strtolower($user->nama_sekolah ?? '');
+            $eml = strtolower($user->email ?? '');
+            $isIpb = str_contains($sch, 'ipb') || str_contains($sch, 'institut pertanian bogor') || str_ends_with($eml, 'ipb.ac.id') || str_contains($eml, '@apps.ipb.ac.id');
+            if ($isIpb) {
+                DB::table('event_participant')
+                    ->join('event', 'event_participant.event_id', '=', 'event.id')
+                    ->where('event_participant.user_id', $userId)
+                    ->where('event.type', 'non_competition')
+                    ->update([
+                        'event_participant.payment_verification' => 'accepted'
+                    ]);
+            }
+        }
     }
 }
