@@ -318,6 +318,47 @@ class TeamController extends Controller
         return back()->with('success', 'Status verifikasi dokumen anggota berhasil diperbarui!');
     }
 
+    // Menandai tim sebagai Finalis / Juara (Superadmin & Panitia Lomba)
+    public function updateFinalist(Request $request, string $id) {
+        abort_unless(in_array(auth()->user()->role, ['superadmin', 'panitia_lomba'], true), 403);
+        $team = Team::findOrFail($id);
+
+        if (auth()->user()->role === 'panitia_lomba') {
+            abort_unless(auth()->user()->events->contains('id', $team->competition_id), 403);
+        }
+
+        $request->validate([
+            'is_finalist' => 'required|boolean',
+            'rank'        => 'nullable|integer|min:1|max:99',
+        ]);
+
+        $isFinalist = (bool) $request->is_finalist;
+        $rank       = $isFinalist ? ($request->rank ?: null) : null;
+
+        // Validasi agar rank (Juara 1, 2, 3, dst) tidak boleh ganda di 1 kompetisi
+        if ($rank !== null) {
+            $existingRank = Team::where('competition_id', $team->competition_id)
+                ->where('rank', $rank)
+                ->where('id', '!=', $team->id)
+                ->exists();
+
+            if ($existingRank) {
+                return back()->with('error', "Juara ke-{$rank} sudah ditetapkan untuk tim lain di kompetisi ini. Silakan hapus status juara pada tim tersebut terlebih dahulu.");
+            }
+        }
+
+        $team->update([
+            'is_finalist' => $isFinalist,
+            'rank'        => $rank,
+        ]);
+
+        $label = $isFinalist
+            ? ('Tim ditandai sebagai Finalis' . ($rank ? " (Juara ke-{$rank})" : '') . '!')
+            : 'Status Finalis tim berhasil dihapus.';
+
+        return back()->with('success', $label);
+    }
+
     // Menghapus tim secara permanen (Superadmin Only)
     public function destroy(string $id) {
         abort_unless(auth()->user()->role === 'superadmin', 403, 'Aksi ini hanya untuk Superadmin.');

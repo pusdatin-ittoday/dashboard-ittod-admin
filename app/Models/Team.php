@@ -37,7 +37,9 @@ class Team extends Model
 
     protected $casts = [
         // removed is_verified integer cast
-        'max_member' => 'integer',
+        'max_member'      => 'integer',
+        'is_finalist'     => 'boolean',
+        'rank'            => 'integer',
         'is_name_changed' => 'boolean',
         'name_changed_at' => 'datetime',
         'is_finalist' => 'boolean',
