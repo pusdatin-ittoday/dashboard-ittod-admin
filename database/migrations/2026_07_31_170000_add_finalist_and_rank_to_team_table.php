@@ -7,18 +7,15 @@ use Illuminate\Support\Facades\Schema;
 return new class extends Migration
 {
     public function up(): void
-    {
-        Schema::table('team', function (Blueprint $table) {
+{
+    Schema::table('team', function (Blueprint $table) {
+        if (!Schema::hasColumn('team', 'is_finalist')) {
             $table->boolean('is_finalist')->default(false)->after('is_verified');
-            $table->unsignedTinyInteger('rank')->nullable()->after('is_finalist')
-                ->comment('Juara 1=1, 2=2, 3=3. Null jika bukan juara.');
-        });
-    }
+        }
+        if (!Schema::hasColumn('team', 'rank')) {
+            $table->integer('rank')->nullable()->after('is_finalist');
+        }
+    });
+}
 
-    public function down(): void
-    {
-        Schema::table('team', function (Blueprint $table) {
-            $table->dropColumn(['is_finalist', 'rank']);
-        });
-    }
 };
