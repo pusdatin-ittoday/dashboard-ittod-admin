@@ -438,21 +438,26 @@ class TeamController extends Controller
             }
         }
 
-        // Jika peserta IPB, auto-verifikasi pendaftaran event non-kompetisi
+        // Auto-verifikasi pendaftaran event non-kompetisi (gratis / peserta IPB)
         $user = User::find($userId);
         if ($user) {
             $sch = strtolower($user->nama_sekolah ?? '');
             $eml = strtolower($user->email ?? '');
             $isIpb = str_contains($sch, 'ipb') || str_contains($sch, 'institut pertanian bogor') || str_ends_with($eml, 'ipb.ac.id') || str_contains($eml, '@apps.ipb.ac.id');
-            if ($isIpb) {
-                DB::table('event_participant')
-                    ->join('event', 'event_participant.event_id', '=', 'event.id')
-                    ->where('event_participant.user_id', $userId)
-                    ->where('event.type', 'non_competition')
-                    ->update([
-                        'event_participant.payment_verification' => 'accepted'
-                    ]);
-            }
+            
+            DB::table('event_participant')
+                ->join('event', 'event_participant.event_id', '=', 'event.id')
+                ->where('event_participant.user_id', $userId)
+                ->where('event.type', 'non_competition')
+                ->where(function ($q) use ($isIpb) {
+                    $q->where('event.price', 0);
+                    if ($isIpb) {
+                        $q->orWhere('event.price', '>', 0);
+                    }
+                })
+                ->update([
+                    'event_participant.payment_verification' => 'accepted'
+                ]);
         }
     }
 }
