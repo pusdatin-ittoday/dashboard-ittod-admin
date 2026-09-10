@@ -30,14 +30,20 @@ class Team extends Model
         'is_verified',
         'is_name_changed',
         'verification_error',
+        'has_bootcamp_addon',
         'payment_proof_id',
+        'is_finalist',
+        'rank',
     ];
 
     protected $casts = [
         // removed is_verified integer cast
-        'max_member' => 'integer',
+        'max_member'      => 'integer',
+        'is_finalist'     => 'boolean',
+        'rank'            => 'integer',
         'is_name_changed' => 'boolean',
         'name_changed_at' => 'datetime',
+        'has_bootcamp_addon' => 'boolean',
     ];
 
     /**

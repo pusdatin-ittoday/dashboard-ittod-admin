@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Admin\AdminDashboardController;
+use App\Http\Controllers\Operation\FinalistController;
 use App\Http\Controllers\Operation\TeamController;
 use App\Http\Controllers\Operation\TimelineController;
 use App\Http\Controllers\ExportController;
@@ -28,11 +29,15 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/teams/{id}', [TeamController::class, 'show'])->name('operation.teams.show');
         Route::post('/teams/{id}/verify', [TeamController::class, 'updateStatus'])->name('operation.teams.verify');
         Route::post('/teams/{teamId}/members/{userId}/verify', [TeamController::class, 'updateMemberStatus'])->name('operation.teams.verifyMember');
+        Route::post('/teams/{id}/finalist', [TeamController::class, 'updateFinalist'])->name('operation.teams.finalist');
         Route::post('/teams/{id}/reset-name-change', [TeamController::class, 'resetNameChange'])->name('operation.teams.resetNameChange');
         Route::post('/teams/{id}/update-name', [TeamController::class, 'updateTeamNameAdmin'])->name('operation.teams.updateName');
         Route::delete('/teams/{id}', [TeamController::class, 'destroy'])->name('operation.teams.destroy');
         Route::delete('/teams/{teamId}/members/{userId}', [TeamController::class, 'destroyMember'])->name('operation.teams.destroyMember');
         Route::post('/teams/{id}/max-member', [TeamController::class, 'updateMaxMember'])->name('operation.teams.updateMaxMember');
+
+        // Halaman Finalist (hanya kompetisi)
+        Route::get('/finalist', [FinalistController::class, 'index'])->name('operation.finalist.index');
 
 
         Route::post('/events', [TimelineController::class, 'storeEvent'])->name('operation.events.store');

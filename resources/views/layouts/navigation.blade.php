@@ -5,8 +5,20 @@
             <div class="flex items-center flex-1 min-w-0">
                 <!-- Logo -->
                 <div class="shrink-0 flex items-center me-4 sm:me-6">
-                    <a href="{{ route('admin.dashboard') }}">
+                    <a href="{{ route('admin.dashboard') }}" class="flex items-center gap-2">
                         <x-application-logo class="block h-9 w-auto fill-current text-gray-800" />
+                        @php
+                            $isStagingNav = app()->environment('staging') 
+                                || (bool) env('IS_STAGING', false) 
+                                || str_contains(config('app.url', ''), 'staging')
+                                || str_contains(request()->getHost(), 'staging');
+                        @endphp
+                        @if($isStagingNav)
+                            <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-black bg-amber-500 text-white shadow-sm uppercase tracking-wider">
+                                <span class="h-1.5 w-1.5 rounded-full bg-white animate-ping"></span>
+                                STAGING
+                            </span>
+                        @endif
                     </a>
                 </div>
 
@@ -43,6 +55,19 @@
                         <x-nav-link :href="route('operation.teams.index')" :active="request()->routeIs('operation.teams.*') || request()->routeIs('admin.files-participants.*')">
                             {{ __('Berkas & Tim') }}
                         </x-nav-link>
+                    @endif
+
+                    {{-- Finalist: hanya kompetisi --}}
+                    @if(Auth::check() && in_array(Auth::user()->role, ['superadmin', 'panitia_lomba']))
+                        @php
+                            $hasCompetitionEvent = Auth::user()->role === 'superadmin'
+                                || Auth::user()->events->where('type', 'competition')->isNotEmpty();
+                        @endphp
+                        @if($hasCompetitionEvent)
+                        <x-nav-link :href="route('operation.finalist.index')" :active="request()->routeIs('operation.finalist.*')">
+                            {{ __('Finalist') }}
+                        </x-nav-link>
+                        @endif
                     @endif
 
                     <!-- Verifikasi Pembayaran -->
@@ -148,6 +173,15 @@
                 <x-responsive-nav-link :href="route('operation.teams.index')" :active="request()->routeIs('operation.teams.*') || request()->routeIs('admin.files-participants.*')">
                     {{ __('Berkas & Tim') }}
                 </x-responsive-nav-link>
+                @php
+                    $hasCompetitionEventMobile = Auth::user()->role === 'superadmin'
+                        || Auth::user()->events->where('type', 'competition')->isNotEmpty();
+                @endphp
+                @if($hasCompetitionEventMobile)
+                <x-responsive-nav-link :href="route('operation.finalist.index')" :active="request()->routeIs('operation.finalist.*')">
+                    {{ __('Finalist') }}
+                </x-responsive-nav-link>
+                @endif
             @endif
 
             @if(Auth::check() && in_array(Auth::user()->role, ['superadmin', 'admin_biasa']))
