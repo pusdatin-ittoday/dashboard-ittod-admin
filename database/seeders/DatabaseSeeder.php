@@ -116,6 +116,20 @@ class DatabaseSeeder extends Seeder
             'max_noncompetition_participant' => 500,
         ]);
 
+        Event::create([
+            'id' => 'Workshop',
+            'slug' => 'workshop',
+            'title' => 'Workshop IT Today 2026',
+            'description' => 'Workshop interaktif bersama praktisi industri teknologi IT Today 2026.',
+            'guide_book_url' => 'https://ittoday.web.id/guidebook-workshop.pdf',
+            'type' => 'non_competition',
+            'price' => 15000,
+            'contact_person1' => '081212258550',
+            'contact_person2' => null,
+            'participation_type' => 'individual',
+            'max_noncompetition_participant' => 500,
+        ]);
+
 
 
 
