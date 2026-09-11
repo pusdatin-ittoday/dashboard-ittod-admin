@@ -1115,9 +1115,18 @@ class AdminDashboardController extends Controller
 
     private function validateCompetition(Request $request): array
     {
-        if ($request->input('type') === 'non_competition') {
+        if ($request->filled('price')) {
+            $request->merge([
+                'price' => (int) preg_replace('/\D/', '', (string) $request->input('price')),
+            ]);
+        } else {
             $request->merge([
                 'price' => 0,
+            ]);
+        }
+
+        if ($request->input('type') === 'non_competition') {
+            $request->merge([
                 'participation_type' => 'individual',
             ]);
         } else if ($request->input('type') === 'competition') {

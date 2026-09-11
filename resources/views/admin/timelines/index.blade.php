@@ -530,13 +530,14 @@
                     <span class="text-sm font-semibold text-gray-700">Nama Event <span class="text-red-500">*</span></span>
                     <input name="title" value="{{ old('title') }}" required class="mt-1 w-full rounded-md border-gray-300 text-sm shadow-sm focus:border-emerald-500 focus:ring-emerald-500">
                 </label>
+                <label class="block">
+                    <span class="text-sm font-semibold text-gray-700">Biaya Pendaftaran (Rp) <span class="text-red-500">*</span></span>
+                    <x-admin.currency-input name="price" :value="old('price', 0)" />
+                    <span class="text-[11px] text-gray-500 mt-1 block">Isi 0 jika pendaftaran gratis.</span>
+                </label>
                 <template x-if="type === 'competition'">
                     <div class="sm:col-span-2 grid gap-4 sm:grid-cols-2">
-                        <label class="block">
-                            <span class="text-sm font-semibold text-gray-700">Biaya Pendaftaran <span class="text-red-500">*</span></span>
-                            <x-admin.currency-input name="price" :value="old('price', 0)" />
-                        </label>
-                        <label class="block">
+                        <label class="block sm:col-span-2">
                             <span class="text-sm font-semibold text-gray-700">Tipe Partisipasi <span class="text-red-500">*</span></span>
                             <select name="participation_type" x-model="participationType" required class="mt-1 w-full rounded-md border-gray-300 text-sm shadow-sm focus:border-emerald-500 focus:ring-emerald-500">
                                 <option value="">-- Pilih Tipe --</option>
@@ -706,13 +707,14 @@
                         <span class="text-sm font-semibold text-gray-700">Nama Event <span class="text-red-500">*</span></span>
                         <input name="title" value="{{ old('title', $event->title) }}" required class="mt-1 w-full rounded-md border-gray-300 text-sm shadow-sm focus:border-emerald-500 focus:ring-emerald-500">
                     </label>
+                    <label class="block">
+                        <span class="text-sm font-semibold text-gray-700">Biaya Pendaftaran (Rp) <span class="text-red-500">*</span></span>
+                        <x-admin.currency-input name="price" :value="old('price', $event->price ?? 0)" />
+                        <span class="text-[11px] text-gray-500 mt-1 block">Isi 0 jika pendaftaran gratis.</span>
+                    </label>
                     <template x-if="type === 'competition'">
                         <div class="sm:col-span-2 grid gap-4 sm:grid-cols-2">
-                            <label class="block">
-                                <span class="text-sm font-semibold text-gray-700">Biaya Pendaftaran <span class="text-red-500">*</span></span>
-                                <x-admin.currency-input name="price" :value="old('price', $event->price)" />
-                            </label>
-                            <label class="block">
+                            <label class="block sm:col-span-2">
                                 <span class="text-sm font-semibold text-gray-700">Tipe Partisipasi <span class="text-red-500">*</span></span>
                                 <select name="participation_type" x-model="participationType" required class="mt-1 w-full rounded-md border-gray-300 text-sm shadow-sm focus:border-emerald-500 focus:ring-emerald-500">
                                     <option value="">-- Pilih Tipe --</option>

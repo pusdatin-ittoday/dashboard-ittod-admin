@@ -110,8 +110,24 @@ class DatabaseSeeder extends Seeder
             'guide_book_url' => 'https://ittoday.web.id/guidebook-bootcamp.pdf',
             'type' => 'non_competition',
             'price' => 99000,
+            'whatsapp_group_link' => 'https://discord.gg/S4U2UA49uc',
             'contact_person1' => '081212258550',
             'contact_person2' => '085135453902',
+            'participation_type' => 'individual',
+            'max_noncompetition_participant' => 500,
+        ]);
+
+        Event::create([
+            'id' => 'Workshop',
+            'slug' => 'workshop',
+            'title' => 'Workshop IT Today 2026',
+            'description' => 'Workshop interaktif bersama praktisi industri teknologi IT Today 2026.',
+            'guide_book_url' => 'https://ittoday.web.id/guidebook-workshop.pdf',
+            'type' => 'non_competition',
+            'price' => 15000,
+            'whatsapp_group_link' => 'https://discord.gg/S4U2UA49uc',
+            'contact_person1' => '081212258550',
+            'contact_person2' => null,
             'participation_type' => 'individual',
             'max_noncompetition_participant' => 500,
         ]);
