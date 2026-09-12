@@ -74,4 +74,12 @@ class User extends Model
         return $this->belongsToMany(Event::class, 'event_participant', 'user_id', 'event_id')
                     ->withPivot('date_added', 'payment_proof', 'payment_verification');
     }
+
+    /**
+     * Get the Semnas participant records for this user.
+     */
+    public function semnasParticipants(): HasMany
+    {
+        return $this->hasMany(SemnasParticipant::class, 'user_id', 'id');
+    }
 }
