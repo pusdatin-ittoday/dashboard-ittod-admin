@@ -13,15 +13,17 @@ return new class extends Migration
     public function up(): void
     {
         if (Schema::hasTable('competition_submission')) {
-            // Clean up any empty strings or invalid values before altering to JSON
-            DB::statement("UPDATE `competition_submission` SET `submission_object` = NULL WHERE `submission_object` = ''");
+            if (DB::getDriverName() === 'mysql') {
+                // Clean up any empty strings or invalid values before altering to JSON
+                DB::statement("UPDATE `competition_submission` SET `submission_object` = NULL WHERE `submission_object` = ''");
 
-            // Alter submission_object to JSON
-            DB::statement("ALTER TABLE `competition_submission` MODIFY COLUMN `submission_object` JSON NULL");
+                // Alter submission_object to JSON
+                DB::statement("ALTER TABLE `competition_submission` MODIFY COLUMN `submission_object` JSON NULL");
 
-            // If legacy media_id column exists, make it nullable so it doesn't block inserts
-            if (Schema::hasColumn('competition_submission', 'media_id')) {
-                DB::statement("ALTER TABLE `competition_submission` MODIFY COLUMN `media_id` VARCHAR(191) NULL");
+                // If legacy media_id column exists, make it nullable so it doesn't block inserts
+                if (Schema::hasColumn('competition_submission', 'media_id')) {
+                    DB::statement("ALTER TABLE `competition_submission` MODIFY COLUMN `media_id` VARCHAR(191) NULL");
+                }
             }
         }
     }
@@ -32,7 +34,9 @@ return new class extends Migration
     public function down(): void
     {
         if (Schema::hasTable('competition_submission')) {
-            DB::statement("ALTER TABLE `competition_submission` MODIFY COLUMN `submission_object` LONGTEXT NULL");
+            if (DB::getDriverName() === 'mysql') {
+                DB::statement("ALTER TABLE `competition_submission` MODIFY COLUMN `submission_object` LONGTEXT NULL");
+            }
         }
     }
 };

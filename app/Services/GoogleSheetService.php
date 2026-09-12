@@ -216,6 +216,17 @@ class GoogleSheetService
             $writeCallback = function($handle) use ($eventId) {
                 \App\Exports\SubmissionExport::write($handle, $eventId);
             };
+        } elseif ($type === 'semnas_participants_global') {
+            $sheetTitle = 'Semua Peserta Semnas';
+            $writeCallback = function($handle) {
+                \App\Exports\SemnasParticipantExport::write($handle, null);
+            };
+        } elseif ($type === 'semnas_participants_event') {
+            $event = Event::findOrFail($eventId);
+            $sheetTitle = substr('Semnas - ' . preg_replace('/[^A-Za-z0-9 _-]/', '', $event->title), 0, 30);
+            $writeCallback = function($handle) use ($eventId) {
+                \App\Exports\SemnasParticipantExport::write($handle, $eventId);
+            };
         } else {
             throw new Exception("Invalid export type");
         }

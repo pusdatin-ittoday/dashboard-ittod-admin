@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Exports\ParticipantRecapExport;
+use App\Exports\SemnasParticipantExport;
 use App\Exports\TeamRecapExport;
 use App\Exports\UserExport;
 use App\Models\Event;
@@ -59,6 +60,30 @@ class ExportController extends Controller
         }, 200, $this->buildCsvHeaders($filename));
     }
 
+
+    public function exportSemnasParticipants(Request $request): StreamedResponse
+    {
+        abort_unless(in_array(auth()->user()->role, ['superadmin', 'admin_biasa']), 403);
+        $request->validate([
+            'event_id' => ['nullable', 'string', 'exists:event,id'],
+        ]);
+
+        $eventId = $request->input('event_id');
+
+        if ($eventId) {
+            $event    = Event::findOrFail($eventId);
+            $filename = 'rekap-semnas-' . Str::slug($event->title) . '-' . now()->format('Y-m-d') . '.csv';
+        } else {
+            $filename = 'rekap-semnas-semua-' . now()->format('Y-m-d') . '.csv';
+        }
+
+        return response()->stream(function () use ($eventId) {
+            $handle = fopen('php://output', 'w');
+            fwrite($handle, "\xEF\xBB\xBF");
+            SemnasParticipantExport::write($handle, $eventId);
+            fclose($handle);
+        }, 200, $this->buildCsvHeaders($filename));
+    }
 
     public function exportTeamsGlobal(): StreamedResponse
     {
@@ -175,6 +200,13 @@ class ExportController extends Controller
                     abort_unless(auth()->user()->events->contains('id', $event->id), 403);
                 }
                 $url = $service->exportRecap('submissions_event', $event->id);
+            } elseif ($exportType === 'semnas_participants_global') {
+                abort_unless(in_array($userRole, ['superadmin', 'admin_biasa']), 403);
+                $url = $service->exportRecap('semnas_participants_global');
+            } elseif ($exportType === 'semnas_participants_event') {
+                abort_unless(in_array($userRole, ['superadmin', 'admin_biasa']), 403);
+                $event = Event::findOrFail($eventId);
+                $url = $service->exportRecap('semnas_participants_event', $event->id);
             } else {
                 abort(400, 'Invalid export type.');
             }
