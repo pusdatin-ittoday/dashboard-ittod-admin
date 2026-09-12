@@ -179,4 +179,12 @@ class Event extends Model
         return $this->belongsToMany(UserIdentity::class, 'event_staff', 'event_id', 'user_id')
                     ->withTimestamps();
     }
+
+    /**
+     * Get the Semnas participant records for this event.
+     */
+    public function semnasParticipants(): HasMany
+    {
+        return $this->hasMany(SemnasParticipant::class, 'event_id', 'id');
+    }
 }
