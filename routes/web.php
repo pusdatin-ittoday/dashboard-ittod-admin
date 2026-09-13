@@ -38,6 +38,7 @@ Route::middleware(['auth'])->group(function () {
 
         // Halaman Finalist (hanya kompetisi)
         Route::get('/finalist', [FinalistController::class, 'index'])->name('operation.finalist.index');
+        Route::post('/finalist/schedule', [FinalistController::class, 'updateAnnouncementSchedule'])->name('operation.finalist.schedule');
 
 
         Route::post('/events', [TimelineController::class, 'storeEvent'])->name('operation.events.store');

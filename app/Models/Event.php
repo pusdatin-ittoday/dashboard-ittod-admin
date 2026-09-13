@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 class Event extends Model
@@ -36,6 +37,8 @@ class Event extends Model
         'submission_fields',
         'external_platform_link',
         'whatsapp_group_link',
+        'finalist_timeline_id',
+        'winner_timeline_id',
         'logo_url',
         'participation_type',
         'method',
@@ -72,6 +75,28 @@ class Event extends Model
     public function registrationTimeline(): HasOne
     {
         return $this->hasOne(EventTimeline::class, 'event_id', 'id')->where('is_registration', true);
+    }
+
+    public function finalistTimeline(): BelongsTo
+    {
+        return $this->belongsTo(EventTimeline::class, 'finalist_timeline_id', 'id');
+    }
+
+    public function winnerTimeline(): BelongsTo
+    {
+        return $this->belongsTo(EventTimeline::class, 'winner_timeline_id', 'id');
+    }
+
+    public function getResolvedFinalistTimelineAttribute()
+    {
+        if (!$this->finalist_timeline_id) return null;
+        return $this->finalistTimeline ?? CompetitionTimeline::find($this->finalist_timeline_id);
+    }
+
+    public function getResolvedWinnerTimelineAttribute()
+    {
+        if (!$this->winner_timeline_id) return null;
+        return $this->winnerTimeline ?? CompetitionTimeline::find($this->winner_timeline_id);
     }
 
     /**
