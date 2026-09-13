@@ -15,7 +15,24 @@
 
     {{-- Filter Bar --}}
     <form method="GET" action="{{ route('operation.finalist.index') }}" class="mb-6 flex flex-wrap items-end gap-3">
-        <div class="flex-1 min-w-[200px]">
+        <div class="flex-1 min-w-[240px]">
+            <label class="block text-xs font-semibold uppercase tracking-wide text-gray-500 mb-1">Cari Nama Tim</label>
+            <div class="relative">
+                <span class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3 text-gray-400">
+                    <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m21 21-4.35-4.35m1.35-5.65a7 7 0 1 1-14 0 7 7 0 0 1 14 0z"></path>
+                    </svg>
+                </span>
+                <input
+                    type="search"
+                    name="search"
+                    value="{{ request('search') }}"
+                    placeholder="Cari nama tim..."
+                    class="block w-full pl-9 rounded-md border-gray-300 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                >
+            </div>
+        </div>
+        <div class="min-w-[200px]">
             <label class="block text-xs font-semibold uppercase tracking-wide text-gray-500 mb-1">Cabang Kompetisi</label>
             <select name="event_id" onchange="this.form.submit()"
                 class="w-full rounded-md border-gray-300 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
@@ -37,10 +54,14 @@
                 <option value="none" {{ $selectedStatus === 'none' ? 'selected' : '' }}>Belum Ditandai</option>
             </select>
         </div>
-        @if($selectedEventId || $selectedStatus)
+        <button type="submit"
+            class="inline-flex items-center justify-center rounded-md bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-700 transition">
+            Cari
+        </button>
+        @if(request('search') || $selectedEventId || $selectedStatus)
             <a href="{{ route('operation.finalist.index') }}"
-               class="inline-flex items-center rounded-md border border-gray-300 bg-white px-3 py-2 text-xs font-medium text-gray-600 hover:bg-gray-50">
-                Reset Filter
+               class="inline-flex items-center justify-center rounded-md border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-600 hover:bg-gray-50 transition">
+                Reset
             </a>
         @endif
     </form>

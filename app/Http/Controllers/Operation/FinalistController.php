@@ -55,6 +55,12 @@ class FinalistController extends Controller
             $query->where('competition_id', $selectedEventId);
         }
 
+        // Search by team name
+        $search = trim($request->input('search', ''));
+        if ($search !== '') {
+            $query->where('team_name', 'like', "%{$search}%");
+        }
+
         // Filter by finalist status
         if ($request->filled('status')) {
             $status = $request->input('status');
