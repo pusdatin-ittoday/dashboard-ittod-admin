@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Admin\AdminDashboardController;
+use App\Http\Controllers\Admin\SemnasController;
 use App\Http\Controllers\Operation\FinalistController;
 use App\Http\Controllers\Operation\TeamController;
 use App\Http\Controllers\Operation\TimelineController;
@@ -38,6 +39,7 @@ Route::middleware(['auth'])->group(function () {
 
         // Halaman Finalist (hanya kompetisi)
         Route::get('/finalist', [FinalistController::class, 'index'])->name('operation.finalist.index');
+        Route::post('/finalist/schedule', [FinalistController::class, 'updateAnnouncementSchedule'])->name('operation.finalist.schedule');
 
 
         Route::post('/events', [TimelineController::class, 'storeEvent'])->name('operation.events.store');
@@ -75,6 +77,11 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/event-participants/verify', [\App\Http\Controllers\Admin\EventParticipantController::class, 'verify'])->name('event-participants.verify');
         Route::delete('/event-participants', [\App\Http\Controllers\Admin\EventParticipantController::class, 'destroy'])->name('event-participants.destroy');
 
+        Route::get('/semnas-participants', [\App\Http\Controllers\Admin\SemnasParticipantController::class, 'index'])->name('semnas-participants.index');
+        Route::post('/semnas-participants/whatsapp-link', [\App\Http\Controllers\Admin\SemnasParticipantController::class, 'updateWhatsappLink'])->name('semnas-participants.whatsapp-link');
+        Route::post('/semnas-participants/verify', [\App\Http\Controllers\Admin\SemnasParticipantController::class, 'verify'])->name('semnas-participants.verify');
+        Route::delete('/semnas-participants', [\App\Http\Controllers\Admin\SemnasParticipantController::class, 'destroy'])->name('semnas-participants.destroy');
+
         Route::get('/files-participants', [AdminDashboardController::class, 'filesParticipants'])->name('files-participants.index');
         Route::get('/files', [AdminDashboardController::class, 'files'])->name('files.index');
         Route::post('/competitions', [AdminDashboardController::class, 'storeCompetition'])->name('competitions.store');
@@ -107,6 +114,8 @@ Route::middleware(['auth'])->group(function () {
         Route::delete('/feedback/{feedback}', [\App\Http\Controllers\Admin\AdminFeedbackController::class, 'destroy'])->name('feedback.destroy');
 
         Route::get('/teams-list', [\App\Http\Controllers\Admin\AdminTeamListController::class, 'index'])->name('teams-list.index');
+
+        Route::get('/semnas', [SemnasController::class, 'index'])->name('semnas.index');
     });
 
     Route::post('/transaction/{teamId}/verify', [TransactionController::class, 'verify']);
@@ -127,6 +136,8 @@ Route::middleware('auth')->prefix('export')->name('export.')->group(function () 
 
     Route::get('/competitions/{event}/submissions', [ExportController::class, 'exportSubmissions'])->name('submissions');
     Route::post('/competitions/{event}/submissions/google-sheets', [ExportController::class, 'exportSubmissionsGoogleSheets'])->name('submissions.sheets');
+
+    Route::get('/semnas-participants', [ExportController::class, 'exportSemnasParticipants'])->name('semnas-participants');
 });
 
 require __DIR__.'/auth.php';

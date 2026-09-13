@@ -3,8 +3,12 @@
 namespace App\Http\Controllers\Operation;
 
 use App\Http\Controllers\Controller;
+use App\Models\CompetitionTimeline;
 use App\Models\Event;
+use App\Models\EventTimeline;
+use App\Models\Setting;
 use App\Models\Team;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 
@@ -15,17 +19,22 @@ class FinalistController extends Controller
         // Hanya superadmin dan panitia_lomba yang bisa akses
         abort_unless(in_array(auth()->user()?->role, ['superadmin', 'panitia_lomba'], true), 403);
 
-        // Ambil hanya event kompetisi
-        if (auth()->user()?->role === 'panitia_lomba') {
-            $events = auth()->user()->events()
-                ->where('type', 'competition')
-                ->orderBy('title')
-                ->get();
-        } else {
-            $events = Event::where('type', 'competition')
-                ->orderBy('title')
-                ->get();
-        }
+        // Ambil event kompetisi
+        $eventsQuery = (auth()->user()?->role === 'panitia_lomba')
+            ? auth()->user()->events()->where('type', 'competition')
+            : Event::where('type', 'competition');
+
+        $events = $eventsQuery->with(['timelines' => fn($q) => $q->orderBy('date', 'asc')])
+            ->orderBy('title')
+            ->get();
+
+        $globalTimelines = CompetitionTimeline::orderBy('start_date', 'asc')->get();
+
+        // Jadwal pengumuman global (serentak untuk semua kompetisi)
+        $globalFinalistTimelineId = Setting::get('finalist_timeline_id')
+            ?? $events->firstWhere('finalist_timeline_id')?->finalist_timeline_id;
+        $globalWinnerTimelineId = Setting::get('winner_timeline_id')
+            ?? $events->firstWhere('winner_timeline_id')?->winner_timeline_id;
 
         $query = Team::with(['event', 'members.user'])
             ->whereHas('event', fn($q) => $q->where('type', 'competition'))
@@ -41,8 +50,15 @@ class FinalistController extends Controller
         }
 
         // Filter by event
-        if ($request->filled('event_id')) {
-            $query->where('competition_id', $request->input('event_id'));
+        $selectedEventId = $request->input('event_id', '');
+        if ($selectedEventId) {
+            $query->where('competition_id', $selectedEventId);
+        }
+
+        // Search by team name
+        $search = trim($request->input('search', ''));
+        if ($search !== '') {
+            $query->where('team_name', 'like', "%{$search}%");
         }
 
         // Filter by finalist status
@@ -61,11 +77,42 @@ class FinalistController extends Controller
             ->paginate(20)
             ->withQueryString();
 
+        $selectedEvent = $selectedEventId ? $events->firstWhere('id', $selectedEventId) : null;
+
         return view('operation.finalist.index', [
-            'teams'           => $teams,
-            'events'          => $events,
-            'selectedEventId' => $request->input('event_id', ''),
-            'selectedStatus'  => $request->input('status', ''),
+            'teams'                    => $teams,
+            'events'                   => $events,
+            'globalTimelines'          => $globalTimelines,
+            'globalFinalistTimelineId' => $globalFinalistTimelineId,
+            'globalWinnerTimelineId'   => $globalWinnerTimelineId,
+            'selectedEvent'            => $selectedEvent,
+            'selectedEventId'          => $selectedEventId,
+            'selectedStatus'           => $request->input('status', ''),
         ]);
+    }
+
+    public function updateAnnouncementSchedule(Request $request): RedirectResponse
+    {
+        abort_unless(in_array(auth()->user()?->role, ['superadmin', 'panitia_lomba'], true), 403);
+
+        $validated = $request->validate([
+            'finalist_timeline_id' => 'nullable|string|max:36',
+            'winner_timeline_id'   => 'nullable|string|max:36',
+        ]);
+
+        $finalistId = $validated['finalist_timeline_id'] ?: null;
+        $winnerId   = $validated['winner_timeline_id'] ?: null;
+
+        // Simpan ke Setting global
+        Setting::set('finalist_timeline_id', $finalistId);
+        Setting::set('winner_timeline_id', $winnerId);
+
+        // Update semua event kompetisi secara serentak
+        Event::where('type', 'competition')->update([
+            'finalist_timeline_id' => $finalistId,
+            'winner_timeline_id'   => $winnerId,
+        ]);
+
+        return back()->with('success', 'Jadwal pengumuman finalis & juara (serentak semua lomba) berhasil disimpan.');
     }
 }

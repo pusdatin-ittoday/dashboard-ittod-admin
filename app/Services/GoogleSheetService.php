@@ -216,6 +216,17 @@ class GoogleSheetService
             $writeCallback = function($handle) use ($eventId) {
                 \App\Exports\SubmissionExport::write($handle, $eventId);
             };
+        } elseif ($type === 'semnas_participants_global') {
+            $sheetTitle = 'Semua Peserta Semnas';
+            $writeCallback = function($handle) {
+                \App\Exports\SemnasParticipantExport::write($handle, null);
+            };
+        } elseif ($type === 'semnas_participants_event') {
+            $event = Event::findOrFail($eventId);
+            $sheetTitle = substr('Semnas - ' . preg_replace('/[^A-Za-z0-9 _-]/', '', $event->title), 0, 30);
+            $writeCallback = function($handle) use ($eventId) {
+                \App\Exports\SemnasParticipantExport::write($handle, $eventId);
+            };
         } else {
             throw new Exception("Invalid export type");
         }
@@ -227,7 +238,11 @@ class GoogleSheetService
 
         $values = [];
         while (($row = fgetcsv($handle)) !== false) {
-            $values[] = array_map(fn($val) => $val ?? '', $row);
+            $values[] = array_map(function ($val) {
+                if ($val === 'TRUE') return true;
+                if ($val === 'FALSE') return false;
+                return $val ?? '';
+            }, $row);
         }
         fclose($handle);
 
@@ -279,32 +294,29 @@ class GoogleSheetService
                 }
             }
         } catch (Exception $e) {
+            \Illuminate\Support\Facades\Log::warning("GoogleSheetService: Failed to ensure tab {$sheetTitle}: " . $e->getMessage());
             // Fallback to Sheet1 (gid 0)
             $sheetTitle = 'Sheet1';
             $gid = 0;
         }
 
+        $escapedTitle = "'" . str_replace("'", "''", $sheetTitle) . "'";
+
         // Clear existing data
         try {
             $this->sheetService->spreadsheets_values->clear(
                 $spreadsheetId,
-                $sheetTitle,
+                $escapedTitle,
                 new \Google\Service\Sheets\ClearValuesRequest()
             );
         } catch (Exception $e) {
-            $sheetTitle = 'Sheet1';
-            $gid = 0;
-            $this->sheetService->spreadsheets_values->clear(
-                $spreadsheetId,
-                $sheetTitle,
-                new \Google\Service\Sheets\ClearValuesRequest()
-            );
+            \Illuminate\Support\Facades\Log::warning("GoogleSheetService: Failed to clear sheet {$sheetTitle}: " . $e->getMessage());
         }
 
         // Write new data
         $this->sheetService->spreadsheets_values->update(
             $spreadsheetId,
-            $sheetTitle . '!A1',
+            $escapedTitle . '!A1',
             new ValueRange(['values' => $values]),
             ['valueInputOption' => 'RAW']
         );
