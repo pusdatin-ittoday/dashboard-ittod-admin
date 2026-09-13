@@ -39,6 +39,7 @@ Route::middleware(['auth'])->group(function () {
 
         // Halaman Finalist (hanya kompetisi)
         Route::get('/finalist', [FinalistController::class, 'index'])->name('operation.finalist.index');
+        Route::post('/finalist/schedule', [FinalistController::class, 'updateAnnouncementSchedule'])->name('operation.finalist.schedule');
 
 
         Route::post('/events', [TimelineController::class, 'storeEvent'])->name('operation.events.store');
@@ -75,6 +76,11 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/event-participants', [\App\Http\Controllers\Admin\EventParticipantController::class, 'store'])->name('event-participants.store');
         Route::post('/event-participants/verify', [\App\Http\Controllers\Admin\EventParticipantController::class, 'verify'])->name('event-participants.verify');
         Route::delete('/event-participants', [\App\Http\Controllers\Admin\EventParticipantController::class, 'destroy'])->name('event-participants.destroy');
+
+        Route::get('/semnas-participants', [\App\Http\Controllers\Admin\SemnasParticipantController::class, 'index'])->name('semnas-participants.index');
+        Route::post('/semnas-participants/whatsapp-link', [\App\Http\Controllers\Admin\SemnasParticipantController::class, 'updateWhatsappLink'])->name('semnas-participants.whatsapp-link');
+        Route::post('/semnas-participants/verify', [\App\Http\Controllers\Admin\SemnasParticipantController::class, 'verify'])->name('semnas-participants.verify');
+        Route::delete('/semnas-participants', [\App\Http\Controllers\Admin\SemnasParticipantController::class, 'destroy'])->name('semnas-participants.destroy');
 
         Route::get('/files-participants', [AdminDashboardController::class, 'filesParticipants'])->name('files-participants.index');
         Route::get('/files', [AdminDashboardController::class, 'files'])->name('files.index');
