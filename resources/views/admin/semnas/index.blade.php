@@ -155,6 +155,8 @@
                                     <option value="pending" @selected($filterStatus === 'pending')>Pending</option>
                                     <option value="accepted" @selected($filterStatus === 'accepted')>Accepted</option>
                                     <option value="rejected" @selected($filterStatus === 'rejected')>Rejected</option>
+                                </select>
+                            </div>
                         </form>
 
                         <!-- Export Buttons -->
