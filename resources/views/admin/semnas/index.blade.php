@@ -22,7 +22,42 @@
             rejectUserId: '',
             rejectEventId: '',
             rejectTargetName: '',
-            rejectReason: ''
+            rejectReason: '',
+            isExporting: false,
+            async exportToSheets() {
+                this.isExporting = true;
+                const filter = '{{ request('event_id') }}';
+                const exportType = filter ? 'semnas_participants_event' : 'semnas_participants_global';
+                
+                try {
+                    const response = await fetch('{{ route('export.recap.sheets') }}', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Accept': 'application/json',
+                            'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                        },
+                        body: JSON.stringify({
+                            export_type: exportType,
+                            event_id: filter || null
+                        })
+                    });
+                    const data = await response.json();
+                    if (data.success) {
+                        const newWindow = window.open(data.url, '_blank');
+                        if (!newWindow || newWindow.closed || typeof newWindow.closed === 'undefined') {
+                            alert('Ekspor berhasil! Namun tab baru terblokir oleh browser. Silakan buka manual: ' + data.url);
+                        }
+                    } else {
+                        alert('Gagal mengekspor: ' + (data.message || 'Terjadi kesalahan.'));
+                    }
+                } catch (error) {
+                    console.error(error);
+                    alert('Terjadi kesalahan jaringan.');
+                } finally {
+                    this.isExporting = false;
+                }
+            }
         }"
         x-init="
             $watch('lightboxOpen', v => { if (v) { document.body.classList.add('overflow-y-hidden'); } else { document.body.classList.remove('overflow-y-hidden'); } });
@@ -120,9 +155,39 @@
                                     <option value="pending" @selected($filterStatus === 'pending')>Pending</option>
                                     <option value="accepted" @selected($filterStatus === 'accepted')>Accepted</option>
                                     <option value="rejected" @selected($filterStatus === 'rejected')>Rejected</option>
-                                </select>
-                            </div>
                         </form>
+
+                        <!-- Export Buttons -->
+                        <div class="flex items-center gap-2">
+                            <a 
+                                href="{{ route('export.semnas-participants', ['event_id' => request('event_id')]) }}"
+                                class="inline-flex items-center justify-center rounded-md bg-indigo-600 px-3.5 py-2 text-xs font-bold uppercase text-white shadow-xs hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition"
+                            >
+                                <svg class="w-3.5 h-3.5 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                </svg>
+                                Export CSV
+                            </a>
+
+                            @if(in_array(auth()->user()->role, ['superadmin', 'admin_biasa']))
+                                <button 
+                                    type="button"
+                                    @click="exportToSheets()" 
+                                    :disabled="isExporting"
+                                    class="inline-flex items-center justify-center rounded-md bg-emerald-600 px-3.5 py-2 text-xs font-bold uppercase text-white shadow-xs hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition"
+                                >
+                                    <svg class="w-3.5 h-3.5 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                    </svg>
+                                    <template x-if="isExporting">
+                                        <span>Exporting...</span>
+                                    </template>
+                                    <template x-if="!isExporting">
+                                        <span>Export Google Sheets</span>
+                                    </template>
+                                </button>
+                            @endif
+                        </div>
                     </div>
                 </div>
             </div>

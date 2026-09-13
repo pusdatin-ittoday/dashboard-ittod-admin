@@ -21,7 +21,7 @@ return new class extends Migration
                 $table->boolean('kenal_acer')->default(false);
                 $table->boolean('kenal_nvidia')->default(false);
                 $table->boolean('kenal_microsoft')->default(false);
-                $table->string('ig_follow_proof_key', 255)->nullable();
+                $table->string('ig_follow_proof_key', 500)->nullable();
                 $table->timestamp('created_at')->useCurrent();
 
                 $table->unique(['user_id', 'event_id'], 'semnas_participant_user_event_unique');

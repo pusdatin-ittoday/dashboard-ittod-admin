@@ -77,9 +77,9 @@
                         </x-nav-link>
                     @endif
 
-                    <!-- Verifikasi Semnas -->
+                    <!-- Peserta Semnas -->
                     @if(Auth::check() && in_array(Auth::user()->role, ['superadmin', 'admin_biasa']))
-                        <x-nav-link :href="route('admin.semnas-participants.index')" :active="request()->routeIs('admin.semnas-participants.*')">
+                        <x-nav-link :href="route('admin.semnas.index')" :active="request()->routeIs('admin.semnas.*')">
                             {{ __('Semnas') }}
                         </x-nav-link>
                     @endif
@@ -195,7 +195,7 @@
                 <x-responsive-nav-link :href="route('admin.event-participants.index')" :active="request()->routeIs('admin.event-participants.*') || request()->routeIs('admin.transactions.*')">
                     {{ __('Pembayaran') }}
                 </x-responsive-nav-link>
-                <x-responsive-nav-link :href="route('admin.semnas-participants.index')" :active="request()->routeIs('admin.semnas-participants.*')">
+                <x-responsive-nav-link :href="route('admin.semnas.index')" :active="request()->routeIs('admin.semnas.*')">
                     {{ __('Semnas') }}
                 </x-responsive-nav-link>
             @endif

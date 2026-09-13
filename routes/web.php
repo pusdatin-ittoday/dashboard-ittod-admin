@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Admin\AdminDashboardController;
+use App\Http\Controllers\Admin\SemnasController;
 use App\Http\Controllers\Operation\FinalistController;
 use App\Http\Controllers\Operation\TeamController;
 use App\Http\Controllers\Operation\TimelineController;
@@ -113,6 +114,8 @@ Route::middleware(['auth'])->group(function () {
         Route::delete('/feedback/{feedback}', [\App\Http\Controllers\Admin\AdminFeedbackController::class, 'destroy'])->name('feedback.destroy');
 
         Route::get('/teams-list', [\App\Http\Controllers\Admin\AdminTeamListController::class, 'index'])->name('teams-list.index');
+
+        Route::get('/semnas', [SemnasController::class, 'index'])->name('semnas.index');
     });
 
     Route::post('/transaction/{teamId}/verify', [TransactionController::class, 'verify']);
@@ -133,6 +136,8 @@ Route::middleware('auth')->prefix('export')->name('export.')->group(function () 
 
     Route::get('/competitions/{event}/submissions', [ExportController::class, 'exportSubmissions'])->name('submissions');
     Route::post('/competitions/{event}/submissions/google-sheets', [ExportController::class, 'exportSubmissionsGoogleSheets'])->name('submissions.sheets');
+
+    Route::get('/semnas-participants', [ExportController::class, 'exportSemnasParticipants'])->name('semnas-participants');
 });
 
 require __DIR__.'/auth.php';
