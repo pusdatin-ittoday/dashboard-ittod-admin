@@ -15,9 +15,15 @@
             rejectEventId: '',
             rejectTargetName: '',
             rejectReason: '',
+            deleteModalOpen: false,
+            deleteEntityType: '',
+            deleteTeamId: '',
+            deleteUserId: '',
+            deleteEventId: '',
+            deleteTargetName: '',
             userSearch: ''
         }"
-        x-init="$watch('lightboxOpen', v => { if (v) { document.body.classList.add('overflow-y-hidden'); } else { document.body.classList.remove('overflow-y-hidden'); } }); $watch('rejectModalOpen', v => { if (v) { document.body.classList.add('overflow-y-hidden'); } else { document.body.classList.remove('overflow-y-hidden'); } })"
+        x-init="$watch('lightboxOpen', v => { if (v) { document.body.classList.add('overflow-y-hidden'); } else { document.body.classList.remove('overflow-y-hidden'); } }); $watch('rejectModalOpen', v => { if (v) { document.body.classList.add('overflow-y-hidden'); } else { document.body.classList.remove('overflow-y-hidden'); } }); $watch('deleteModalOpen', v => { if (v) { document.body.classList.add('overflow-y-hidden'); } else { document.body.classList.remove('overflow-y-hidden'); } })"
         x-on:open-lightbox.window="lightboxOpen = true; lightboxImg = $event.detail.img; lightboxTitle = $event.detail.title"
         class="flex flex-col gap-6"
     >
@@ -279,30 +285,23 @@
                                         @endif
 
                                         <!-- Button Hapus Peserta/Tim -->
-                                        <form
-                                            method="POST"
-                                            action="{{ route('admin.event-participants.destroy') }}"
-                                            onsubmit="return confirm('Apakah Anda yakin ingin menghapus data {{ addslashes($participant->full_name) }}?');"
+                                        <button
+                                            type="button"
+                                            @click="
+                                                deleteModalOpen = true;
+                                                deleteEntityType = '{{ $participant->entity_type }}';
+                                                deleteTeamId = '{{ $participant->team_id }}';
+                                                deleteUserId = '{{ $participant->user_id }}';
+                                                deleteEventId = '{{ $participant->event_id }}';
+                                                deleteTargetName = {{ \Illuminate\Support\Js::from($participant->full_name . ' (' . $participant->event_title . ')') }};
+                                            "
+                                            class="inline-flex items-center rounded-md border border-gray-300 bg-white p-1.5 text-xs font-medium text-gray-500 hover:bg-red-50 hover:text-red-600 hover:border-red-300 shadow-xs transition-colors cursor-pointer"
+                                            title="Hapus Data"
                                         >
-                                            @csrf
-                                            @method('DELETE')
-                                            <input type="hidden" name="entity_type" value="{{ $participant->entity_type }}">
-                                            @if($participant->entity_type === 'competition')
-                                                <input type="hidden" name="team_id" value="{{ $participant->team_id }}">
-                                            @else
-                                                <input type="hidden" name="user_id" value="{{ $participant->user_id }}">
-                                                <input type="hidden" name="event_id" value="{{ $participant->event_id }}">
-                                            @endif
-                                            <button
-                                                type="submit"
-                                                class="inline-flex items-center rounded-md border border-gray-300 bg-white p-1.5 text-xs font-medium text-gray-500 hover:bg-red-50 hover:text-red-600 hover:border-red-300 shadow-xs transition-colors cursor-pointer"
-                                                title="Hapus Data"
-                                            >
-                                                <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                                                </svg>
-                                            </button>
-                                        </form>
+                                            <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                            </svg>
+                                        </button>
                                     </div>
                                 </td>
                             </tr>
@@ -421,6 +420,93 @@
                             class="rounded-md bg-rose-600 px-4 py-2 text-sm font-semibold text-white hover:bg-rose-500 shadow-xs cursor-pointer transition-colors"
                         >
                             Konfirmasi Tolak
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Modal Hapus Peserta / Tim -->
+        <div
+            x-show="deleteModalOpen"
+            x-cloak
+            class="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6"
+            role="dialog"
+            aria-modal="true"
+            @keydown.escape.window="deleteModalOpen = false"
+        >
+            <div
+                x-show="deleteModalOpen"
+                x-transition:enter="ease-out duration-200"
+                x-transition:enter-start="opacity-0"
+                x-transition:enter-end="opacity-100"
+                x-transition:leave="ease-in duration-150"
+                x-transition:leave-start="opacity-100"
+                x-transition:leave-end="opacity-0"
+                class="fixed inset-0 bg-black/75 backdrop-blur-xs transition-opacity"
+                @click="deleteModalOpen = false"
+            ></div>
+
+            <div
+                x-show="deleteModalOpen"
+                x-transition:enter="ease-out duration-200"
+                x-transition:enter-start="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+                x-transition:enter-end="opacity-100 translate-y-0 sm:scale-100"
+                x-transition:leave="ease-in duration-150"
+                x-transition:leave-start="opacity-100 translate-y-0 sm:scale-100"
+                x-transition:leave-end="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+                class="relative w-full max-w-md bg-white rounded-xl shadow-2xl border border-gray-200 overflow-hidden flex flex-col transform transition-all z-10 my-auto"
+            >
+                <form method="POST" action="{{ route('admin.event-participants.destroy') }}">
+                    @csrf
+                    @method('DELETE')
+                    <input type="hidden" name="entity_type" :value="deleteEntityType">
+                    <input type="hidden" name="team_id" :value="deleteTeamId">
+                    <input type="hidden" name="user_id" :value="deleteUserId">
+                    <input type="hidden" name="event_id" :value="deleteEventId">
+
+                    <div class="flex items-center justify-between border-b border-gray-200 px-6 py-4 bg-red-50">
+                        <div class="flex items-center gap-2">
+                            <div class="flex h-8 w-8 items-center justify-center rounded-lg bg-red-600 text-white">
+                                <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                </svg>
+                            </div>
+                            <div>
+                                <h3 class="text-base font-bold text-gray-950">Hapus Peserta / Tim</h3>
+                                <p class="text-xs text-red-700 truncate max-w-xs" x-text="deleteTargetName"></p>
+                            </div>
+                        </div>
+                        <button
+                            type="button"
+                            @click="deleteModalOpen = false"
+                            class="rounded-lg p-1.5 text-gray-400 hover:bg-gray-200 hover:text-gray-600 transition-colors cursor-pointer"
+                        >
+                            <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                        </button>
+                    </div>
+
+                    <div class="p-6 space-y-3">
+                        <p class="text-sm text-gray-600">
+                            Apakah Anda yakin ingin menghapus data <strong class="text-gray-900" x-text="deleteTargetName"></strong>? Tindakan ini akan menghapus data pendaftaran, anggota tim, serta berkas terkait secara permanen dan tidak dapat dibatalkan.
+                        </p>
+                    </div>
+
+                    <div class="px-6 py-4 bg-gray-50 border-t border-gray-200 flex justify-end gap-2.5">
+                        <button
+                            type="button"
+                            @click="deleteModalOpen = false"
+                            class="rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-100 shadow-xs cursor-pointer transition-colors"
+                        >
+                            Batal
+                        </button>
+                        <button
+                            type="submit"
+                            class="rounded-md bg-red-600 px-4 py-2 text-sm font-semibold text-white hover:bg-red-500 shadow-xs cursor-pointer transition-colors"
+                        >
+                            Ya, Hapus Data
                         </button>
                     </div>
                 </form>

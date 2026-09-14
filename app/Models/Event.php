@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Support\Facades\DB;
 
 class Event extends Model
 {
@@ -100,11 +101,29 @@ class Event extends Model
     }
 
     /**
-     * Sync event registration status based on its registration timeline dates.
+     * Sync event registration status based on maximum participants and registration timeline dates.
      * Returns true if status was changed.
      */
     public function syncRegistrationStatus(): bool
     {
+        // 1. Check if maximum participant limit is reached
+        if ($this->max_noncompetition_participant !== null && $this->max_noncompetition_participant > 0) {
+            $currentCount = DB::table('event_participant')
+                ->where('event_id', $this->id)
+                ->whereIn('payment_verification', ['pending', 'accepted'])
+                ->count();
+
+            if ($currentCount >= $this->max_noncompetition_participant) {
+                if ((bool)$this->is_active !== false) {
+                    $this->update(['is_active' => false]);
+                    $this->is_active = false;
+                    return true;
+                }
+                return false;
+            }
+        }
+
+        // 2. Check registration timeline dates
         $regTimeline = $this->relationLoaded('timelines')
             ? $this->timelines->firstWhere('is_registration', true)
             : $this->registrationTimeline;
@@ -135,7 +154,7 @@ class Event extends Model
     }
 
     /**
-     * Check if registration deadline has passed or opening date has not arrived, and auto-sync if needed.
+     * Check if registration deadline has passed, opening date has not arrived, or quota is full, and auto-sync if needed.
      */
     public function checkAndCloseIfRegistrationExpired(): bool
     {
@@ -144,10 +163,21 @@ class Event extends Model
 
     /**
      * Get the current registration status state.
-     * Values: 'not_started', 'open', 'closed', 'manual'
+     * Values: 'not_started', 'open', 'closed', 'full', 'manual'
      */
     public function getRegistrationStateAttribute(): string
     {
+        if ($this->max_noncompetition_participant !== null && $this->max_noncompetition_participant > 0) {
+            $currentCount = DB::table('event_participant')
+                ->where('event_id', $this->id)
+                ->whereIn('payment_verification', ['pending', 'accepted'])
+                ->count();
+
+            if ($currentCount >= $this->max_noncompetition_participant) {
+                return 'full';
+            }
+        }
+
         $regTimeline = $this->relationLoaded('timelines')
             ? $this->timelines->firstWhere('is_registration', true)
             : $this->registrationTimeline;
