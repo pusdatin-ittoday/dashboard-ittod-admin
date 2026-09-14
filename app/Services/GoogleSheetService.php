@@ -82,7 +82,9 @@ class GoogleSheetService
                 $join->on('event_participant.user_id', '=', 'user.id')
                      ->where('event_participant.event_id', '=', $eventId);
             })
-            ->leftJoin('event', 'event.id', '=', DB::raw("'$eventId'"))
+            ->leftJoin('event', function($join) use ($eventId) {
+                $join->where('event.id', '=', $eventId);
+            })
             ->where(function($q) {
                 $q->whereNotNull('team_member.team_id')
                   ->orWhereNotNull('event_participant.event_id');
