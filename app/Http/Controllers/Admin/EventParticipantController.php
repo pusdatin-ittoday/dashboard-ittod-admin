@@ -262,6 +262,8 @@ class EventParticipantController extends Controller
             ]
         );
 
+        $event->syncRegistrationStatus();
+
         return back()->with('success', "Peserta {$user->full_name} berhasil didaftarkan ke {$event->title}.");
     }
 
@@ -281,7 +283,7 @@ class EventParticipantController extends Controller
         $status = $request->action === 'accept' ? 'accepted' : 'rejected';
 
         // Competition team verification
-        if ($request->entity_type === 'competition' || $request->filled('team_id')) {
+        if ($request->entity_type === 'competition' || ($request->filled('team_id') && !$request->filled('user_id'))) {
             $team = Team::find($request->team_id);
             if (!$team) {
                 return back()->with('error', 'Tim kompetisi tidak ditemukan.');
@@ -291,6 +293,8 @@ class EventParticipantController extends Controller
                 'is_verified' => $request->action === 'accept' ? 'approved' : 'rejected',
                 'verification_error' => $request->action === 'accept' ? null : $request->verification_error,
             ]);
+
+            $team->event?->syncRegistrationStatus();
 
             return back()->with('success', "Status verifikasi tim {$team->team_name} berhasil diperbarui.");
         }
@@ -327,6 +331,9 @@ class EventParticipantController extends Controller
             }
         });
 
+        $event = Event::find($request->event_id);
+        $event?->syncRegistrationStatus();
+
         return back()->with('success', 'Status verifikasi berhasil diperbarui.');
     }
 
@@ -335,14 +342,21 @@ class EventParticipantController extends Controller
         abort_unless(in_array(auth()->user()?->role, ['superadmin', 'admin_biasa']), 403);
 
         // Delete competition team
-        if ($request->entity_type === 'competition' || $request->filled('team_id')) {
+        if ($request->entity_type === 'competition' || ($request->filled('team_id') && !$request->filled('user_id'))) {
             $team = Team::find($request->team_id);
             if ($team) {
+                $eventId = $team->competition_id;
                 DB::transaction(function () use ($team) {
-                    CompetitionSubmission::where('team_id', $team->id)->delete();
-                    TeamMember::where('team_id', $team->id)->delete();
+                    DB::table('competition_submission')->where('team_id', $team->id)->delete();
+                    DB::table('team_member')->where('team_id', $team->id)->delete();
                     $team->delete();
                 });
+
+                if ($eventId) {
+                    $event = Event::find($eventId);
+                    $event?->syncRegistrationStatus();
+                }
+
                 return back()->with('success', 'Data tim kompetisi berhasil dihapus.');
             }
             return back()->with('error', 'Tim tidak ditemukan.');
@@ -350,6 +364,12 @@ class EventParticipantController extends Controller
 
         // Delete non-competition participant
         $deleted = DB::transaction(function () use ($request) {
+            // Also clean up semnas_participant if present
+            $semnasDeleted = DB::table('semnas_participant')
+                ->where('user_id', $request->user_id)
+                ->where('event_id', $request->event_id)
+                ->delete();
+
             $count = DB::table('event_participant')
                 ->where('user_id', $request->user_id)
                 ->where('event_id', $request->event_id)
@@ -363,15 +383,19 @@ class EventParticipantController extends Controller
                 ->get();
 
             foreach ($individualTeams as $team) {
-                CompetitionSubmission::where('team_id', $team->id)->delete();
-                TeamMember::where('team_id', $team->id)->delete();
+                DB::table('competition_submission')->where('team_id', $team->id)->delete();
+                DB::table('team_member')->where('team_id', $team->id)->delete();
                 $team->delete();
             }
 
-            return $count > 0 || $individualTeams->isNotEmpty();
+            return $count > 0 || $semnasDeleted > 0 || $individualTeams->isNotEmpty();
         });
 
         if ($deleted) {
+            if ($request->filled('event_id')) {
+                $event = Event::find($request->event_id);
+                $event?->syncRegistrationStatus();
+            }
             return back()->with('success', 'Peserta berhasil dihapus dari kegiatan.');
         }
 

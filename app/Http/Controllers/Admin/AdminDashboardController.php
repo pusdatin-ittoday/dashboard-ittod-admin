@@ -627,6 +627,8 @@ class AdminDashboardController extends Controller
 
         $request->validate([
             'timeline_id' => ['nullable', 'string', \Illuminate\Validation\Rule::exists('event_timeline', 'id')->where('event_id', $event->id)],
+            'enable_max_participant' => ['nullable', 'boolean'],
+            'max_noncompetition_participant' => ['nullable', 'required_if:enable_max_participant,1', 'integer', 'min:1'],
         ]);
 
         DB::transaction(function () use ($event, $request) {
@@ -638,21 +640,22 @@ class AdminDashboardController extends Controller
                 $timeline = EventTimeline::where('id', $request->timeline_id)->first();
                 if ($timeline) {
                     $timeline->update(['is_registration' => true]);
-                    $startDate = $timeline->end_date ? $timeline->date : null;
-                    $deadline = $timeline->end_date ?? $timeline->date;
-                    $now = now();
-                    if ($startDate && $now->lessThan($startDate)) {
-                        $event->update(['is_active' => false]);
-                    } elseif ($deadline && $now->greaterThan($deadline)) {
-                        $event->update(['is_active' => false]);
-                    } else {
-                        $event->update(['is_active' => true]);
-                    }
                 }
             }
+
+            // If quota option is present in the request (for non_competition events)
+            if ($event->type === 'non_competition' && $request->has('enable_max_participant')) {
+                $maxQuota = $request->boolean('enable_max_participant')
+                    ? ($request->input('max_noncompetition_participant') ? (int) $request->input('max_noncompetition_participant') : null)
+                    : null;
+                $event->update(['max_noncompetition_participant' => $maxQuota]);
+                $event->max_noncompetition_participant = $maxQuota;
+            }
+
+            $event->syncRegistrationStatus();
         });
 
-        return back()->with('status', 'Pengaturan timeline pendaftaran berhasil disimpan.');
+        return back()->with('status', 'Pengaturan timeline dan kuota pendaftaran berhasil disimpan.');
     }
 
     public function destroySubmission(Event $event, string $team_id): RedirectResponse
@@ -785,6 +788,7 @@ class AdminDashboardController extends Controller
         unset($validated['logo']);
 
         $event->update($validated);
+        $event->syncRegistrationStatus();
 
         return back()->with('status', 'Kompetisi berhasil diperbarui.');
     }
@@ -1148,7 +1152,8 @@ class AdminDashboardController extends Controller
             'requires_submission' => ['sometimes', 'boolean'],
             'contact_person1' => ['nullable', 'string', 'max:191'],
             'contact_person2' => ['nullable', 'string', 'max:191'],
-            'max_noncompetition_participant' => ['nullable', 'integer', 'min:1'],
+            'enable_max_participant' => ['nullable', 'boolean'],
+            'max_noncompetition_participant' => ['nullable', 'required_if:enable_max_participant,1', 'integer', 'min:1'],
             'method' => ['required', 'string', Rule::in(['online', 'offline'])],
             'logo' => [$request->isMethod('post') ? 'required_if:type,competition' : 'nullable', 'image', 'max:2048'],
             'max_member' => ['sometimes', 'nullable', 'integer', 'min:1', 'max:10'],
@@ -1159,6 +1164,11 @@ class AdminDashboardController extends Controller
         } elseif (empty($validated['max_member'])) {
             $validated['max_member'] = 3;
         }
+
+        if (!$request->boolean('enable_max_participant')) {
+            $validated['max_noncompetition_participant'] = null;
+        }
+        unset($validated['enable_max_participant']);
 
         return $validated;
     }

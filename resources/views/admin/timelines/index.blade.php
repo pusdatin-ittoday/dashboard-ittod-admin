@@ -388,12 +388,26 @@
                                             {{ $event->teams_count }} tim
                                         </a>
                                     @else
-                                        <a href="{{ route('admin.event-participants.index', ['event_id' => $event->id]) }}" class="inline-flex items-center gap-1 text-indigo-600 hover:text-indigo-900 hover:underline">
-                                            <span>{{ $event->participants_count }} peserta</span>
-                                            <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-                                            </svg>
-                                        </a>
+                                        <div class="space-y-0.5">
+                                            <a href="{{ route('admin.event-participants.index', ['event_id' => $event->id]) }}" class="inline-flex items-center gap-1 text-indigo-600 hover:text-indigo-900 hover:underline">
+                                                <span>{{ $event->participants_count }} peserta</span>
+                                                <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                                                </svg>
+                                            </a>
+                                            @if($event->max_noncompetition_participant)
+                                                <div class="text-[11px] font-normal text-amber-700">
+                                                    Kuota: {{ number_format($event->participants_count, 0, ',', '.') }} / {{ number_format($event->max_noncompetition_participant, 0, ',', '.') }}
+                                                    @if($event->participants_count >= $event->max_noncompetition_participant)
+                                                        <span class="font-bold text-red-600">(Penuh)</span>
+                                                    @endif
+                                                </div>
+                                            @else
+                                                <div class="text-[11px] font-normal text-gray-400">
+                                                    Tanpa batas kuota
+                                                </div>
+                                            @endif
+                                        </div>
                                     @endif
                                 </td>
                                 <td class="px-6 py-4">
@@ -410,6 +424,13 @@
                                                 Buka: {{ $regTl->date ? $regTl->date->format('d M Y H:i') : '-' }}
                                             </p>
                                         @endif
+                                    @elseif ($regState === 'full')
+                                        <span class="inline-flex rounded border border-purple-200 bg-purple-50 px-2 py-1 text-[11px] font-bold uppercase text-purple-700">
+                                            Penuh (Ditutup)
+                                        </span>
+                                        <p class="mt-1 text-[11px] text-purple-600">
+                                            Kuota Maksimal Terpenuhi
+                                        </p>
                                     @elseif ($regState === 'closed')
                                         <span class="inline-flex rounded border border-red-200 bg-red-50 px-2 py-1 text-[11px] font-bold uppercase text-red-700">
                                             Ditutup
@@ -578,7 +599,7 @@
                         <input type="url" name="guide_book_url" value="{{ old('guide_book_url') }}" class="mt-1 w-full rounded-md border-gray-300 text-sm shadow-sm focus:border-emerald-500 focus:ring-emerald-500">
                     </label>
                 </div>
-                <div x-show="type === 'non_competition'" x-cloak class="sm:col-span-2 grid gap-4 sm:grid-cols-2 mt-2 border-t border-gray-200 pt-4">
+                <div x-show="type === 'non_competition'" x-cloak class="sm:col-span-2 space-y-4 mt-2 border-t border-gray-200 pt-4">
                     <label class="block">
                         <span class="text-sm font-semibold text-gray-700">Metode Pelaksanaan <span class="text-red-500">*</span></span>
                         <select name="method" class="mt-1 w-full rounded-md border-gray-300 text-sm shadow-sm focus:border-emerald-500 focus:ring-emerald-500">
@@ -586,10 +607,23 @@
                             <option value="online" {{ old('method') === 'online' ? 'selected' : '' }}>Online</option>
                         </select>
                     </label>
-                    <label class="block">
-                        <span class="text-sm font-semibold text-gray-700">Maksimal Peserta</span>
-                        <input type="number" name="max_noncompetition_participant" placeholder="Kosongkan jika tidak ada batas" value="{{ old('max_noncompetition_participant') }}" class="mt-1 w-full rounded-md border-gray-300 text-sm shadow-sm focus:border-emerald-500 focus:ring-emerald-500">
-                    </label>
+
+                    <div x-data="{ enableQuota: {{ old('enable_max_participant') ? 'true' : 'false' }} }" class="rounded-lg border border-gray-200 bg-gray-50/75 p-3.5 space-y-3">
+                        <label class="flex items-center gap-3 cursor-pointer select-none">
+                            <input type="hidden" name="enable_max_participant" value="0">
+                            <input type="checkbox" name="enable_max_participant" value="1" x-model="enableQuota" class="rounded border-gray-300 text-emerald-600 focus:ring-emerald-500 h-4 w-4">
+                            <div>
+                                <span class="text-sm font-bold text-gray-900">Batasi Kuota Peserta (Auto-close saat penuh)</span>
+                                <p class="text-xs text-gray-500">Pendaftaran akan otomatis ditutup bila jumlah pendaftar telah mencapai batas maksimal.</p>
+                            </div>
+                        </label>
+                        <div x-show="enableQuota" x-cloak class="pt-2 border-t border-gray-200">
+                            <label class="block">
+                                <span class="text-xs font-bold uppercase tracking-wider text-gray-700">Maksimal Jumlah Peserta <span class="text-red-500">*</span></span>
+                                <input type="number" min="1" name="max_noncompetition_participant" placeholder="Contoh: 100" value="{{ old('max_noncompetition_participant') }}" :required="enableQuota" class="mt-1 w-full rounded-md border-gray-300 text-sm shadow-sm focus:border-emerald-500 focus:ring-emerald-500 bg-white">
+                            </label>
+                        </div>
+                    </div>
                 </div>
                 <div class="sm:col-span-2 border-t border-gray-200 pt-4 mt-2">
                     <h4 class="text-sm font-bold text-gray-900">Jadwal / Timeline Pendaftaran</h4>
@@ -760,7 +794,7 @@
                             <input type="url" name="guide_book_url" value="{{ old('guide_book_url', $event->guide_book_url) }}" class="mt-1 w-full rounded-md border-gray-300 text-sm shadow-sm focus:border-emerald-500 focus:ring-emerald-500">
                         </label>
                     </div>
-                    <div x-show="type === 'non_competition'" x-cloak class="sm:col-span-2 grid gap-4 sm:grid-cols-2 mt-2 border-t border-gray-200 pt-4">
+                    <div x-show="type === 'non_competition'" x-cloak class="sm:col-span-2 space-y-4 mt-2 border-t border-gray-200 pt-4">
                         <label class="block">
                             <span class="text-sm font-semibold text-gray-700">Metode Pelaksanaan <span class="text-red-500">*</span></span>
                             <select name="method" class="mt-1 w-full rounded-md border-gray-300 text-sm shadow-sm focus:border-emerald-500 focus:ring-emerald-500">
@@ -768,10 +802,23 @@
                                 <option value="online" {{ old('method', $event->method ?? 'offline') === 'online' ? 'selected' : '' }}>Online</option>
                             </select>
                         </label>
-                        <label class="block">
-                            <span class="text-sm font-semibold text-gray-700">Maksimal Peserta</span>
-                            <input type="number" name="max_noncompetition_participant" placeholder="Kosongkan jika tidak ada batas" value="{{ old('max_noncompetition_participant', $event->max_noncompetition_participant) }}" class="mt-1 w-full rounded-md border-gray-300 text-sm shadow-sm focus:border-emerald-500 focus:ring-emerald-500">
-                        </label>
+
+                        <div x-data="{ enableQuota: {{ old('enable_max_participant', $event->max_noncompetition_participant !== null ? '1' : '0') == '1' ? 'true' : 'false' }} }" class="rounded-lg border border-gray-200 bg-gray-50/75 p-3.5 space-y-3">
+                            <label class="flex items-center gap-3 cursor-pointer select-none">
+                                <input type="hidden" name="enable_max_participant" value="0">
+                                <input type="checkbox" name="enable_max_participant" value="1" x-model="enableQuota" class="rounded border-gray-300 text-emerald-600 focus:ring-emerald-500 h-4 w-4">
+                                <div>
+                                    <span class="text-sm font-bold text-gray-900">Batasi Kuota Peserta (Auto-close saat penuh)</span>
+                                    <p class="text-xs text-gray-500">Pendaftaran akan otomatis ditutup bila jumlah pendaftar telah mencapai batas maksimal.</p>
+                                </div>
+                            </label>
+                            <div x-show="enableQuota" x-cloak class="pt-2 border-t border-gray-200">
+                                <label class="block">
+                                    <span class="text-xs font-bold uppercase tracking-wider text-gray-700">Maksimal Jumlah Peserta <span class="text-red-500">*</span></span>
+                                    <input type="number" min="1" name="max_noncompetition_participant" placeholder="Contoh: 100" value="{{ old('max_noncompetition_participant', $event->max_noncompetition_participant) }}" :required="enableQuota" class="mt-1 w-full rounded-md border-gray-300 text-sm shadow-sm focus:border-emerald-500 focus:ring-emerald-500 bg-white">
+                                </label>
+                            </div>
+                        </div>
                     </div>
                     <div class="sm:col-span-2 grid gap-4 sm:grid-cols-2 mt-2 border-t border-gray-200 pt-4">
                         <label class="block">
