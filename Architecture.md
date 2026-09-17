@@ -143,9 +143,7 @@ Tanggung jawab:
 
 Pembatasan akses:
 
-- Per-event: superadmin, admin biasa, dan panitia_lomba.
-- Panitia Lomba hanya bisa export event yang ditugaskan.
-- Global: superadmin dan admin biasa.
+- Semua user yang terautentikasi dapat melakukan export CSV maupun Google Sheets (per-event maupun global).
 
 ## Model Dan Relasi
 

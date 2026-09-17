@@ -24,7 +24,26 @@ return Application::configure(basePath: dirname(__DIR__))
         if ($trustedProxies) {
             $middleware->trustProxies(at: $trustedProxies === '*' ? '*' : explode(',', $trustedProxies));
         }
+
+        $middleware->validateCsrfTokens(except: [
+            'logout',
+        ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {
-        //
+        $exceptions->render(function (\Illuminate\Session\TokenMismatchException $e, \Illuminate\Http\Request $request) {
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'message' => 'Sesi Anda telah berakhir. Silakan login kembali.',
+                    'redirect' => route('login'),
+                ], 419);
+            }
+
+            if ($request->isMethod('get')) {
+                return redirect()->guest(route('login'))
+                    ->with('status', 'Sesi Anda telah berakhir. Silakan login kembali.');
+            }
+
+            return redirect()->route('login')
+                ->with('status', 'Sesi Anda telah berakhir. Silakan login kembali.');
+        });
     })->create();

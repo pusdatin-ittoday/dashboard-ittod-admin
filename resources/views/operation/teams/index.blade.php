@@ -97,15 +97,11 @@
                 <form method="GET" action="{{ route('operation.teams.index') }}" class="flex items-center gap-2">
                     <label class="sr-only">Filter Event</label>
                     <select name="event_id" onchange="this.form.submit()" class="rounded-md border-gray-300 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
-                        @if(in_array(auth()->user()->role, ['superadmin', 'admin_biasa']))
-                            <optgroup label="Global">
-                                <option value="all_global" @selected($filterEventId === 'all_global')>Semua Pendaftaran (Global)</option>
-                                <option value="all_teams" @selected($filterEventId === 'all_teams' || !$filterEventId)>Semua Tim Lomba (Kompetisi)</option>
-                                <option value="all_participants" @selected($filterEventId === 'all_participants')>Semua Peserta Kegiatan (Non-Kompetisi)</option>
-                            </optgroup>
-                        @else
-                            <option value="" @selected(!$filterEventId)>Pilih Event</option>
-                        @endif
+                        <optgroup label="Global">
+                            <option value="all_global" @selected($filterEventId === 'all_global')>Semua Pendaftaran (Global)</option>
+                            <option value="all_teams" @selected($filterEventId === 'all_teams' || !$filterEventId)>Semua Tim Lomba (Kompetisi)</option>
+                            <option value="all_participants" @selected($filterEventId === 'all_participants')>Semua Peserta Kegiatan (Non-Kompetisi)</option>
+                        </optgroup>
                         
                         @php
                             $compEvents = $events->where('type', 'competition');
@@ -141,7 +137,6 @@
                     Export CSV
                 </button>
 
-                @if(in_array(auth()->user()->role, ['superadmin', 'admin_biasa', 'panitia_lomba']))
                 <button 
                     @click="exportToSheets()" 
                     :disabled="isExporting"
@@ -154,7 +149,6 @@
                         <span>Export Google Sheets</span>
                     </template>
                 </button>
-                @endif
 
                 @if(auth()->user()->role === 'superadmin')
                     @php

@@ -49,5 +49,45 @@
                 </div>
             </div>
         @endif
+
+        <script>
+            (function () {
+                let checking = false;
+                function checkSession() {
+                    if (checking) return;
+                    checking = true;
+                    fetch('{{ route('check-session') }}', {
+                        headers: {
+                            'Accept': 'application/json',
+                            'X-Requested-With': 'XMLHttpRequest'
+                        }
+                    })
+                    .then(function (res) {
+                        return res.json();
+                    })
+                    .then(function (data) {
+                        if (data && data.authenticated === false) {
+                            window.location.href = '{{ route('login') }}';
+                        }
+                    })
+                    .catch(function () {})
+                    .finally(function () {
+                        checking = false;
+                    });
+                }
+
+                document.addEventListener('visibilitychange', function () {
+                    if (document.visibilityState === 'visible') {
+                        checkSession();
+                    }
+                });
+
+                window.addEventListener('pageshow', function (e) {
+                    if (e.persisted) {
+                        checkSession();
+                    }
+                });
+            })();
+        </script>
     </body>
 </html>
