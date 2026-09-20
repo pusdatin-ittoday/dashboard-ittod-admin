@@ -352,73 +352,103 @@
                                     </button>
 
                                     {{-- Modal --}}
-                                    <div x-show="open" style="display: none;" class="fixed inset-0 z-[100] overflow-y-auto" aria-modal="true">
+                                    <div x-show="open" 
+                                         x-on:keydown.escape.window="open = false"
+                                         style="display: none;" 
+                                         class="fixed inset-0 z-[100] overflow-y-auto" 
+                                         aria-modal="true">
                                         <div class="flex min-h-screen items-end justify-center px-4 pb-20 pt-4 text-center sm:block sm:p-0">
-                                            <div x-show="open" x-transition.opacity class="fixed inset-0 bg-gray-500 bg-opacity-75" @click="open = false"></div>
+                                            <div x-show="open" x-transition.opacity class="fixed inset-0 bg-gray-500/75 backdrop-blur-xs transition-opacity" @click="open = false"></div>
                                             <span class="hidden sm:inline-block sm:h-screen sm:align-middle" aria-hidden="true">&#8203;</span>
                                             <div x-show="open" x-transition
-                                                class="inline-block transform overflow-hidden rounded-lg bg-white text-left align-bottom shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg sm:align-middle">
-                                                <div class="bg-white px-6 pb-4 pt-5">
+                                                class="inline-block transform overflow-hidden rounded-xl bg-white text-left align-bottom shadow-2xl transition-all sm:my-8 sm:w-full sm:max-w-xl sm:align-middle">
+                                                <div class="bg-white p-6">
                                                     <div class="flex items-start gap-4">
-                                                        <div class="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-amber-100">
-                                                            <span class="text-xl">🏆</span>
+                                                        <div class="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-full bg-amber-100 text-amber-700">
+                                                            <span class="text-2xl">🏆</span>
                                                         </div>
-                                                        <div class="flex-1">
-                                                            <h3 class="text-base font-semibold text-gray-900">Set Finalis: {{ $displayName }}</h3>
-                                                            <p class="mt-1 text-sm text-gray-500">Tandai tim ini sebagai finalis. Jika juara, isi peringkatnya.</p>
-                                                                <form action="{{ route('operation.teams.finalist', $team->id) }}" method="POST" class="mt-4">
-                                                                    @csrf
-                                                                    <div class="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-3">
-                                                                        {{-- Cabut Status (Bukan Finalis) --}}
-                                                                        <label class="cursor-pointer rounded-lg border px-3 py-3 text-center transition-colors hover:bg-red-50" 
-                                                                            x-bind:class="status === 'bukan' ? 'border-red-400 bg-red-50 text-red-800' : 'border-gray-200 text-gray-500'">
-                                                                            <input type="radio" value="bukan" x-model="status" class="sr-only">
-                                                                            <span class="block text-sm font-semibold">❌ Cabut Status (Hapus)</span>
-                                                                        </label>
-
-                                                                        {{-- Finalis --}}
-                                                                        <label class="cursor-pointer rounded-lg border px-3 py-3 text-center transition-colors hover:bg-blue-50" 
-                                                                            x-bind:class="status === 'finalis' ? 'border-blue-400 bg-blue-50 text-blue-800' : 'border-gray-200 text-gray-500'">
-                                                                            <input type="radio" value="finalis" x-model="status" class="sr-only">
-                                                                            <span class="block text-sm font-semibold">⭐ Finalis (Saja)</span>
-                                                                        </label>
+                                                        <div class="flex-1 min-w-0">
+                                                            <div class="flex items-start justify-between gap-3">
+                                                                <div class="min-w-0 flex-1">
+                                                                    <h3 class="text-base font-bold text-gray-950">Set Finalis & Juara</h3>
+                                                                    <div class="mt-2 rounded-lg border border-amber-200 bg-amber-50/70 p-3">
+                                                                        <p class="text-[11px] font-bold uppercase tracking-wider text-amber-800 mb-1">Nama Tim / Peserta</p>
+                                                                        <p class="text-sm font-bold text-gray-900 break-words leading-snug">
+                                                                            {{ $displayName }}
+                                                                        </p>
+                                                                        <div class="mt-2 flex flex-wrap items-center gap-2 text-xs text-gray-600">
+                                                                            <span class="rounded border border-gray-200 bg-white px-2 py-0.5 font-mono text-[11px] font-semibold text-gray-700">
+                                                                                {{ $isIndividual ? 'Peserta Individu' : 'Kode: ' . $team->team_code }}
+                                                                            </span>
+                                                                            <span>&bull;</span>
+                                                                            <span class="font-medium text-gray-700 break-words">{{ $team->event->title ?? $team->competition_id }}</span>
+                                                                        </div>
                                                                     </div>
+                                                                </div>
+                                                                <button type="button" @click="open = false" class="rounded-lg p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-500 focus:outline-none transition">
+                                                                    <span class="sr-only">Tutup</span>
+                                                                    <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                                                                    </svg>
+                                                                </button>
+                                                            </div>
 
-                                                                    <p class="text-xs font-semibold uppercase tracking-wide text-gray-500 mt-5 mb-2">Tetapkan Juara</p>
-                                                                    <div class="grid grid-cols-3 gap-2">
-                                                                        {{-- Juara 1 --}}
-                                                                        <label class="cursor-pointer rounded-lg border px-2 py-3 text-center transition-colors hover:bg-amber-50" 
-                                                                            x-bind:class="status === 'juara1' ? 'border-amber-400 bg-amber-50 text-amber-800' : 'border-gray-200 text-gray-500'">
-                                                                            <input type="radio" value="juara1" x-model="status" class="sr-only">
-                                                                            <span class="block text-sm font-bold">🥇 Juara 1</span>
-                                                                        </label>
+                                                            <p class="mt-3 text-xs text-gray-500">Tandai tim ini sebagai finalis. Jika merupakan pemenang, tentukan peringkat juara.</p>
 
-                                                                        {{-- Juara 2 --}}
-                                                                        <label class="cursor-pointer rounded-lg border px-2 py-3 text-center transition-colors hover:bg-slate-100" 
-                                                                            x-bind:class="status === 'juara2' ? 'border-slate-400 bg-slate-100 text-slate-800' : 'border-gray-200 text-gray-500'">
-                                                                            <input type="radio" value="juara2" x-model="status" class="sr-only">
-                                                                            <span class="block text-sm font-bold">🥈 Juara 2</span>
-                                                                        </label>
+                                                            <form action="{{ route('operation.teams.finalist', $team->id) }}" method="POST" class="mt-4">
+                                                                @csrf
+                                                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                                                    {{-- Cabut Status (Bukan Finalis) --}}
+                                                                    <label class="cursor-pointer rounded-lg border px-3 py-3 text-center transition-colors hover:bg-red-50" 
+                                                                        x-bind:class="status === 'bukan' ? 'border-red-400 bg-red-50 text-red-800 font-semibold' : 'border-gray-200 text-gray-500'">
+                                                                        <input type="radio" value="bukan" x-model="status" class="sr-only">
+                                                                        <span class="block text-sm font-semibold">❌ Cabut Status (Hapus)</span>
+                                                                    </label>
 
-                                                                        {{-- Juara 3 --}}
-                                                                        <label class="cursor-pointer rounded-lg border px-2 py-3 text-center transition-colors hover:bg-orange-50" 
-                                                                            x-bind:class="status === 'juara3' ? 'border-orange-400 bg-orange-50 text-orange-800' : 'border-gray-200 text-gray-500'">
-                                                                            <input type="radio" value="juara3" x-model="status" class="sr-only">
-                                                                            <span class="block text-sm font-bold">🥉 Juara 3</span>
-                                                                        </label>
-                                                                    </div>
+                                                                    {{-- Finalis --}}
+                                                                    <label class="cursor-pointer rounded-lg border px-3 py-3 text-center transition-colors hover:bg-blue-50" 
+                                                                        x-bind:class="status === 'finalis' ? 'border-blue-400 bg-blue-50 text-blue-800 font-semibold' : 'border-gray-200 text-gray-500'">
+                                                                        <input type="radio" value="finalis" x-model="status" class="sr-only">
+                                                                        <span class="block text-sm font-semibold">⭐ Finalis (Saja)</span>
+                                                                    </label>
+                                                                </div>
 
-                                                                    {{-- Hidden Inputs --}}
-                                                                    <input type="hidden" name="is_finalist" x-bind:value="status === 'bukan' ? 0 : 1">
-                                                                    <input type="hidden" name="rank" x-bind:value="status.startsWith('juara') ? status.replace('juara', '') : ''">
+                                                                <p class="text-xs font-semibold uppercase tracking-wide text-gray-500 mt-5 mb-2">Tetapkan Juara</p>
+                                                                <div class="grid grid-cols-3 gap-2">
+                                                                    {{-- Juara 1 --}}
+                                                                    <label class="cursor-pointer rounded-lg border px-2 py-3 text-center transition-colors hover:bg-amber-50" 
+                                                                        x-bind:class="status === 'juara1' ? 'border-amber-400 bg-amber-50 text-amber-800 font-bold' : 'border-gray-200 text-gray-500'">
+                                                                        <input type="radio" value="juara1" x-model="status" class="sr-only">
+                                                                        <span class="block text-sm font-bold">🥇 Juara 1</span>
+                                                                    </label>
+
+                                                                    {{-- Juara 2 --}}
+                                                                    <label class="cursor-pointer rounded-lg border px-2 py-3 text-center transition-colors hover:bg-slate-100" 
+                                                                        x-bind:class="status === 'juara2' ? 'border-slate-400 bg-slate-100 text-slate-800 font-bold' : 'border-gray-200 text-gray-500'">
+                                                                        <input type="radio" value="juara2" x-model="status" class="sr-only">
+                                                                        <span class="block text-sm font-bold">🥈 Juara 2</span>
+                                                                    </label>
+
+                                                                    {{-- Juara 3 --}}
+                                                                    <label class="cursor-pointer rounded-lg border px-2 py-3 text-center transition-colors hover:bg-orange-50" 
+                                                                        x-bind:class="status === 'juara3' ? 'border-orange-400 bg-orange-50 text-orange-800 font-bold' : 'border-gray-200 text-gray-500'">
+                                                                        <input type="radio" value="juara3" x-model="status" class="sr-only">
+                                                                        <span class="block text-sm font-bold">🥉 Juara 3</span>
+                                                                    </label>
+                                                                </div>
+
+                                                                {{-- Hidden Inputs --}}
+                                                                <input type="hidden" name="is_finalist" x-bind:value="status === 'bukan' ? 0 : 1">
+                                                                <input type="hidden" name="rank" x-bind:value="status.startsWith('juara') ? status.replace('juara', '') : ''">
+
                                                                 {{-- Actions --}}
-                                                                <div class="flex flex-row-reverse gap-3 pt-2">
+                                                                <div class="mt-6 flex flex-row-reverse gap-3 border-t border-gray-100 pt-4">
                                                                     <button type="submit"
-                                                                        class="inline-flex justify-center rounded-md bg-amber-600 px-4 py-2 text-sm font-semibold text-white hover:bg-amber-500">
+                                                                        class="inline-flex justify-center rounded-lg bg-amber-600 px-5 py-2 text-sm font-bold text-white shadow-sm hover:bg-amber-500 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-offset-2 transition">
                                                                         Simpan
                                                                     </button>
                                                                     <button type="button" @click="open = false"
-                                                                        class="inline-flex justify-center rounded-md bg-white px-4 py-2 text-sm font-semibold text-gray-900 ring-1 ring-inset ring-gray-300 hover:bg-gray-50">
+                                                                        class="inline-flex justify-center rounded-lg bg-white px-4 py-2 text-sm font-semibold text-gray-700 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 transition">
                                                                         Batal
                                                                     </button>
                                                                 </div>
