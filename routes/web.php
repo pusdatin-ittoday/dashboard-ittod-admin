@@ -14,6 +14,12 @@ Route::get('/', function () {
     return redirect()->route('login');
 });
 
+Route::get('/check-session', function () {
+    return response()->json([
+        'authenticated' => auth()->check(),
+    ]);
+})->name('check-session');
+
 Route::get('/dashboard', [AdminDashboardController::class, 'dashboard'])
     ->middleware(['auth', 'verified'])
     ->name('dashboard');

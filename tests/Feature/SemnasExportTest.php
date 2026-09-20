@@ -47,7 +47,7 @@ class SemnasExportTest extends TestCase
         $this->assertTrue(str_contains($response->headers->get('content-type'), 'text/csv'));
     }
 
-    public function test_unauthorized_role_cannot_access_semnas()
+    public function test_unauthorized_role_cannot_access_semnas_page_but_can_export()
     {
         $panitia = UserIdentity::where('role', 'panitia_lomba')->first();
         if ($panitia) {
@@ -55,7 +55,8 @@ class SemnasExportTest extends TestCase
             $response->assertStatus(403);
 
             $responseExport = $this->actingAs($panitia)->get('/export/semnas-participants');
-            $responseExport->assertStatus(403);
+            $responseExport->assertStatus(200);
+            $this->assertTrue(str_contains($responseExport->headers->get('content-type'), 'text/csv'));
         }
     }
 }

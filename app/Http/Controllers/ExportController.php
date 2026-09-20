@@ -16,17 +16,11 @@ class ExportController extends Controller
 {
     public function exportTeams(Request $request): StreamedResponse
     {
-        abort_unless(in_array(auth()->user()->role, ['superadmin', 'panitia_lomba', 'admin_biasa']), 403);
         $request->validate([
             'event_id' => ['required', 'string', 'exists:event,id'],
         ]);
 
         $event    = Event::findOrFail($request->input('event_id'));
-
-        if (auth()->user()->role === 'panitia_lomba') {
-            abort_unless(auth()->user()->events->contains('id', $event->id), 403);
-        }
-
         $filename = 'rekap-tim-' . Str::slug($event->title) . '-' . now()->format('Y-m-d') . '.csv';
 
         return response()->stream(function () use ($event) {
@@ -39,17 +33,11 @@ class ExportController extends Controller
 
     public function exportParticipants(Request $request): StreamedResponse
     {
-        abort_unless(in_array(auth()->user()->role, ['superadmin', 'panitia_lomba', 'admin_biasa']), 403);
         $request->validate([
             'event_id' => ['required', 'string', 'exists:event,id'],
         ]);
 
         $event    = Event::findOrFail($request->input('event_id'));
-
-        if (auth()->user()->role === 'panitia_lomba') {
-            abort_unless(auth()->user()->events->contains('id', $event->id), 403);
-        }
-
         $filename = 'rekap-peserta-' . Str::slug($event->title) . '-' . now()->format('Y-m-d') . '.csv';
 
         return response()->stream(function () use ($event) {
@@ -63,7 +51,6 @@ class ExportController extends Controller
 
     public function exportSemnasParticipants(Request $request): StreamedResponse
     {
-        abort_unless(in_array(auth()->user()->role, ['superadmin', 'admin_biasa']), 403);
         $request->validate([
             'event_id' => ['nullable', 'string', 'exists:event,id'],
         ]);
@@ -87,7 +74,6 @@ class ExportController extends Controller
 
     public function exportTeamsGlobal(): StreamedResponse
     {
-        abort_unless(in_array(auth()->user()->role, ['superadmin', 'admin_biasa']), 403);
         $filename = 'rekap-tim-semua-' . now()->format('Y-m-d') . '.csv';
 
         return response()->stream(function () {
@@ -100,7 +86,6 @@ class ExportController extends Controller
 
     public function exportParticipantsGlobal(): StreamedResponse
     {
-        abort_unless(in_array(auth()->user()->role, ['superadmin', 'admin_biasa']), 403);
         $filename = 'rekap-peserta-semua-' . now()->format('Y-m-d') . '.csv';
 
         return response()->stream(function () {
@@ -113,22 +98,14 @@ class ExportController extends Controller
 
     public function exportUsersGlobal(\Illuminate\Http\Request $request): StreamedResponse
     {
-        $userRole = auth()->user()->role;
-        abort_unless(in_array($userRole, ['superadmin', 'admin_biasa', 'panitia_lomba']), 403);
         $filename = 'rekap-pengguna-umum-' . now()->format('Y-m-d') . '.csv';
-
         $requestedEventId = $request->input('event_id');
 
-        return response()->stream(function () use ($userRole, $requestedEventId) {
+        return response()->stream(function () use ($requestedEventId) {
             $handle = fopen('php://output', 'w');
             fwrite($handle, "\xEF\xBB\xBF");
             
-            $eventIds = null;
-            if ($requestedEventId) {
-                $eventIds = [$requestedEventId];
-            } elseif ($userRole === 'panitia_lomba') {
-                $eventIds = auth()->user()->events->pluck('id')->toArray();
-            }
+            $eventIds = $requestedEventId ? [$requestedEventId] : null;
             
             UserExport::write($handle, $eventIds);
             fclose($handle);
@@ -137,23 +114,8 @@ class ExportController extends Controller
 
     public function exportUsersGoogleSheets(Request $request, GoogleSheetService $service)
     {
-        $userRole = auth()->user()->role;
-        abort_unless(in_array($userRole, ['superadmin', 'admin_biasa', 'panitia_lomba']), 403);
-
         try {
-            $eventId = $request->input('event_id');
-            if ($userRole === 'panitia_lomba') {
-                if ($eventId) {
-                    abort_unless(auth()->user()->events->contains('id', $eventId), 403);
-                } else {
-                    $myEvents = auth()->user()->events;
-                    if ($myEvents->isEmpty()) {
-                        abort(403, 'Anda tidak memiliki event.');
-                    }
-                    $eventId = $myEvents->first()->id;
-                }
-            }
-
+            $eventId = $request->input('event_id') ?: null;
             $url = $service->exportUsers($eventId);
 
             return response()->json([
@@ -170,25 +132,16 @@ class ExportController extends Controller
 
     public function exportRecapGoogleSheets(Request $request, GoogleSheetService $service)
     {
-        $userRole = auth()->user()->role;
-        abort_unless(in_array($userRole, ['superadmin', 'admin_biasa', 'panitia_lomba']), 403);
-
         try {
             $exportType = $request->input('export_type'); // 'teams_global', 'participants_global', 'event'
             $eventId = $request->input('event_id');
 
             if ($exportType === 'teams_global') {
-                abort_unless(in_array($userRole, ['superadmin', 'admin_biasa']), 403);
                 $url = $service->exportRecap('teams_global');
             } elseif ($exportType === 'participants_global') {
-                abort_unless(in_array($userRole, ['superadmin', 'admin_biasa']), 403);
                 $url = $service->exportRecap('participants_global');
             } elseif ($exportType === 'event') {
                 $event = Event::findOrFail($eventId);
-                if ($userRole === 'panitia_lomba') {
-                    abort_unless(auth()->user()->events->contains('id', $event->id), 403);
-                }
-
                 if ($event->type === 'competition') {
                     $url = $service->exportRecap('teams_event', $event->id);
                 } else {
@@ -196,15 +149,10 @@ class ExportController extends Controller
                 }
             } elseif ($exportType === 'submissions_event') {
                 $event = Event::findOrFail($eventId);
-                if ($userRole === 'panitia_lomba') {
-                    abort_unless(auth()->user()->events->contains('id', $event->id), 403);
-                }
                 $url = $service->exportRecap('submissions_event', $event->id);
             } elseif ($exportType === 'semnas_participants_global') {
-                abort_unless(in_array($userRole, ['superadmin', 'admin_biasa']), 403);
                 $url = $service->exportRecap('semnas_participants_global');
             } elseif ($exportType === 'semnas_participants_event') {
-                abort_unless(in_array($userRole, ['superadmin', 'admin_biasa']), 403);
                 $event = Event::findOrFail($eventId);
                 $url = $service->exportRecap('semnas_participants_event', $event->id);
             } else {
@@ -225,11 +173,6 @@ class ExportController extends Controller
 
     public function exportSubmissions(Request $request, Event $event): StreamedResponse
     {
-        abort_unless(in_array(auth()->user()->role, ['superadmin', 'panitia_lomba', 'admin_biasa']), 403);
-        if (auth()->user()->role === 'panitia_lomba') {
-            abort_unless(auth()->user()->events->contains('id', $event->id), 403);
-        }
-
         $filename = 'rekap-submisi-' . Str::slug($event->title) . '-' . now()->format('Y-m-d') . '.csv';
 
         return response()->stream(function () use ($event) {
@@ -242,11 +185,6 @@ class ExportController extends Controller
 
     public function exportSubmissionsGoogleSheets(Request $request, Event $event, GoogleSheetService $service)
     {
-        abort_unless(in_array(auth()->user()->role, ['superadmin', 'panitia_lomba', 'admin_biasa']), 403);
-        if (auth()->user()->role === 'panitia_lomba') {
-            abort_unless(auth()->user()->events->contains('id', $event->id), 403);
-        }
-
         try {
             $url = $service->exportRecap('submissions_event', $event->id);
             return response()->json([

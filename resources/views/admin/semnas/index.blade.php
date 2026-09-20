@@ -171,24 +171,22 @@
                                 Export CSV
                             </a>
 
-                            @if(in_array(auth()->user()->role, ['superadmin', 'admin_biasa']))
-                                <button 
-                                    type="button"
-                                    @click="exportToSheets()" 
-                                    :disabled="isExporting"
-                                    class="inline-flex items-center justify-center rounded-md bg-emerald-600 px-3.5 py-2 text-xs font-bold uppercase text-white shadow-xs hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition"
-                                >
-                                    <svg class="w-3.5 h-3.5 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                                    </svg>
-                                    <template x-if="isExporting">
-                                        <span>Exporting...</span>
-                                    </template>
-                                    <template x-if="!isExporting">
-                                        <span>Export Google Sheets</span>
-                                    </template>
-                                </button>
-                            @endif
+                            <button 
+                                type="button"
+                                @click="exportToSheets()" 
+                                :disabled="isExporting"
+                                class="inline-flex items-center justify-center rounded-md bg-emerald-600 px-3.5 py-2 text-xs font-bold uppercase text-white shadow-xs hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition"
+                            >
+                                <svg class="w-3.5 h-3.5 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                </svg>
+                                <template x-if="isExporting">
+                                    <span>Exporting...</span>
+                                </template>
+                                <template x-if="!isExporting">
+                                    <span>Export Google Sheets</span>
+                                </template>
+                            </button>
                         </div>
                     </div>
                 </div>
