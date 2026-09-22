@@ -45,6 +45,8 @@ Route::middleware(['auth'])->group(function () {
 
         // Halaman Finalist (hanya kompetisi)
         Route::get('/finalist', [FinalistController::class, 'index'])->name('operation.finalist.index');
+        Route::get('/finalist/export/csv', [FinalistController::class, 'exportCsv'])->name('operation.finalist.export.csv');
+        Route::post('/finalist/export/sheets', [FinalistController::class, 'exportSheets'])->name('operation.finalist.export.sheets');
         Route::post('/finalist/schedule', [FinalistController::class, 'updateAnnouncementSchedule'])->name('operation.finalist.schedule');
 
 
