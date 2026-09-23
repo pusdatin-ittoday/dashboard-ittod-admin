@@ -26,8 +26,10 @@ class FinalistController extends Controller
     protected function buildFinalistQuery(Request $request): Builder
     {
         $query = Team::query()
-            ->whereHas('event', fn($q) => $q->where('type', 'competition'))
-            ->where('is_verified', 'approved'); // hanya tim yang sudah lunas/diverifikasi
+            ->join('event', 'team.competition_id', '=', 'event.id')
+            ->select('team.*')
+            ->where('event.type', 'competition')
+            ->where('team.is_verified', 'approved'); // hanya tim yang sudah lunas/diverifikasi
 
         // Panitia lomba hanya lihat event yang di-assign
         if (auth()->user()?->role === 'panitia_lomba') {
@@ -35,34 +37,35 @@ class FinalistController extends Controller
                 ->where('type', 'competition')
                 ->pluck('id')
                 ->toArray();
-            $query->whereIn('competition_id', $assignedEventIds);
+            $query->whereIn('team.competition_id', $assignedEventIds);
         }
 
         // Filter by event
         $selectedEventId = $request->input('event_id', '');
         if ($selectedEventId) {
-            $query->where('competition_id', $selectedEventId);
+            $query->where('team.competition_id', $selectedEventId);
         }
 
         // Search by team name
         $search = trim($request->input('search', ''));
         if ($search !== '') {
-            $query->where('team_name', 'like', "%{$search}%");
+            $query->where('team.team_name', 'like', "%{$search}%");
         }
 
         // Filter by finalist status
         if ($request->filled('status')) {
             $status = $request->input('status');
             if ($status === 'finalist') {
-                $query->where('is_finalist', true)->whereNull('rank');
+                $query->where('team.is_finalist', true)->whereNull('team.rank');
             } elseif ($status === 'winner') {
-                $query->where('is_finalist', true)->whereNotNull('rank');
+                $query->where('team.is_finalist', true)->whereNotNull('team.rank');
             } elseif ($status === 'none') {
-                $query->where('is_finalist', false);
+                $query->where('team.is_finalist', false);
             }
         }
 
-        return $query->orderByRaw('team.is_finalist DESC, ISNULL(team.rank) ASC, team.rank ASC, team.team_name ASC, team.id ASC');
+        return $query->orderBy('event.title', 'asc')
+            ->orderByRaw('team.is_finalist DESC, ISNULL(team.rank) ASC, team.rank ASC, team.team_name ASC, team.id ASC');
     }
 
     public function index(Request $request): View

@@ -12,7 +12,7 @@ class FinalistExport
         'Tipe',
         'Kode Tim',
         'Cabang Kompetisi',
-        'Ketua / Kontak Utama',
+        'Ketua',
         'Email',
         'No HP',
         'Asal Sekolah / Institusi',
@@ -56,8 +56,8 @@ class FinalistExport
 
                     // Finalist & Winner status
                     if ($team->rank) {
-                        $statusFinalis = 'Juara ' . $team->rank;
-                        $rankLabel = (string) $team->rank;
+                        $statusFinalis = 'Finalis';
+                        $rankLabel = 'Juara ' . $team->rank;
                     } elseif ($team->is_finalist) {
                         $statusFinalis = 'Finalis';
                         $rankLabel = '-';
