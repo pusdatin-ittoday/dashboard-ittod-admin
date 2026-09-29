@@ -2,7 +2,55 @@
     title="List Tim & Monitoring Peserta"
     subtitle="Direktori pemantauan seluruh tim kompetisi dan event IT Today (Read-Only)."
 >
-    <div x-data="{ lightboxOpen: false, lightboxImg: '', lightboxTitle: '' }" x-init="$watch('lightboxOpen', v => { if (v) { document.body.classList.add('overflow-y-hidden'); } else { document.body.classList.remove('overflow-y-hidden'); } })" x-on:open-lightbox.window="lightboxOpen = true; lightboxImg = $event.detail.img; lightboxTitle = $event.detail.title" class="flex flex-col gap-6">
+    <div 
+        x-data="{ 
+            lightboxOpen: false, 
+            lightboxImg: '', 
+            lightboxTitle: '',
+            isExportingSheets: false,
+            exportCsv() {
+                const form = document.getElementById('filter-form');
+                const formData = new FormData(form);
+                const params = new URLSearchParams(formData);
+                window.location.href = '{{ route('export.teams-list.csv') }}?' + params.toString();
+            },
+            async exportToSheets() {
+                this.isExportingSheets = true;
+                const form = document.getElementById('filter-form');
+                const formData = new FormData(form);
+                const payload = Object.fromEntries(formData.entries());
+
+                try {
+                    const response = await fetch('{{ route('export.teams-list.sheets') }}', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Accept': 'application/json',
+                            'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                        },
+                        body: JSON.stringify(payload)
+                    });
+                    const data = await response.json();
+                    if (data.success) {
+                        const newWindow = window.open(data.url, '_blank');
+                        if (!newWindow || newWindow.closed || typeof newWindow.closed === 'undefined') {
+                            alert('Ekspor berhasil! Namun tab baru terblokir oleh browser. Silakan buka: ' + data.url);
+                        }
+                    } else {
+                        alert('Gagal mengekspor: ' + (data.message || 'Terjadi kesalahan.'));
+                    }
+                } catch (error) {
+                    console.error(error);
+                    alert('Terjadi kesalahan jaringan.');
+                } finally {
+                    this.isExportingSheets = false;
+                }
+            }
+        }" 
+        x-init="$watch('lightboxOpen', v => { if (v) { document.body.classList.add('overflow-y-hidden'); } else { document.body.classList.remove('overflow-y-hidden'); } })" 
+        x-on:open-lightbox.window="lightboxOpen = true; lightboxImg = $event.detail.img; lightboxTitle = $event.detail.title" 
+        class="flex flex-col gap-6"
+    >
         <!-- Summary Stats Cards -->
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             <div class="rounded-lg border border-gray-200 bg-white p-5 shadow-sm">
@@ -60,7 +108,7 @@
 
         <!-- Filter & Search Bar Section -->
         <section class="rounded-lg border border-gray-200 bg-white p-5 shadow-sm">
-            <form method="GET" action="{{ route('admin.teams-list.index') }}" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-3 items-end">
+            <form id="filter-form" method="GET" action="{{ route('admin.teams-list.index') }}" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-3 items-end">
                 <!-- Search -->
                 <div class="sm:col-span-2 lg:col-span-2">
                     <label class="block text-xs font-bold uppercase tracking-wide text-gray-600 mb-1">
@@ -77,6 +125,7 @@
                             name="search"
                             value="{{ $searchQuery }}"
                             placeholder="Nama tim, kode, ketua, email, sekolah..."
+                            onsearch="this.form.submit()"
                             class="w-full rounded-md border-gray-300 pl-10 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
                         >
                     </div>
@@ -89,14 +138,38 @@
                     </label>
                     <select
                         name="event_id"
+                        onchange="this.form.submit()"
                         class="w-full rounded-md border-gray-300 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
                     >
-                        <option value="">Semua Event</option>
-                        @foreach($events as $ev)
-                            <option value="{{ $ev->id }}" {{ $selectedEventId === $ev->id ? 'selected' : '' }}>
-                                {{ $ev->title }}
-                            </option>
-                        @endforeach
+                        <optgroup label="Global">
+                            <option value="" @selected(empty($selectedEventId))>Semua Tim Kompetisi</option>
+                            <option value="all_events" @selected($selectedEventId === 'all_events')>Semua Event (Non-Kompetisi)</option>
+                        </optgroup>
+
+                        @php
+                            $compEvents = $events->where('type', 'competition');
+                            $nonCompEvents = $events->where('type', 'non_competition');
+                        @endphp
+
+                        @if($compEvents->isNotEmpty())
+                            <optgroup label="Kompetisi / Lomba">
+                                @foreach($compEvents as $ev)
+                                    <option value="{{ $ev->id }}" @selected($selectedEventId === $ev->id)>
+                                        {{ $ev->title }} ({{ $ev->participation_type === 'individual' ? 'Individu' : 'Tim' }})
+                                    </option>
+                                @endforeach
+                            </optgroup>
+                        @endif
+
+                        @if($nonCompEvents->isNotEmpty())
+                            <optgroup label="Kegiatan / Event">
+                                @foreach($nonCompEvents as $ev)
+                                    <option value="{{ $ev->id }}" @selected($selectedEventId === $ev->id)>
+                                        {{ $ev->title }}
+                                    </option>
+                                @endforeach
+                            </optgroup>
+                        @endif
                     </select>
                 </div>
 
@@ -107,6 +180,7 @@
                     </label>
                     <select
                         name="status_berkas"
+                        onchange="this.form.submit()"
                         class="w-full rounded-md border-gray-300 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
                     >
                         <option value="">Semua Berkas</option>
@@ -123,6 +197,7 @@
                     </label>
                     <select
                         name="status_pembayaran"
+                        onchange="this.form.submit()"
                         class="w-full rounded-md border-gray-300 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
                     >
                         <option value="">Semua Pembayaran</option>
@@ -140,6 +215,7 @@
                     </label>
                     <select
                         name="batch"
+                        onchange="this.form.submit()"
                         class="w-full rounded-md border-gray-300 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
                     >
                         <option value="">Semua Periode</option>
@@ -151,22 +227,51 @@
                     </select>
                 </div>
 
-                <!-- Action Buttons -->
-                <div class="flex items-center gap-2 sm:col-span-2 lg:col-span-6 justify-end mt-1">
-                    <button
-                        type="submit"
-                        class="rounded-md bg-indigo-600 px-4 py-2 text-xs font-bold text-white shadow hover:bg-indigo-700 transition-colors cursor-pointer"
-                    >
-                        Terapkan Filter
-                    </button>
-                    @if($selectedEventId || $selectedStatusBerkas || $selectedStatusPembayaran || $selectedBatch || $searchQuery)
-                        <a
-                            href="{{ route('admin.teams-list.index') }}"
-                            class="rounded-md border border-gray-300 bg-white px-4 py-2 text-xs font-semibold text-gray-700 hover:bg-gray-50"
+                <!-- Action & Export Buttons -->
+                <div class="flex flex-wrap items-center gap-2 sm:col-span-2 lg:col-span-6 justify-between mt-2 pt-3 border-t border-gray-100">
+                    <div class="flex items-center gap-2">
+                        @if($selectedEventId || $selectedStatusBerkas || $selectedStatusPembayaran || $selectedBatch || $searchQuery)
+                            <a
+                                href="{{ route('admin.teams-list.index') }}"
+                                class="inline-flex items-center rounded-md border border-gray-300 bg-white px-3 py-1.5 text-xs font-semibold text-gray-700 hover:bg-gray-50 shadow-xs transition-colors"
+                            >
+                                <svg class="mr-1.5 h-3.5 w-3.5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                                </svg>
+                                Reset Filter
+                            </a>
+                        @endif
+                    </div>
+
+                    <div class="flex items-center gap-2">
+                        <button
+                            type="button"
+                            @click="exportCsv()"
+                            class="inline-flex items-center justify-center rounded-md bg-indigo-600 px-3.5 py-1.5 text-xs font-bold uppercase tracking-wider text-white shadow-xs hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition-colors cursor-pointer"
                         >
-                            Reset Filter
-                        </a>
-                    @endif
+                            <svg class="mr-1.5 h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                            </svg>
+                            Export CSV
+                        </button>
+
+                        <button
+                            type="button"
+                            @click="exportToSheets()"
+                            :disabled="isExportingSheets"
+                            class="inline-flex items-center justify-center rounded-md bg-emerald-600 px-3.5 py-1.5 text-xs font-bold uppercase tracking-wider text-white shadow-xs hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors cursor-pointer"
+                        >
+                            <svg class="mr-1.5 h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                            </svg>
+                            <template x-if="isExportingSheets">
+                                <span>Exporting...</span>
+                            </template>
+                            <template x-if="!isExportingSheets">
+                                <span>Export Google Sheets</span>
+                            </template>
+                        </button>
+                    </div>
                 </div>
             </form>
         </section>
