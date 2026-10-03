@@ -13,58 +13,134 @@
         </div>
     @endif
 
-    {{-- Filter Bar --}}
-    <form method="GET" action="{{ route('operation.finalist.index') }}" class="mb-6 flex flex-wrap items-end gap-3">
-        <div class="flex-1 min-w-[240px]">
-            <label class="block text-xs font-semibold uppercase tracking-wide text-gray-500 mb-1">Cari Nama Tim</label>
-            <div class="relative">
-                <span class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3 text-gray-400">
-                    <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m21 21-4.35-4.35m1.35-5.65a7 7 0 1 1-14 0 7 7 0 0 1 14 0z"></path>
-                    </svg>
-                </span>
-                <input
-                    type="search"
-                    name="search"
-                    value="{{ request('search') }}"
-                    placeholder="Cari nama tim..."
-                    class="block w-full pl-9 rounded-md border-gray-300 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
-                >
+    {{-- Filter and Export Bar --}}
+    <div class="mb-6 flex flex-col lg:flex-row lg:items-end lg:justify-between gap-4"
+         x-data="{
+             isExporting: false,
+             exportCsv() {
+                 const params = new URLSearchParams(window.location.search);
+                 window.location.href = '{{ route('operation.finalist.export.csv') }}?' + params.toString();
+             },
+             async exportToSheets() {
+                 this.isExporting = true;
+                 const params = new URLSearchParams(window.location.search);
+                 const payload = {
+                     event_id: params.get('event_id') || '{{ $selectedEventId }}',
+                     search: params.get('search') || '{{ request('search') }}',
+                     status: params.get('status') || '{{ $selectedStatus }}'
+                 };
+                 try {
+                     const response = await fetch('{{ route('operation.finalist.export.sheets') }}', {
+                         method: 'POST',
+                         headers: {
+                             'Content-Type': 'application/json',
+                             'Accept': 'application/json',
+                             'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                         },
+                         body: JSON.stringify(payload)
+                     });
+                     const data = await response.json();
+                     if (data.success) {
+                         const newWindow = window.open(data.url, '_blank');
+                         if (!newWindow || newWindow.closed || typeof newWindow.closed === 'undefined') {
+                             alert('Ekspor berhasil! Namun tab baru terblokir oleh browser. Silakan buka manual: ' + data.url);
+                         }
+                     } else {
+                         alert('Gagal mengekspor: ' + (data.message || 'Terjadi kesalahan.'));
+                     }
+                 } catch (err) {
+                     alert('Terjadi kesalahan saat mengekspor: ' + err.message);
+                 } finally {
+                     this.isExporting = false;
+                 }
+             }
+         }">
+        {{-- Filter Form --}}
+        <form method="GET" action="{{ route('operation.finalist.index') }}" class="flex flex-1 flex-wrap items-end gap-3">
+            <div class="flex-1 min-w-[200px]">
+                <label class="block text-xs font-semibold uppercase tracking-wide text-gray-500 mb-1">Cari Nama Tim</label>
+                <div class="relative">
+                    <span class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3 text-gray-400">
+                        <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m21 21-4.35-4.35m1.35-5.65a7 7 0 1 1-14 0 7 7 0 0 1 14 0z"></path>
+                        </svg>
+                    </span>
+                    <input
+                        type="search"
+                        name="search"
+                        value="{{ request('search') }}"
+                        placeholder="Cari nama tim..."
+                        class="block w-full pl-9 rounded-md border-gray-300 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                    >
+                </div>
             </div>
+            <div class="min-w-[180px]">
+                <label class="block text-xs font-semibold uppercase tracking-wide text-gray-500 mb-1">Cabang Kompetisi</label>
+                <select name="event_id" onchange="this.form.submit()"
+                    class="w-full rounded-md border-gray-300 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                    <option value="">Semua Kompetisi</option>
+                    @foreach($events as $event)
+                        <option value="{{ $event->id }}" {{ $selectedEventId === $event->id ? 'selected' : '' }}>
+                            {{ $event->title }}
+                        </option>
+                    @endforeach
+                </select>
+            </div>
+            <div class="min-w-[160px]">
+                <label class="block text-xs font-semibold uppercase tracking-wide text-gray-500 mb-1">Status</label>
+                <select name="status" onchange="this.form.submit()"
+                    class="w-full rounded-md border-gray-300 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                    <option value="">Semua Tim</option>
+                    <option value="winner" {{ $selectedStatus === 'winner' ? 'selected' : '' }}>🏆 Juara</option>
+                    <option value="finalist" {{ $selectedStatus === 'finalist' ? 'selected' : '' }}>⭐ Finalis (bukan juara)</option>
+                    <option value="none" {{ $selectedStatus === 'none' ? 'selected' : '' }}>Belum Ditandai</option>
+                </select>
+            </div>
+            <div class="flex items-center gap-2">
+                <button type="submit"
+                    class="inline-flex items-center justify-center rounded-md bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-700 transition">
+                    Cari
+                </button>
+                @if(request('search') || $selectedEventId || $selectedStatus)
+                    <a href="{{ route('operation.finalist.index') }}"
+                       class="inline-flex items-center justify-center rounded-md border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-600 hover:bg-gray-50 transition">
+                        Reset
+                    </a>
+                @endif
+            </div>
+        </form>
+
+        {{-- Export Buttons --}}
+        <div class="flex items-center gap-2">
+            <button 
+                type="button"
+                @click="exportCsv()" 
+                class="inline-flex items-center justify-center gap-1.5 rounded-md bg-indigo-600 px-4 py-2 text-xs font-bold uppercase tracking-wider text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition"
+            >
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
+                Export CSV
+            </button>
+
+            <button 
+                type="button"
+                @click="exportToSheets()" 
+                :disabled="isExporting"
+                class="inline-flex items-center justify-center gap-1.5 rounded-md bg-emerald-600 px-4 py-2 text-xs font-bold uppercase tracking-wider text-white shadow-sm hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition"
+            >
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
+                <template x-if="isExporting">
+                    <span>Exporting...</span>
+                </template>
+                <template x-if="!isExporting">
+                    <span>Export Sheets</span>
+                </template>
+            </button>
         </div>
-        <div class="min-w-[200px]">
-            <label class="block text-xs font-semibold uppercase tracking-wide text-gray-500 mb-1">Cabang Kompetisi</label>
-            <select name="event_id" onchange="this.form.submit()"
-                class="w-full rounded-md border-gray-300 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
-                <option value="">Semua Kompetisi</option>
-                @foreach($events as $event)
-                    <option value="{{ $event->id }}" {{ $selectedEventId === $event->id ? 'selected' : '' }}>
-                        {{ $event->title }}
-                    </option>
-                @endforeach
-            </select>
-        </div>
-        <div class="min-w-[180px]">
-            <label class="block text-xs font-semibold uppercase tracking-wide text-gray-500 mb-1">Status</label>
-            <select name="status" onchange="this.form.submit()"
-                class="w-full rounded-md border-gray-300 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
-                <option value="">Semua Tim</option>
-                <option value="winner" {{ $selectedStatus === 'winner' ? 'selected' : '' }}>🏆 Juara</option>
-                <option value="finalist" {{ $selectedStatus === 'finalist' ? 'selected' : '' }}>⭐ Finalis (bukan juara)</option>
-                <option value="none" {{ $selectedStatus === 'none' ? 'selected' : '' }}>Belum Ditandai</option>
-            </select>
-        </div>
-        <button type="submit"
-            class="inline-flex items-center justify-center rounded-md bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-700 transition">
-            Cari
-        </button>
-        @if(request('search') || $selectedEventId || $selectedStatus)
-            <a href="{{ route('operation.finalist.index') }}"
-               class="inline-flex items-center justify-center rounded-md border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-600 hover:bg-gray-50 transition">
-                Reset
-            </a>
-        @endif
-    </form>
+    </div>
 
     {{-- Jadwal Pengumuman Landing Page Card (Serentak Semua Lomba) --}}
     @php

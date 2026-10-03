@@ -199,6 +199,54 @@ class ExportController extends Controller
         }
     }
 
+    public function exportTeamsListCsv(Request $request): StreamedResponse
+    {
+        abort_unless(in_array(auth()->user()?->role, ['superadmin', 'admin_biasa', 'panitia_lomba'], true), 403);
+
+        $filters = $request->only(['event_id', 'status_berkas', 'status_pembayaran', 'batch', 'search']);
+        $eventId = $filters['event_id'] ?? null;
+
+        $event = $eventId && !in_array($eventId, ['all_teams', 'all_events', 'all_global'], true)
+            ? Event::find($eventId)
+            : null;
+
+        if ($event) {
+            $prefix = $event->type === 'non_competition' ? 'rekap-event-' : 'rekap-tim-';
+            $filename = $prefix . Str::slug($event->title) . '-' . now()->format('Y-m-d') . '.csv';
+        } elseif ($eventId === 'all_events') {
+            $filename = 'rekap-semua-event-' . now()->format('Y-m-d') . '.csv';
+        } else {
+            $filename = 'rekap-tim-kompetisi-' . now()->format('Y-m-d') . '.csv';
+        }
+
+        return response()->stream(function () use ($filters) {
+            $handle = fopen('php://output', 'w');
+            fwrite($handle, "\xEF\xBB\xBF");
+            \App\Exports\TeamListExport::write($handle, $filters);
+            fclose($handle);
+        }, 200, $this->buildCsvHeaders($filename));
+    }
+
+    public function exportTeamsListGoogleSheets(Request $request, GoogleSheetService $service)
+    {
+        abort_unless(in_array(auth()->user()?->role, ['superadmin', 'admin_biasa', 'panitia_lomba'], true), 403);
+
+        try {
+            $filters = $request->only(['event_id', 'status_berkas', 'status_pembayaran', 'batch', 'search']);
+            $url = $service->exportTeamsList($filters);
+
+            return response()->json([
+                'success' => true,
+                'url'     => $url,
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage(),
+            ], 500);
+        }
+    }
+
     private function buildCsvHeaders(string $filename): array
     {
         return [

@@ -24,7 +24,14 @@ class AdminTeamListController extends Controller
 
         // Filter by specific event/competition
         if ($request->filled('event_id')) {
-            $query->where('competition_id', $request->input('event_id'));
+            $eventId = $request->input('event_id');
+            if ($eventId === 'all_teams') {
+                $query->whereHas('event', fn($q) => $q->where('type', 'competition'));
+            } elseif ($eventId === 'all_events') {
+                $query->whereHas('event', fn($q) => $q->where('type', 'non_competition'));
+            } elseif (!in_array($eventId, ['all_global'], true)) {
+                $query->where('competition_id', $eventId);
+            }
         }
 
         // Filter by Status Berkas (is_document_verified)

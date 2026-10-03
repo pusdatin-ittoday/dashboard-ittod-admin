@@ -18,70 +18,7 @@
         </div>
     @endif
 
-    <div x-data="{
-        search: '',
-        isExporting: false,
-        eventTypes: {
-            @foreach($events as $e)
-                '{{ $e->id }}': '{{ $e->type }}',
-            @endforeach
-        },
-        exportCsv() {
-            const filter = '{{ $filterEventId }}' || 'all_teams';
-            if (filter === 'all_teams') {
-                window.location.href = '{{ route('export.teams.global') }}';
-            } else if (filter === 'all_participants') {
-                window.location.href = '{{ route('export.participants.global') }}';
-            } else {
-                const type = this.eventTypes[filter];
-                if (type === 'competition') {
-                    window.location.href = '{{ route('export.teams') }}?event_id=' + filter;
-                } else {
-                    window.location.href = '{{ route('export.participants') }}?event_id=' + filter;
-                }
-            }
-        },
-        async exportToSheets() {
-            this.isExporting = true;
-            const filter = '{{ $filterEventId }}' || 'all_teams';
-            
-            let exportType = 'event';
-            if (filter === 'all_teams') {
-                exportType = 'teams_global';
-            } else if (filter === 'all_participants') {
-                exportType = 'participants_global';
-            }
-            
-            try {
-                const response = await fetch('{{ route('export.recap.sheets') }}', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Accept': 'application/json',
-                        'X-CSRF-TOKEN': '{{ csrf_token() }}'
-                    },
-                    body: JSON.stringify({
-                        export_type: exportType,
-                        event_id: filter
-                    })
-                });
-                const data = await response.json();
-                if (data.success) {
-                    const newWindow = window.open(data.url, '_blank');
-                    if (!newWindow || newWindow.closed || typeof newWindow.closed === 'undefined') {
-                        alert('Ekspor berhasil! Namun tab baru terblokir oleh browser. Silakan buka manual: ' + data.url);
-                    }
-                } else {
-                    alert('Gagal mengekspor: ' + (data.message || 'Terjadi kesalahan.'));
-                }
-            } catch (error) {
-                console.error(error);
-                alert('Terjadi kesalahan jaringan.');
-            } finally {
-                this.isExporting = false;
-            }
-        }
-    }">
+    <div x-data="{ search: '' }">
         <div class="mb-6 flex flex-col gap-4 border-b border-gray-200 pb-6 sm:flex-row sm:items-end sm:justify-between">
             <div>
                 <div class="flex flex-wrap items-center gap-3">
@@ -129,26 +66,6 @@
                         @endif
                     </select>
                 </form>
-
-                <button 
-                    @click="exportCsv()" 
-                    class="inline-flex items-center justify-center rounded-md bg-indigo-600 px-4 py-2 text-sm font-bold uppercase text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
-                >
-                    Export CSV
-                </button>
-
-                <button 
-                    @click="exportToSheets()" 
-                    :disabled="isExporting"
-                    class="inline-flex items-center justify-center rounded-md bg-emerald-600 px-4 py-2 text-sm font-bold uppercase text-white shadow-sm hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                    <template x-if="isExporting">
-                        <span>Exporting...</span>
-                    </template>
-                    <template x-if="!isExporting">
-                        <span>Export Google Sheets</span>
-                    </template>
-                </button>
 
                 @if(auth()->user()->role === 'superadmin')
                     @php
